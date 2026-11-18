@@ -607,27 +607,5 @@ describe('Overlay', () => {
       for (const name of THEME_ATTRIBUTES) expect(wrapper).toHaveAttribute(name);
       frame.remove();
     });
-
-    it('warns in development when the container draws none of its children', () => {
-      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      const video = document.createElement('video');
-      const player = document.createElement('div');
-      document.body.append(video, player);
-      const { rerender } = render(
-        <Overlay portalContainer={player}>
-          <div>Speed</div>
-        </Overlay>,
-      );
-      expect(warn).not.toHaveBeenCalled();
-      rerender(
-        <Overlay portalContainer={video}>
-          <div>Speed</div>
-        </Overlay>,
-      );
-      expect(warn).toHaveBeenCalledWith(expect.stringContaining('a <video> never shows'));
-      warn.mockRestore();
-      video.remove();
-      player.remove();
-    });
   });
 });

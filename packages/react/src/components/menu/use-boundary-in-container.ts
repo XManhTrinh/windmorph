@@ -47,9 +47,7 @@ export function useBoundaryInContainer(
   popoverRef: RefObject<HTMLElement | null>,
   version: unknown,
 ): Element | null {
-  const [standIn] = useState(() =>
-    typeof document === 'undefined' ? null : document.createElement('div'),
-  );
+  const standIn = useStandIn();
   useLayoutEffect(() => {
     const popover = popoverRef.current;
     if (!standIn) return;
@@ -57,21 +55,57 @@ export function useBoundaryInContainer(
       standIn.remove();
       return;
     }
-    const inner = paddingEdge(boundary);
-    const origin = paddingEdge(containingBlock(popover));
-    standIn.setAttribute('aria-hidden', 'true');
-    standIn.setAttribute('data-menu-boundary', '');
-    Object.assign(standIn.style, {
-      position: 'absolute',
-      top: `${inner.top - origin.top}px`,
-      left: `${inner.left - origin.left}px`,
-      width: `${boundary.clientWidth}px`,
-      height: `${boundary.clientHeight}px`,
-      visibility: 'hidden',
-      pointerEvents: 'none',
-    });
-    if (!standIn.isConnected) popover.ownerDocument.documentElement.append(standIn);
+    placeStandIn(standIn, boundary, containingBlock(popover));
   }, [boundary, popoverRef, standIn, version]);
-  useLayoutEffect(() => () => standIn?.remove(), [standIn]);
   return boundary ? standIn : null;
+}
+
+/**
+ * The same for the popovers placed inside a popover (the submenus beside a menu in a
+ * `portalContainer`, all portalled into the root popover): their containing block is that
+ * popover, which React Aria moves, so the stand-in follows it on each of its layout passes. A
+ * submenu that opens is placed before it in that pass, from where the root popover already was.
+ */
+export function useBoundaryForSubmenus(
+  boundary: Element | null,
+  popoverRef: RefObject<HTMLElement | null>,
+): Element | null {
+  const standIn = useStandIn();
+  useLayoutEffect(() => {
+    const popover = popoverRef.current;
+    if (!standIn) return;
+    if (!boundary || !popover) {
+      standIn.remove();
+      return;
+    }
+    placeStandIn(standIn, boundary, popover);
+  });
+  return boundary ? standIn : null;
+}
+
+/** A hidden box for React Aria to measure, in the page while its popover is open. */
+function useStandIn() {
+  const [standIn] = useState(() =>
+    typeof document === 'undefined' ? null : document.createElement('div'),
+  );
+  useLayoutEffect(() => () => standIn?.remove(), [standIn]);
+  return standIn;
+}
+
+/** Puts `standIn` in the page where `boundary`'s padding box sits in `block`, at its size. */
+function placeStandIn(standIn: HTMLElement, boundary: Element, block: Element) {
+  const inner = paddingEdge(boundary);
+  const origin = paddingEdge(block);
+  standIn.setAttribute('aria-hidden', 'true');
+  standIn.setAttribute('data-menu-boundary', '');
+  Object.assign(standIn.style, {
+    position: 'absolute',
+    top: `${inner.top - origin.top}px`,
+    left: `${inner.left - origin.left}px`,
+    width: `${boundary.clientWidth}px`,
+    height: `${boundary.clientHeight}px`,
+    visibility: 'hidden',
+    pointerEvents: 'none',
+  });
+  if (!standIn.isConnected) block.ownerDocument.documentElement.append(standIn);
 }

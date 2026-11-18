@@ -56,32 +56,10 @@ export const persistentScrollbar = [
 // Where submenus show in place of the menu that opened them (a bottom sheet, or a popover with
 // `submenuPresentation="replace"`): every page but the last is hidden, the first page (the menu,
 // not portalled) and every earlier submenu page (portalled in after it, in an overlay scope), so
-// nested pages stack the same way.
-const pageStack = [
+// nested pages stack the same way. Shared with the pages' own styles (`menu-page-styles.ts`).
+export const menuPageStack = [
   '[&>:not([data-overlay-scope]):has(~[data-overlay-scope])]:hidden',
   '[&>[data-overlay-scope]:has(~[data-overlay-scope])>*]:hidden',
-];
-
-// A page coming in (`submenuTransition`): it fades in on the fast effects spring, and with
-// `slide` also moves in 30px from the end edge going forward and from the start edge going back
-// (M3's forward and backward pattern), on the default spatial spring. The pages read the
-// direction from their container's `data-page-direction`, which is set from the first page
-// change on, so the first page never moves as the menu opens: the reveal does that. The page
-// going out is hidden at once.
-const pageEnter = [
-  'opacity-100 [[data-page-direction]_&]:starting:opacity-0',
-  '[[data-page-direction]_&]:starting:[translate:calc(var(--m3-menu-page-x,0px)*var(--m3-menu-page-sign,1))_0]',
-  '[transition-property:opacity,translate]',
-  '[transition-duration:var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-default-duration)]',
-  '[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-default-easing)]',
-];
-
-// What the container of the pages tells them: the slide's offset for the direction (left and
-// right swap in right to left), only with `slide`.
-const pageDirection = [
-  '[--m3-menu-page-sign:1] rtl:[--m3-menu-page-sign:-1]',
-  'data-[page-transition=slide]:data-[page-direction=forward]:[--m3-menu-page-x:30px]',
-  'data-[page-transition=slide]:data-[page-direction=back]:[--m3-menu-page-x:-30px]',
 ];
 
 /** Variant definitions for {@link Menu} and its parts. */
@@ -172,52 +150,22 @@ export const menuStyles = tv({
     trailing:
       'ms-auto inline-flex shrink-0 items-center ps-[12px] text-label-small text-[color:var(--_md-comp-menus-menu-item-trailing-icon-color)] [&>svg]:size-[20px]',
     badge: 'inline-flex shrink-0 items-center ps-[12px]',
-    // A popover whose submenus show in place (`submenuPresentation="replace"`): one surface
-    // that persists from page to page, the `divider` layout's (its colour, corners, elevation
-    // and forced-colours edge). It holds the visible page's height (set inline), which grows
-    // on the default spatial spring and shrinks over the same duration on the default effects
-    // spring's easing (`data-shrinking`), so a shorter page is never cut and the surface never
-    // bounces open again; any other change of size follows at once. It clips the page coming in.
-    surface: [
-      'flex max-h-[inherit] min-h-0 flex-col overflow-clip',
-      'bg-[var(--_md-comp-menus-container-color)] shadow-[shadow:var(--_md-comp-menus-container-elevation)]',
-      'rounded-[var(--_md-comp-menus-container-shape)]',
-      'forced-colors:outline-solid forced-colors:outline-1 forced-colors:outline-[CanvasText]',
-      '[transition-property:none] data-paging:[transition-property:height]',
-      '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration)]',
-      '[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing)]',
-      'data-shrinking:[transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
+    // A menu's place in a bottom sheet. An open submenu's panel follows the menu that opened
+    // it (portalled in after it) and hides it, and any panel before it, while it's open.
+    sheetContent: ['flex min-h-0 flex-1 flex-col px-[8px] pb-[16px]', ...menuPageStack],
+    // A submenu in a sheet: a back button and its item's label above its list, fading in.
+    sheetPanel: [
+      'flex min-h-0 flex-1 flex-col opacity-100 starting:opacity-0',
+      '[transition-property:opacity]',
+      '[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)]',
+      '[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing)]',
     ],
-    // The pages on that surface, at their own height (up to the popover's maximum, the list
-    // scrolling inside) and width: the surface's 4px padding, and the menu's 112–280px width,
-    // which follows each page at once.
-    pages: [
-      'flex max-h-[inherit] min-w-[112px] max-w-[280px] shrink-0 flex-col p-[4px]',
-      ...pageStack,
-      ...pageDirection,
-    ],
-    // A menu's place in a bottom sheet. An open submenu's page follows the menu that opened
-    // it (portalled in after it) and hides it, and any page before it, while it's open.
-    sheetContent: [
-      'flex min-h-0 flex-1 flex-col overflow-x-clip px-[8px] pb-[16px]',
-      ...pageStack,
-      ...pageDirection,
-    ],
-    // A page coming in: the first page (the menu itself) as it shows again, in a sheet or in
-    // place in a popover. Only its motion: the list keeps its own layout.
-    page: pageEnter,
-    // A submenu shown in place, in a sheet or a popover: a back button and its item's label
-    // above its list, coming in as `page`.
-    sheetPanel: ['flex min-h-0 flex-1 flex-col', ...pageEnter],
-    // The row above a submenu shown in place. The title and the back icon take the items'
-    // label and leading-icon colours, so `vibrant` and the menu's tokens reach them.
     sheetHeader: 'flex min-h-[48px] shrink-0 items-center gap-[4px] pe-[12px]',
     sheetBack: [
       'inline-flex size-[48px] shrink-0 cursor-pointer items-center justify-center rounded-corner-full',
-      'state-layer focus-ring text-[color:var(--_md-comp-menus-menu-item-leading-icon-color)] [&>svg]:size-[24px]',
+      'state-layer focus-ring text-on-surface-variant [&>svg]:size-[24px]',
     ],
-    sheetTitle:
-      'min-w-0 flex-1 truncate text-title-medium text-[color:var(--_md-comp-menus-menu-item-label-text-color)]',
+    sheetTitle: 'min-w-0 flex-1 truncate text-title-medium text-on-surface',
   },
   variants: {
     variant: {
@@ -296,13 +244,9 @@ export const menuStyles = tv({
       true: { item: 'py-[calc(8px+var(--md-sys-density,0)*2px)]' },
       false: {},
     },
-    /** Open and close with no motion (`instant`), and change pages with none either. */
+    /** Open and close with no motion (`instant`). */
     instant: {
-      true: {
-        reveal: '[transition-property:none]',
-        page: '[transition-property:none]',
-        sheetPanel: '[transition-property:none]',
-      },
+      true: { reveal: '[transition-property:none]' },
       false: {},
     },
     /** In a bottom sheet: the list spans it, on the sheet's own surface. */

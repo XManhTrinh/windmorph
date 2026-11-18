@@ -11,6 +11,7 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
+  type ComponentType,
   type CSSProperties,
   type ElementType,
   type FocusEvent,
@@ -22,7 +23,6 @@ import {
   type Ref,
   type RefObject,
 } from 'react';
-import { flushSync } from 'react-dom';
 import {
   DismissButton,
   I18nProvider,
@@ -33,12 +33,12 @@ import {
   useMenuSection,
   useObjectRef,
   usePopover,
-  useButton,
   useSubmenuTrigger,
   type AriaMenuItemProps,
   type AriaMenuOptions,
   type AriaMenuProps,
   type AriaPopoverProps,
+  type PopoverAria,
   type Placement,
 } from 'react-aria';
 import {
@@ -67,10 +67,9 @@ import { cn } from '../../utils/cn';
 import { useTypeaheadDelegate } from '../../utils/typeahead';
 import { COMPACT_WINDOW, useMediaQuery } from '../date-picker/use-media-query';
 import { Divider } from '../divider/Divider';
-import { LazyBottomSheet, usePreloadBottomSheet } from '../sheet/lazy-bottom-sheet';
-import { BackIcon } from '../sheet/sheet-icons';
-import { useBoundaryInContainer } from './use-boundary-in-container';
-import { usePageHeight } from './use-page-height';
+import { usePreloadBottomSheet } from '../sheet/lazy-bottom-sheet';
+import { onDemand, usePreloadOnIntent } from '../../utils/load-on-demand';
+import type { MenuPopoverInPlaceProps, MenuSheetProps } from './menu-in-place';
 import { useRevealEntering } from './use-reveal-entering';
 import { menuOwnWidth, menuStyles, type MenuLayout, type MenuVariant } from './menu-styles';
 import { MenuTriggerContext, triggerMenuProps, type MenuTriggerContextValue } from './menu-trigger';
@@ -481,7 +480,7 @@ export interface MenuLabels {
   back: string;
 }
 
-const DEFAULT_LABELS: MenuLabels = { back: 'Back' };
+export const DEFAULT_LABELS: MenuLabels = { back: 'Back' };
 
 /**
  * M3 Expressive menu: items on one surface with dividers between groups (or on grouped
@@ -518,21 +517,40 @@ export function Menu({
   const compact = useMediaQuery(COMPACT_WINDOW);
   const presence = usePresence(trigger.state.isOpen);
   const asSheet = presentation === 'sheet' || (presentation === 'auto' && compact);
+  const replace = submenuPresentation === 'replace';
+  const contained = portalContainer != null;
   usePreloadBottomSheet(trigger.triggerRef, asSheet);
-  if (asSheet) return <MenuSheet {...props} trigger={trigger} transition={submenuTransition} />;
+  // The sheet, pages in place and a `portalContainer` load their code first: usually in the
+  // browser's first idle period after mount, or as the pointer moves over the trigger or focus
+  // enters it, before the menu opens.
+  usePreloadOnIntent(trigger.triggerRef, preloadMenuInPlace, asSheet || replace || contained);
+  if (asSheet) {
+    return <menuSheet.Component {...props} trigger={trigger} transition={submenuTransition} />;
+  }
   // An instant menu leaves at once, without waiting for an exit transition.
   const isPresent = instant ? trigger.state.isOpen : presence.isPresent;
   const isExiting = !instant && presence.isExiting;
   if (!isPresent) return null;
+  if (replace || contained) {
+    return (
+      <menuInPlace.Component
+        {...props}
+        trigger={trigger}
+        instant={instant}
+        replace={replace}
+        transition={submenuTransition}
+        boundary={portalContainer ?? null}
+        isExiting={isExiting}
+        exitProps={presence.exitProps}
+      />
+    );
+  }
   return (
-    <Overlay exiting={isExiting} portalContainer={portalContainer ?? undefined}>
+    <Overlay exiting={isExiting}>
       <MenuPopover
         {...props}
         trigger={trigger}
         instant={instant}
-        replace={submenuPresentation === 'replace'}
-        transition={submenuTransition}
-        boundary={portalContainer ?? null}
         isExiting={isExiting}
         exitProps={presence.exitProps}
       />
@@ -540,102 +558,31 @@ export function Menu({
   );
 }
 
+/*
+ * A sheet, submenus in place and a `portalContainer` are loaded the first time a menu needs
+ * them (`menu-in-place.tsx`), as the bottom sheet itself is, so a menu whose submenus open beside
+ * it, in `body`, doesn't carry their code. Until the module is in, such a menu renders nothing
+ * (focus stays on its trigger); once it is, the menu opens in the same pass (`onDemand` never
+ * suspends), placed and sized from its first frame.
+ */
+const menuInPlace = onDemand<MenuPopoverInPlaceProps>(() =>
+  import('./menu-in-place').then((module) => module.MenuPopoverInPlace),
+);
+const menuSheet = onDemand<MenuSheetProps>(() =>
+  import('./menu-in-place').then((module) => module.MenuSheet),
+);
+
+/** Starts loading the sheet's, the pages' and the container's code, once (library-internal). */
+export const preloadMenuInPlace = () => Promise.all([menuInPlace.preload(), menuSheet.preload()]);
+
 /** What the menu in a popover or a sheet takes: the root menu's props that pick neither. */
-type MenuShownProps = Omit<
+export type MenuShownProps = Omit<
   MenuProps,
   'presentation' | 'instant' | 'submenuPresentation' | 'submenuTransition' | 'portalContainer'
 >;
 
-/**
- * The menu in a modal bottom sheet (M3: menus can adapt into bottom sheets on small
- * screens). The sheet is a dialog named like the menu; the menu inside keeps its role,
- * keyboard, typeahead and initial focus, and spans the sheet without a surface of its own.
- * The sheet's code loads on first open (or when the trigger is hovered or focused), so a
- * menu that only opens as a popover doesn't carry it.
- */
-function MenuSheet({
-  trigger,
-  layout: _layout,
-  placement: _placement,
-  offset: _offset,
-  variant = 'standard',
-  labels: labelsProp,
-  backIcon,
-  transition,
-  className,
-  style,
-  ...props
-}: MenuShownProps & {
-  trigger: MenuTriggerContextValue;
-  transition: MenuSubmenuTransition;
-}) {
-  const labels = useLabels('Menu', DEFAULT_LABELS, labelsProp);
-  const [container, setContainer] = useState<HTMLDivElement | null>(null);
-  const [activeLevel, setActiveLevel] = useState(0);
-  const level = trigger.state.expandedKeysStack.length;
-  const pageDirection = usePageDirection(level);
-  const menuProps = mergeProps(triggerMenuProps(trigger, props), props);
-  // The sheet takes the menu's name: its `aria-labelledby` when it has one, which names the
-  // menu over an `aria-label` (its own, or the trigger's), else its `aria-label`.
-  const labelledBy = menuProps['aria-labelledby'];
-  const naming = labelledBy
-    ? { 'aria-labelledby': labelledBy }
-    : { 'aria-label': menuProps['aria-label'] ?? '' };
-  return (
-    <LazyBottomSheet
-      {...naming}
-      // A menu sheet opens at its own height (up to the window, the list scrolling inside):
-      // at half the window, a short phone left its last items off-screen, where the arrow
-      // keys could still move focus.
-      skipPartiallyExpanded
-      open={trigger.state.isOpen}
-      onOpenChange={(open) => (open ? trigger.state.open() : trigger.state.close())}
-      className={className}
-      style={style}
-      classNames={props.classNames?.sheet ? { panel: props.classNames.sheet } : undefined}
-    >
-      <div
-        ref={setContainer}
-        data-level={level}
-        data-page-direction={pageDirection}
-        data-page-transition={transition}
-        className={menuStyles().sheetContent()}
-      >
-        <MenuTreeContext
-          value={{
-            rootState: trigger.state,
-            container,
-            activeLevel,
-            setActiveLevel,
-            layout: 'divider',
-            variant,
-            density: props.density,
-            instant: false,
-            replace: true,
-            labels,
-            classNames: props.classNames,
-            backIcon,
-            boundary: null,
-          }}
-        >
-          <MenuList
-            {...menuProps}
-            layout="divider"
-            variant={variant}
-            level={0}
-            embedded
-            pageClassName={menuStyles().page()}
-            onClose={trigger.state.close}
-            autoFocus={trigger.state.focusStrategy ?? 'first'}
-          />
-        </MenuTreeContext>
-      </div>
-    </LazyBottomSheet>
-  );
-}
-
 /** Shared by a menu and its submenus. */
-interface MenuTreeContextValue {
+export interface MenuTreeContextValue {
   rootState: RootMenuTriggerState;
   /** The root popover, which submenus portal into (inside its focus scope, never inert). */
   container: HTMLElement | null;
@@ -649,20 +596,24 @@ interface MenuTreeContextValue {
   /** Submenus open and close with no motion too, and pages change with none. */
   instant: boolean;
   /**
-   * A submenu takes the place of the menu that opened it, below a back button, instead of
+   * Where a submenu shows in place of the menu that opened it, below a back button, instead of
    * opening beside its item: always in a sheet, and in a popover with
-   * `submenuPresentation="replace"`. `container` then holds the pages.
+   * `submenuPresentation="replace"` (`container` then holds the pages). `null` beside. It's
+   * the page of `menu-in-place.tsx`, loaded with such menus.
    */
-  replace: boolean;
+  page: ComponentType<SubmenuPageProps> | null;
   labels: MenuLabels;
   /** The root menu's parts, for the row above each page. */
   classNames: MenuClassNames | undefined;
   backIcon: ReactElement | undefined;
-  /** The root's `portalContainer`, which submenus beside it stay within too. */
+  /**
+   * Inside a `portalContainer`: React Aria's boundary for the submenus beside the root menu,
+   * a stand-in for the container in their containing block, the root popover.
+   */
   boundary: Element | null;
 }
 
-const MenuTreeContext = createContext<MenuTreeContextValue | null>(null);
+export const MenuTreeContext = createContext<MenuTreeContextValue | null>(null);
 
 /** The menu element an item is rendered in (a submenu's parent). */
 const MenuListContext = createContext<RefObject<HTMLDivElement | null> | null>(null);
@@ -685,22 +636,8 @@ const subscribeToNothing = () => () => {};
  */
 const FOCUS_MOVING_KEYS = new Set(['Home', 'End', 'PageUp', 'PageDown']);
 
-/** See `useBoundaryInContainer`. */
+/** See `MenuPopoverFrame`'s `absolute`. */
 const ABSOLUTE = { position: 'absolute' } as const;
-
-/**
- * Which way the last page change went, for the page coming in (`data-page-direction`):
- * `undefined` until the first change, so the first page never moves in as the menu opens.
- * Derived as the level changes, in the same render, so the page and the direction it reads
- * arrive together.
- */
-function usePageDirection(level: number): 'forward' | 'back' | undefined {
-  const [last, setLast] = useState<{ level: number; direction?: 'forward' | 'back' }>({ level });
-  if (last.level === level) return last.direction;
-  const direction = level > last.level ? 'forward' : 'back';
-  setLast({ level, direction });
-  return direction;
-}
 
 /**
  * React Aria resolves `start` / `end` from its locale context, not the DOM `dir`, so an
@@ -711,81 +648,39 @@ function toPhysicalPlacement(placement: MenuPlacement, direction: string): Place
   return toAriaPlacement(placement, direction === 'rtl');
 }
 
-/**
- * Places a menu again when its `portalContainer` resizes without the window. React Aria places
- * a popover again on a window resize and on its own or its trigger's, but not when a container
- * resizes and moves the trigger without resizing it, and `usePopover` doesn't return
- * `updatePosition`. So as the container resizes, its `shouldUpdatePosition` turns off and on
- * again, each committed at once, before the paint: the change re-runs its positioning effect.
- */
-function usePlaceAgainOnResize(boundary: Element | null) {
-  const [placing, setPlacing] = useState(true);
-  useEffect(() => {
-    if (!boundary || typeof ResizeObserver === 'undefined') return;
-    let observed = false;
-    const observer = new ResizeObserver(() => {
-      // The first call reports the size the container has as it's observed.
-      if (!observed) {
-        observed = true;
-        return;
-      }
-      flushSync(() => setPlacing(false));
-      flushSync(() => setPlacing(true));
-    });
-    observer.observe(boundary);
-    return () => observer.disconnect();
-  }, [boundary]);
-  return placing;
-}
-
 /** A placement on `side` of the trigger, keeping its alignment (`bottom left` on `top`: `top left`). */
 function onSide(placement: Placement, side: string): Placement {
   const [, align] = placement.split(' ');
   return (align ? `${side} ${align}` : side) as Placement;
 }
 
-type ExitProps = ReturnType<typeof usePresence>['exitProps'];
+export type ExitProps = ReturnType<typeof usePresence>['exitProps'];
 
-function MenuPopover({
-  trigger,
-  instant,
-  replace,
-  transition,
-  boundary,
-  isExiting,
-  exitProps,
-  placement = 'bottom-start',
-  offset = 0,
-  containerPadding = 12,
-  layout = 'divider',
-  variant = 'standard',
-  labels: labelsProp,
-  backIcon,
-  className,
-  style,
-  ...props
-}: MenuShownProps & {
-  trigger: MenuTriggerContextValue;
-  instant: boolean;
-  /** Submenus show in place, on one surface (`submenuPresentation="replace"`). */
-  replace: boolean;
-  transition: MenuSubmenuTransition;
-  /** The `portalContainer`: React Aria keeps the menu within it, as it keeps it in the window. */
-  boundary: Element | null;
-  isExiting: boolean;
-  exitProps: ExitProps;
-}) {
-  const labels = useLabels('Menu', DEFAULT_LABELS, labelsProp);
-  const popoverRef = useRef<HTMLDivElement>(null);
-  const [container, setContainer] = useState<HTMLDivElement | null>(null);
-  const setPopover = useCallback((element: HTMLDivElement | null) => {
-    popoverRef.current = element;
-    setContainer(element);
-  }, []);
-  // In place, the pages' element holds the submenus' pages.
-  const [pages, setPages] = useState<HTMLDivElement | null>(null);
-  const level = trigger.state.expandedKeysStack.length;
-  const [activeLevel, setActiveLevel] = useState(0);
+/** Where a menu's popover sits, beyond `placement`, `offset` and `containerPadding`. */
+export interface MenuPopoverPlacing {
+  /** Keeps the popover on this side of its trigger, without flipping (pages in place). */
+  heldSide?: string | null;
+  /** React Aria's boundary, in place of the window (a `portalContainer`'s stand-in). */
+  boundaryElement?: Element | null;
+  /** `false` for one commit places the popover again (a `portalContainer` resized). */
+  shouldUpdatePosition?: boolean;
+}
+
+/**
+ * Places a menu's popover against its trigger (React Aria `usePopover`), in the trigger's
+ * laid-out direction, and gives the menu a locale with that direction (library-internal:
+ * shared by the popover below and the one in `menu-in-place.tsx`).
+ */
+export function useMenuPopover(
+  trigger: MenuTriggerContextValue,
+  popoverRef: RefObject<HTMLDivElement | null>,
+  {
+    placement = 'bottom-start',
+    offset = 0,
+    containerPadding = 12,
+  }: Pick<MenuProps, 'placement' | 'offset' | 'containerPadding'>,
+  { heldSide, boundaryElement, shouldUpdatePosition }: MenuPopoverPlacing = {},
+): PopoverAria & { menuLocale: string } {
   // The DOM is the source of truth for direction; read it like an external store.
   const direction = useSyncExternalStore(
     subscribeToNothing,
@@ -799,18 +694,8 @@ function MenuPopover({
     direction === localeDirection
       ? locale
       : localeWithDirection(locale, direction === 'rtl' ? 'rtl' : 'ltr');
-  // While a page other than the first shows in place, the popover keeps the side of the
-  // trigger it opened on: a taller page grows away from the trigger (and its list scrolls if it
-  // runs out of room) instead of jumping across it mid-change.
-  const [heldSide, setHeldSide] = useState<string | null>(null);
   const requested = toPhysicalPlacement(placement, direction);
-  const placing = usePlaceAgainOnResize(boundary);
-  const boundaryElement = useBoundaryInContainer(boundary, popoverRef, placing);
-  const {
-    popoverProps,
-    underlayProps,
-    placement: actualPlacement,
-  } = usePopover(
+  const popover = usePopover(
     {
       triggerRef: trigger.triggerRef,
       popoverRef,
@@ -819,14 +704,67 @@ function MenuPopover({
       offset,
       containerPadding,
       ...(boundaryElement && { boundaryElement }),
-      shouldUpdatePosition: placing,
+      ...(shouldUpdatePosition === false && { shouldUpdatePosition }),
     },
     trigger.state,
   );
-  const side = replace && level > 0 ? (heldSide ?? actualPlacement) : null;
-  if (side !== heldSide) setHeldSide(side);
+  return { ...popover, menuLocale };
+}
+
+/** What a menu's tree takes from its popover. */
+export type MenuPopoverTree = Omit<
+  MenuTreeContextValue,
+  'rootState' | 'container' | 'activeLevel' | 'setActiveLevel'
+> & {
+  /** Where submenus go: by default the popover itself (beside), or the pages' element. */
+  container?: HTMLElement | null;
+};
+
+/**
+ * A menu's popover around its content (library-internal: shared by the popover below and the
+ * one in `menu-in-place.tsx`): the underlay, the box React Aria places, the reveal from the
+ * anchored edge, the locale and the menu tree. Tab closes the menu.
+ */
+export function MenuPopoverFrame({
+  trigger,
+  popoverRef,
+  popover: { popoverProps, underlayProps, placement, menuLocale },
+  instant,
+  isExiting,
+  exitProps,
+  className,
+  style,
+  absolute = false,
+  tree,
+  children,
+}: {
+  trigger: MenuTriggerContextValue;
+  popoverRef: RefObject<HTMLDivElement | null>;
+  popover: ReturnType<typeof useMenuPopover>;
+  instant: boolean;
+  isExiting: boolean;
+  exitProps: ExitProps;
+  className: string | undefined;
+  style: CSSProperties | undefined;
+  /**
+   * `position: absolute` from the first placement, as React Aria makes it once placed (in a
+   * `portalContainer`, so its stand-in boundary and the popover count from the same block).
+   */
+  absolute?: boolean;
+  tree: MenuPopoverTree;
+  children: ReactNode;
+}) {
+  const [element, setElement] = useState<HTMLDivElement | null>(null);
+  const setPopover = useCallback(
+    (node: HTMLDivElement | null) => {
+      popoverRef.current = node;
+      setElement(node);
+    },
+    [popoverRef],
+  );
+  const [activeLevel, setActiveLevel] = useState(0);
   const revealRef = useRef<HTMLDivElement>(null);
-  const entering = useRevealEntering(actualPlacement, revealRef);
+  const entering = useRevealEntering(placement, revealRef);
   const close = trigger.state.close;
   // Tab moves on from an open menu and closes it and its submenus (the APG menu button
   // pattern). React Aria's focus scope moves focus past the trigger, or back to it when
@@ -834,16 +772,16 @@ function MenuPopover({
   // scope handles Tab on the document's capture phase and stops it, so this listens on the
   // window's, which comes first.
   useEffect(() => {
-    const view = container?.ownerDocument.defaultView;
-    if (!container || !view) return;
+    const view = element?.ownerDocument.defaultView;
+    if (!element || !view) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Tab' || event.altKey || event.ctrlKey || event.metaKey) return;
-      if (container.contains(container.ownerDocument.activeElement)) close();
+      if (element.contains(element.ownerDocument.activeElement)) close();
     };
     view.addEventListener('keydown', onKeyDown, true);
     return () => view.removeEventListener('keydown', onKeyDown, true);
-  }, [container, close]);
-  const styles = menuStyles();
+  }, [element, close]);
+  const { container = element, ...shared } = tree;
   return (
     <>
       <div {...underlayProps} className="fixed inset-0" />
@@ -851,136 +789,96 @@ function MenuPopover({
         {...popoverProps}
         ref={setPopover}
         // React Aria's placement wins over a consumer style's and, through the attribute
-        // (styles/utilities.css), over consumer inset classes. In a `portalContainer` it's
-        // absolute from the start, as React Aria makes it once placed, so the first placement
-        // and the boundary's stand-in count from the same containing block.
-        style={{ ...style, ...popoverProps.style, ...(boundary && ABSOLUTE) }}
+        // (styles/utilities.css), over consumer inset classes.
+        style={{ ...style, ...popoverProps.style, ...(absolute && ABSOLUTE) }}
         data-overlay-placement=""
-        className={styles.popover({ class: cn(menuOwnWidth, className) })}
+        className={menuStyles().popover({ class: cn(menuOwnWidth, className) })}
       >
-        <DismissButton onDismiss={trigger.state.close} />
+        <DismissButton onDismiss={close} />
         <div
           {...exitProps}
           ref={revealRef}
           data-entering={entering || undefined}
           data-exiting={isExiting || undefined}
-          data-placement={actualPlacement ?? undefined}
+          data-placement={placement ?? undefined}
           className={menuStyles({ instant }).reveal()}
         >
           <I18nProvider locale={menuLocale}>
             <MenuTreeContext
               value={{
+                ...shared,
                 rootState: trigger.state,
-                container: replace ? pages : container,
+                container,
                 activeLevel,
                 setActiveLevel,
-                // In place, as in a sheet, `gap` gives way to dividers.
-                layout: replace ? 'divider' : layout,
-                variant,
-                density: props.density,
-                instant,
-                replace,
-                labels,
-                classNames: props.classNames,
-                backIcon,
-                boundary,
               }}
             >
-              {replace ? (
-                <MenuPageSurface
-                  level={level}
-                  variant={variant}
-                  instant={instant}
-                  transition={transition}
-                  className={props.classNames?.panel}
-                  dataTokens={mergeDataTokens('md-comp-menus', props)}
-                  setPages={setPages}
-                >
-                  <MenuList
-                    {...mergeProps(triggerMenuProps(trigger, props), props)}
-                    // `panel` is the surface around the pages.
-                    classNames={{ ...props.classNames, panel: undefined }}
-                    layout="divider"
-                    variant={variant}
-                    level={0}
-                    embedded
-                    pageClassName={menuStyles({ instant }).page()}
-                    onClose={trigger.state.close}
-                    autoFocus={trigger.state.focusStrategy ?? 'first'}
-                  />
-                </MenuPageSurface>
-              ) : (
-                <MenuList
-                  {...mergeProps(triggerMenuProps(trigger, props), props)}
-                  layout={layout}
-                  variant={variant}
-                  level={0}
-                  onClose={trigger.state.close}
-                  autoFocus={trigger.state.focusStrategy ?? 'first'}
-                />
-              )}
+              {children}
             </MenuTreeContext>
           </I18nProvider>
         </div>
-        <DismissButton onDismiss={trigger.state.close} />
+        <DismissButton onDismiss={close} />
       </div>
     </>
   );
 }
 
-/**
- * The one surface a popover's pages share when its submenus show in place: it holds the
- * visible page's height (`usePageHeight`), springing to it with each page and following any
- * other change at once, while the pages inside keep their own height and width.
- */
-function MenuPageSurface({
-  level,
-  variant,
+/** A menu's popover in `body`, its submenus beside their items. */
+function MenuPopover({
+  trigger,
   instant,
-  transition,
+  isExiting,
+  exitProps,
+  placement,
+  offset,
+  containerPadding,
+  layout = 'divider',
+  variant = 'standard',
+  labels: labelsProp,
+  backIcon,
   className,
-  dataTokens,
-  setPages,
-  children,
-}: {
-  level: number;
-  variant: MenuVariant;
+  style,
+  ...props
+}: MenuShownProps & {
+  trigger: MenuTriggerContextValue;
   instant: boolean;
-  transition: MenuSubmenuTransition;
-  className: string | undefined;
-  dataTokens: string;
-  setPages: (element: HTMLDivElement | null) => void;
-  children: ReactNode;
+  isExiting: boolean;
+  exitProps: ExitProps;
 }) {
-  const [pagesRef, { height, paging, shrinking }] = usePageHeight<HTMLDivElement>(level);
-  const direction = usePageDirection(level);
-  const attachPages = useCallback(
-    (element: HTMLDivElement | null) => {
-      pagesRef.current = element;
-      setPages(element);
-    },
-    [pagesRef, setPages],
-  );
-  const styles = menuStyles({ variant });
+  const labels = useLabels('Menu', DEFAULT_LABELS, labelsProp);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const popover = useMenuPopover(trigger, popoverRef, { placement, offset, containerPadding });
   return (
-    <div
-      data-tokens={dataTokens}
-      data-variant={variant}
-      data-level={level}
-      data-paging={(!instant && paging) || undefined}
-      data-shrinking={(!instant && shrinking) || undefined}
-      style={height === undefined ? undefined : { height }}
-      className={styles.surface({ class: className })}
+    <MenuPopoverFrame
+      trigger={trigger}
+      popoverRef={popoverRef}
+      popover={popover}
+      instant={instant}
+      isExiting={isExiting}
+      exitProps={exitProps}
+      className={className}
+      style={style}
+      tree={{
+        layout,
+        variant,
+        density: props.density,
+        instant,
+        page: null,
+        labels,
+        classNames: props.classNames,
+        backIcon,
+        boundary: null,
+      }}
     >
-      <div
-        ref={attachPages}
-        data-page-direction={direction}
-        data-page-transition={transition}
-        className={styles.pages()}
-      >
-        {children}
-      </div>
-    </div>
+      <MenuList
+        {...mergeProps(triggerMenuProps(trigger, props), props)}
+        layout={layout}
+        variant={variant}
+        level={0}
+        onClose={trigger.state.close}
+        autoFocus={trigger.state.focusStrategy ?? 'first'}
+      />
+    </MenuPopoverFrame>
   );
 }
 
@@ -1013,7 +911,7 @@ function toGroups(nodes: Node<object>[]): (Node<object> | Node<object>[])[] {
   return groups;
 }
 
-type MenuListProps = Omit<
+export type MenuListProps = Omit<
   MenuProps,
   'placement' | 'layout' | 'variant' | 'presentation' | 'instant' | 'className' | 'style'
 > &
@@ -1048,7 +946,8 @@ function useHasScrolled(ref: RefObject<HTMLElement | null>, enabled: boolean) {
   return scrolls;
 }
 
-function MenuList({
+/** A menu's list, the `role="menu"` element, in any presentation (library-internal). */
+export function MenuList({
   deselectable = true,
   variant,
   layout: requestedLayout,
@@ -1104,7 +1003,7 @@ function MenuList({
   const styles = menuStyles({ variant, layout, embedded });
   // While a submenu is open beside it, the menu holding focus is rounder than the others (M3);
   // in place, only one page shows.
-  const submenuOpen = Boolean(tree && !tree.replace && tree.rootState.expandedKeysStack.length > 0);
+  const submenuOpen = Boolean(tree && !tree.page && tree.rootState.expandedKeysStack.length > 0);
   const shape = !submenuOpen ? undefined : tree?.activeLevel === level ? 'active' : 'inactive';
   const setActive = tree?.setActiveLevel;
 
@@ -1437,6 +1336,7 @@ function SubmenuItemView(props: MenuItemViewProps) {
   // In place, a submenu replaces its menu, so hovering an item doesn't open it (it would change
   // the content under the pointer).
   const { isOpen, onHoverChange, ...triggerProps } = submenuTriggerProps;
+  const Page = tree.page;
   // A choice on a submenu that goes back after one (`afterSelect="back"`) closes only it.
   const wentBack = useRef(false);
   const page: MenuPageContextValue = {
@@ -1458,7 +1358,7 @@ function SubmenuItemView(props: MenuItemViewProps) {
     const afterChoice = closed && wentBack.current;
     if (closed) wentBack.current = false;
     const item = itemRef.current;
-    if (!closed || !(tree.replace || afterChoice) || !tree.rootState.isOpen || !item) return;
+    if (!closed || !(Page || afterChoice) || !tree.rootState.isOpen || !item) return;
     const active = item.ownerDocument.activeElement;
     const left = active == null || active === item.ownerDocument.body;
     if (left || (afterChoice && submenuRef.current?.contains(active))) item.focus();
@@ -1467,13 +1367,13 @@ function SubmenuItemView(props: MenuItemViewProps) {
     <>
       <MenuItemView
         {...props}
-        triggerProps={tree.replace ? triggerProps : { ...triggerProps, onHoverChange }}
+        triggerProps={Page ? triggerProps : { ...triggerProps, onHoverChange }}
         itemRef={itemRef}
         submenuOpen={isOpen}
       />
       <MenuPageContext value={page}>
-        {tree.replace ? (
-          <SubmenuPage
+        {Page ? (
+          <Page
             state={submenuState}
             submenuRef={submenuRef}
             menuProps={submenuProps}
@@ -1495,91 +1395,14 @@ function SubmenuItemView(props: MenuItemViewProps) {
   );
 }
 
-/**
- * A submenu shown in place of the menu that opened it, in a sheet (M3 adapts menus into
- * bottom sheets on small screens, where there's no room beside an item) or in a popover with
- * `submenuPresentation="replace"`: the container hides that menu while it's open, and the
- * page shows a back button and its item's label above the submenu's list. ← (→ in
- * right-to-left), Escape and the back button go back. It's portalled into the container after
- * its menu, so the sheet's or the popover's focus scope covers it.
- */
-function SubmenuPage({
-  state,
-  submenuRef,
-  menuProps,
-  submenu,
-  title,
-}: Pick<SubmenuPopoverProps, 'state' | 'submenuRef' | 'menuProps' | 'submenu'> & {
+/** What a submenu page in place takes (`menu-in-place.tsx`). */
+export type SubmenuPageProps = Pick<
+  SubmenuPopoverProps,
+  'state' | 'submenuRef' | 'menuProps' | 'submenu'
+> & {
+  /** The label of the item that opened it. */
   title: ReactNode;
-}) {
-  const tree = useContext(MenuTreeContext)!;
-  if (!state.isOpen || !tree.container) return null;
-  const { submenuLevel, ...ariaMenuProps } = menuProps;
-  const own = submenu.props;
-  const variant = own.variant ?? tree.variant;
-  const styles = menuStyles({ variant, instant: tree.instant });
-  const part = (name: 'header' | 'back' | 'title') =>
-    cn(tree.classNames?.[name], own.classNames?.[name]);
-  return (
-    <Overlay portalContainer={tree.container} disableFocusManagement>
-      <div
-        data-submenu-panel=""
-        // The header reads the menu's tokens, as the items do.
-        data-tokens="md-comp-menus"
-        data-variant={variant}
-        className={styles.sheetPanel()}
-      >
-        <div className={styles.sheetHeader({ class: part('header') })}>
-          <MenuBackButton
-            label={tree.labels.back}
-            icon={tree.backIcon}
-            onPress={() => state.close()}
-            className={styles.sheetBack({ class: part('back') })}
-          />
-          <span className={styles.sheetTitle({ class: part('title') })}>{title}</span>
-        </div>
-        <MenuList
-          {...mergeProps(ariaMenuProps, own)}
-          listRef={submenuRef}
-          layout="divider"
-          variant={variant}
-          density={own.density ?? tree.density}
-          level={submenuLevel + 1}
-          embedded
-          // However it opened (a touch leaves focus on the item, now hidden), focus moves in.
-          autoFocus={state.focusStrategy ?? 'first'}
-        />
-      </div>
-    </Overlay>
-  );
-}
-
-/** The back button above a submenu shown in place: 48px, with an outline focus ring. */
-function MenuBackButton({
-  label,
-  icon,
-  onPress,
-  className,
-}: {
-  label: string;
-  icon: ReactElement | undefined;
-  onPress: () => void;
-  className: string;
-}) {
-  const ref = useRef<HTMLButtonElement>(null);
-  const { buttonProps, isPressed } = useButton({ onPress, 'aria-label': label }, ref);
-  const { interactionProps, dataAttributes } = useM3Interaction({ isPressed }, ref);
-  return (
-    <button
-      {...mergeProps(buttonProps, interactionProps)}
-      {...dataAttributes}
-      ref={ref}
-      className={className}
-    >
-      {icon ?? <BackIcon />}
-    </button>
-  );
-}
+};
 
 interface SubmenuPopoverProps {
   state: SubmenuTriggerState;
@@ -1619,7 +1442,6 @@ function SubmenuPopoverContent({
   const tree = useContext(MenuTreeContext)!;
   const popoverRef = useRef<HTMLDivElement>(null);
   const { submenuLevel, ...ariaMenuProps } = menuProps;
-  const boundaryElement = useBoundaryInContainer(tree.boundary, popoverRef, null);
   const { popoverProps: positionProps, placement } = usePopover(
     {
       ...popoverProps,
@@ -1633,7 +1455,7 @@ function SubmenuPopoverContent({
       offset: 6,
       crossOffset: -4,
       // Within the root's `portalContainer`, as the root menu is.
-      ...(boundaryElement && { boundaryElement }),
+      ...(tree.boundary && { boundaryElement: tree.boundary }),
     },
     state,
   );

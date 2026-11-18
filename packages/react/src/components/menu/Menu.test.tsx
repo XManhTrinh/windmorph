@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { RouterProvider, UNSAFE_PortalProvider } from 'react-aria';
 import { Item, useTreeState, type Selection } from 'react-stately';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { labelInNameViolations } from '../../../test/label-in-name';
 import { setMediaQueries } from '../../../test/setup';
@@ -14,7 +14,20 @@ import { Button } from '../button/Button';
 import { IconButton } from '../icon-button/IconButton';
 import { BottomSheet } from '../sheet/BottomSheet';
 import { SheetTrigger } from '../sheet/SheetTrigger';
-import { ContextMenuTrigger, Menu, MenuGroup, MenuItem, MenuTrigger, SubmenuTrigger } from './Menu';
+import {
+  ContextMenuTrigger,
+  Menu,
+  MenuGroup,
+  MenuItem,
+  MenuTrigger,
+  preloadMenuInPlace,
+  SubmenuTrigger,
+} from './Menu';
+
+// The sheet, pages in place and a `portalContainer` load on demand (`menu-in-place.test.tsx`
+// covers the load): loaded once here, they open in the same pass as a press, as in the browser
+// once the module is in.
+beforeAll(() => preloadMenuInPlace());
 
 /**
  * Opens a menu from its trigger with the keyboard. (In jsdom a simulated click re-focuses
@@ -1506,6 +1519,24 @@ describe('Menu in an element (portalContainer)', () => {
     }
     await userEvent.keyboard('{End}');
     expect(screen.getByRole('menuitem', { name: 'Playback speed' })).toHaveFocus();
+  });
+
+  it('warns in development when the element draws none of its children', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const video = document.createElement('video');
+    document.body.append(video);
+    render(
+      <MenuTrigger>
+        <Button>Speed</Button>
+        <Menu aria-label="Speed" portalContainer={video}>
+          <MenuItem key="normal">Normal</MenuItem>
+        </Menu>
+      </MenuTrigger>,
+    );
+    await openMenu('Speed');
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('a <video> never shows'));
+    warn.mockRestore();
+    video.remove();
   });
 
   it('opens a sheet over the window, not in the element', async () => {

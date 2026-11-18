@@ -4,7 +4,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useId,
   useLayoutEffect,
   useRef,
@@ -33,9 +32,7 @@ export interface OverlayProps {
   children: ReactNode;
   /**
    * Element to portal into. Left out, an app's React Aria `UNSAFE_PortalProvider` container,
-   * else the element in full screen when the overlay opened, else `document.body`. It must draw
-   * its children (not a `<video>`, `<canvas>`, `<img>`, form control or SVG element), which
-   * development builds warn about.
+   * else the element in full screen when the overlay opened, else `document.body`.
    */
   portalContainer?: Element;
   /**
@@ -63,8 +60,9 @@ export interface OverlayProps {
 const NO_BUTTON_SETTINGS = {};
 
 // HTML elements that draw their own content and none of their children (replaced elements and
-// form controls): an overlay put inside one would never show.
-const DRAWS_NO_CHILDREN = new Set([
+// form controls): an overlay put inside one would never show. A menu's `portalContainer` is
+// checked against them too (library-internal).
+export const DRAWS_NO_CHILDREN = new Set([
   'audio',
   'canvas',
   'embed',
@@ -77,14 +75,6 @@ const DRAWS_NO_CHILDREN = new Set([
   'video',
 ]);
 
-// Whether an element draws children of ours: an HTML element that isn't one of those above.
-function drawsChildren(element: Element) {
-  return (
-    element.namespaceURI === 'http://www.w3.org/1999/xhtml' &&
-    !DRAWS_NO_CHILDREN.has(element.localName)
-  );
-}
-
 // The element in full screen, when an overlay has to be drawn inside it. A browser in full
 // screen draws only that element's own content, so an overlay portalled to `body` was in the
 // document but never seen (2026-11-15): a tooltip, a menu or a dialog opened in a full-screen
@@ -94,7 +84,7 @@ function drawsChildren(element: Element) {
 // carries only what differs from `<html>`, as in any other `body`.
 function fullscreenContainer(page: Document): HTMLElement | null {
   const element = page.fullscreenElement;
-  if (!(element instanceof HTMLElement) || !drawsChildren(element)) return null;
+  if (!(element instanceof HTMLElement) || DRAWS_NO_CHILDREN.has(element.localName)) return null;
   return element.contains(page.body) ? null : element;
 }
 
@@ -227,14 +217,6 @@ export function Overlay({
   const fullscreen = useIsSSR() ? null : openedInFullscreen;
   const ownContainer = portalContainer ?? getContainer?.() ?? undefined;
   const container = ownContainer ?? fullscreen ?? undefined;
-  // Development only, once per container.
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'production' || !portalContainer) return;
-    if (drawsChildren(portalContainer)) return;
-    console.warn(
-      `[@windmorph/react] An overlay's portalContainer must draw its children: a <${portalContainer.localName}> never shows an overlay put inside it. Pass an element around it, such as the player that holds a video.`,
-    );
-  }, [portalContainer]);
   // In `document.body`, the wrapper carries only what differs from `<html>`, so an app's own
   // `:root` values for the system tokens reach the overlay too; in an element of the page (a
   // container of the caller's or an app's, or the element in full screen), only what differs
