@@ -175,10 +175,11 @@ export async function MessageFieldBody(): Promise<ComponentDoc> {
               <InlineCode>type</InlineCode>, off <InlineCode>accept</InlineCode>), so you can say
               why a file didn&apos;t appear. A paste whose HTML holds words is a text paste whatever
               files it carries (copied cells or a document bring a picture of themselves), neither
-              taken nor reported; a copied picture, whose HTML is the image alone, is taken. A paste
-              that takes no file still pastes its text, and reports its files only if it carries no
-              text. Without <InlineCode>onFileAccept</InlineCode>, files are ignored and text pastes
-              as usual; a disabled or read-only field takes no files.
+              taken nor reported; a copied picture, whose HTML is the image alone, is taken, or
+              reported when <InlineCode>accept</InlineCode> leaves it out. A paste that takes no
+              file still pastes as usual, and reports its files unless it carries plain text (a
+              copied file&apos;s name). Without <InlineCode>onFileAccept</InlineCode>, files are
+              ignored and text pastes as usual; a disabled or read-only field takes no files.
             </li>
             <li>
               <InlineCode>maxLength</InlineCode> never cuts what&apos;s written: past it, the

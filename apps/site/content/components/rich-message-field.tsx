@@ -168,9 +168,10 @@ export async function RichMessageFieldBody(): Promise<ComponentDoc> {
               <InlineCode>type</InlineCode>, off <InlineCode>accept</InlineCode>), so you can say
               why a file didn&apos;t appear. A paste whose HTML holds words is a text paste whatever
               files it carries (copied cells or a document bring a picture of themselves), neither
-              taken nor reported; a copied picture, whose HTML is the image alone, is taken. A paste
-              that takes no file still pastes its text, and reports its files only if it carries no
-              text.
+              taken nor reported; a copied picture, whose HTML is the image alone, is taken, or
+              reported when <InlineCode>accept</InlineCode> leaves it out. A paste that takes no
+              file still pastes as usual, and reports its files unless it carries plain text (a
+              copied file&apos;s name).
             </li>
             <li>
               <InlineCode>FormattedText</InlineCode> shows the marker format as elements, never HTML
@@ -179,10 +180,13 @@ export async function RichMessageFieldBody(): Promise<ComponentDoc> {
               <InlineCode>{'links={false}'}</InlineCode> shows them as words inside something
               pressable. Links to the app&apos;s own pages can be ordinary links:{' '}
               <InlineCode>internalLinks(url)</InlineCode> picks them (say,{' '}
-              <InlineCode>{'(url) => url.origin === location.origin'}</InlineCode>), and they open
-              in the same tab through the app&apos;s <InlineCode>RouterProvider</InlineCode>, with
-              no new-tab mark or words and <InlineCode>internalLinkRel</InlineCode> (none by
-              default) in place of <InlineCode>ugc nofollow</InlineCode>.{' '}
+              <InlineCode>{'(url) => url.origin === SITE_ORIGIN'}</InlineCode>, a constant from the
+              app&apos;s config: it runs on the server too, where there is no{' '}
+              <InlineCode>location</InlineCode>, and must answer the same there), and they open in
+              the same tab, through the app&apos;s <InlineCode>RouterProvider</InlineCode> on the
+              page&apos;s own origin (its <InlineCode>navigate</InlineCode> gets the link as
+              written), with no new-tab mark or words and <InlineCode>internalLinkRel</InlineCode>{' '}
+              (none by default) in place of <InlineCode>ugc nofollow</InlineCode>.{' '}
               <InlineCode>renderLink(link)</InlineCode> renders a link yourself, for instance with
               your router&apos;s link component; return <InlineCode>undefined</InlineCode> to keep
               the default for that link. <InlineCode>parseMarkers</InlineCode>,{' '}
