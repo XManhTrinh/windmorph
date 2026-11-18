@@ -164,6 +164,38 @@ export const SingleSelection: Story = {
 };
 
 /**
+ * A group of choices beside plain actions: the `MenuGroup` takes the selection, so its items
+ * are radio items with the current one checked, and the actions after it stay actions.
+ */
+export const ChoicesBesideActions: Story = {
+  args: { variant: 'standard', layout: 'divider' },
+  render: function ChoicesStory({ variant, layout }) {
+    const [account, setAccount] = useState(new Set(['alex']));
+    return (
+      <MenuTrigger>
+        <Button variant="tonal">Account</Button>
+        <Menu variant={variant} layout={layout} aria-label="Account">
+          <MenuGroup
+            title="Signed in as"
+            selectionMode="single"
+            deselectable={false}
+            selectedKeys={account}
+            onSelectionChange={(keys) => setAccount(new Set([...(keys as Set<string>)]))}
+          >
+            <MenuItem key="alex">Alex Morgan</MenuItem>
+            <MenuItem key="studio">Morgan Studio</MenuItem>
+          </MenuGroup>
+          <MenuGroup aria-label="Accounts">
+            <MenuItem key="add">Add an account</MenuItem>
+            <MenuItem key="settings">Settings</MenuItem>
+          </MenuGroup>
+        </Menu>
+      </MenuTrigger>
+    );
+  },
+};
+
+/**
  * Items with `href` are real links with the item's look and keys: following one closes the
  * menu, a modified click or the browser's link menu opens it in a new tab, and `download`
  * saves the file. Inside a `RouterProvider`, a plain click goes through the app's router.

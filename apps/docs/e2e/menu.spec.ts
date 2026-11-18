@@ -53,6 +53,38 @@ test.describe('Menu visual regression', () => {
     await expect(page).toHaveScreenshot('submenu.png');
   });
 
+  test('choices beside actions: the group selects, the actions only act', async ({ page }) => {
+    await openStory(page, 'components-menu--choices-beside-actions');
+    const trigger = page.getByRole('button', { name: 'Account' });
+    await trigger.click();
+    const menu = page.getByRole('menu', { name: 'Account' });
+    await expect(menu.getByRole('menuitemradio')).toHaveCount(2);
+    await expect(menu.getByRole('menuitem')).toHaveCount(2);
+    await expect(menu.getByRole('menuitemradio', { name: 'Alex Morgan' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    await settle(page);
+    await expect(menu).toHaveScreenshot('choices-beside-actions.png');
+    // A choice from the keyboard: the arrows cross into the group, Enter chooses and closes.
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
+    await expect(menu).toBeHidden();
+    await trigger.click();
+    await expect(menu.getByRole('menuitemradio', { name: 'Morgan Studio' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    // An action closes the menu and leaves the choice as it was.
+    await menu.getByRole('menuitem', { name: 'Settings' }).click();
+    await expect(menu).toBeHidden();
+    await trigger.click();
+    await expect(menu.getByRole('menuitemradio', { name: 'Morgan Studio' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+  });
+
   test('single selection', async ({ page }) => {
     await openStory(page, 'components-menu--single-selection');
     await page.getByRole('button', { name: /Sort by/ }).click();

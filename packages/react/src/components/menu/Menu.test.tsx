@@ -1,6 +1,8 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useState } from 'react';
 import { RouterProvider } from 'react-aria';
+import type { Selection } from 'react-stately';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { labelInNameViolations } from '../../../test/label-in-name';
@@ -323,6 +325,127 @@ describe('Menu', () => {
       'false',
     );
     expect(screen.getByRole('menu')).toBeInTheDocument();
+  });
+
+  it('holds a group of choices beside plain actions: the group has a selection of its own', async () => {
+    const onSelectionChange = vi.fn();
+    const onAction = vi.fn();
+    function AccountMenu() {
+      return (
+        <MenuTrigger>
+          <Button>Account</Button>
+          <Menu aria-label="Account" onAction={onAction}>
+            <MenuGroup
+              title="Signed in as"
+              selectionMode="single"
+              defaultSelectedKeys={['alex']}
+              onSelectionChange={onSelectionChange}
+            >
+              <MenuItem key="alex">Alex Morgan</MenuItem>
+              <MenuItem key="studio">Morgan Studio</MenuItem>
+            </MenuGroup>
+            <MenuGroup aria-label="Accounts">
+              <MenuItem key="add">Add an account</MenuItem>
+              <MenuItem key="settings">Settings</MenuItem>
+            </MenuGroup>
+          </Menu>
+        </MenuTrigger>
+      );
+    }
+    const { baseElement } = render(<AccountMenu />);
+    await openMenu('Account');
+    const alex = screen.getByRole('menuitemradio', { name: 'Alex Morgan' });
+    expect(alex).toHaveAttribute('aria-checked', 'true');
+    expect(screen.getByRole('menuitemradio', { name: 'Morgan Studio' })).toHaveAttribute(
+      'aria-checked',
+      'false',
+    );
+    // The actions stay actions: no check, no checked state.
+    const add = screen.getByRole('menuitem', { name: 'Add an account' });
+    expect(add).not.toHaveAttribute('aria-checked');
+    expect(screen.getAllByRole('menuitemradio')).toHaveLength(2);
+    expect(await axeViolations(baseElement)).toEqual([]);
+    // A choice selects within its group and closes the menu, as a single-select menu does.
+    await userEvent.click(screen.getByRole('menuitemradio', { name: 'Morgan Studio' }));
+    expect([...onSelectionChange.mock.calls[0]![0]]).toEqual(['studio']);
+    expect(onAction.mock.calls[0]?.[0]).toBe('studio');
+    await closed();
+    // An action closes the menu without selecting anything. (Uncontrolled, the group starts from
+    // `defaultSelectedKeys` each time the menu opens, as a whole menu's selection does.)
+    await openMenu('Account');
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Settings' }));
+    expect(onAction.mock.lastCall?.[0]).toBe('settings');
+    expect(onSelectionChange).toHaveBeenCalledOnce();
+    await closed();
+  });
+
+  it('keeps each group’s selection apart, controlled or not, and a multiple group open', async () => {
+    const onLayout = vi.fn();
+    function ViewMenu() {
+      const [layout, setLayout] = useState<Selection>(new Set(['grid']));
+      return (
+        <MenuTrigger>
+          <Button>View</Button>
+          <Menu aria-label="View">
+            <MenuGroup
+              title="Layout"
+              selectionMode="single"
+              selectedKeys={layout}
+              deselectable={false}
+              onSelectionChange={(keys) => {
+                onLayout(keys);
+                setLayout(keys);
+              }}
+            >
+              <MenuItem key="grid">Grid</MenuItem>
+              <MenuItem key="list">List</MenuItem>
+            </MenuGroup>
+            <MenuGroup title="Show" selectionMode="multiple" defaultSelectedKeys={['names']}>
+              <MenuItem key="names">Names</MenuItem>
+              <MenuItem key="sizes">Sizes</MenuItem>
+            </MenuGroup>
+            <MenuGroup aria-label="More">
+              <MenuItem key="reset">Reset view</MenuItem>
+            </MenuGroup>
+          </Menu>
+        </MenuTrigger>
+      );
+    }
+    render(<ViewMenu />);
+    await openMenu('View');
+    // A toggle in a multiple group keeps the menu open, Enter included, and leaves the other
+    // group's choice alone.
+    await userEvent.click(screen.getByRole('menuitemcheckbox', { name: 'Sizes' }));
+    expect(screen.getByRole('menuitemcheckbox', { name: 'Sizes' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    screen.getByRole('menuitemcheckbox', { name: 'Names' }).focus();
+    await userEvent.keyboard('{Enter}');
+    expect(screen.getByRole('menuitemcheckbox', { name: 'Names' })).toHaveAttribute(
+      'aria-checked',
+      'false',
+    );
+    expect(screen.getByRole('menuitemradio', { name: 'Grid' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    expect(onLayout).not.toHaveBeenCalled();
+    // `deselectable={false}`: the chosen layout can't be cleared.
+    await userEvent.click(screen.getByRole('menuitemradio', { name: 'Grid' }));
+    expect(onLayout).not.toHaveBeenCalled();
+    await closed();
+    await openMenu('View');
+    expect(screen.getByRole('menuitemradio', { name: 'Grid' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    // The arrows move across groups as one menu.
+    screen.getByRole('menuitemradio', { name: 'List' }).focus();
+    await userEvent.keyboard('{ArrowDown}');
+    expect(screen.getByRole('menuitemcheckbox', { name: 'Names' })).toHaveFocus();
+    await userEvent.keyboard('{ArrowUp}{Enter}');
+    expect([...onLayout.mock.calls[0]![0]]).toEqual(['list']);
   });
 
   it('disables items, which can still take focus', async () => {

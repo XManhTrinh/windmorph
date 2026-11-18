@@ -42,9 +42,13 @@ import {
 import {
   Item,
   Section,
+  useMultipleSelectionState,
   useSubmenuTriggerState,
   useTreeState,
+  type MultipleSelectionState,
   type Node,
+  type Selection,
+  type SelectionMode,
   type RootMenuTriggerState,
   type SubmenuTriggerState,
   type TreeState,
@@ -149,11 +153,32 @@ export interface MenuGroupProps {
   'aria-label'?: string;
   /** `MenuItem`s and `SubmenuTrigger`s. */
   children: ReactElement | ReactElement[];
+  /**
+   * A group of choices with a selection of its own, beside the menu's other items: its items
+   * are radio items (`single`) or checkbox items (`multiple`), whatever the menu's own
+   * `selectionMode`, and choosing one never changes another group's. Closing follows the
+   * group's mode, as a whole menu's would: a choice closes the menu, a toggle keeps it open.
+   * @default the menu's `selectionMode`
+   */
+  selectionMode?: SelectionMode;
+  /** The group's selected keys (controlled), with `selectionMode`. */
+  selectedKeys?: AriaMenuProps<object>['selectedKeys'];
+  /** The group's keys selected at first (uncontrolled), with `selectionMode`. */
+  defaultSelectedKeys?: AriaMenuProps<object>['defaultSelectedKeys'];
+  /** Called with the group's selected keys, its own only, when they change. */
+  onSelectionChange?: (keys: Selection) => void;
+  /**
+   * With `selectionMode`: the group's last selected item can be deselected, leaving none.
+   * `false` keeps one of its items selected. @default true
+   */
+  deselectable?: boolean;
 }
 
 /**
  * A group of items (a React Stately collection section): set off by dividers in the
- * `divider` layout, its own surface in the `gap` layout.
+ * `divider` layout, its own surface in the `gap` layout. With `selectionMode`, a group of
+ * choices whose selection is its own, beside the menu's plain actions (M3's menus put a
+ * selectable group beside actions).
  */
 export const MenuGroup = Section as unknown as (props: MenuGroupProps) => JSX.Element;
 
@@ -870,6 +895,7 @@ function MenuSection({
     heading: section.rendered,
     'aria-label': section['aria-label'],
   });
+  const selectionManager = useGroupSelection(section.props as MenuGroupProps, state);
   return (
     <div {...itemProps} className={className}>
       {section.rendered && (
@@ -881,6 +907,7 @@ function MenuSection({
         <MenuItems
           nodes={[...section.childNodes]}
           state={state}
+          selectionManager={selectionManager}
           variant={variant}
           // A heading takes the group's top edge, so the first item doesn't touch it.
           edges={{ ...edges, top: !section.rendered && edges.top }}
@@ -891,6 +918,59 @@ function MenuSection({
   );
 }
 
+type SelectionManager = TreeState<object>['selectionManager'];
+
+/**
+ * A selectable group's selection manager: the group's own selection (`useMultipleSelectionState`)
+ * with the menu's focus, as React Aria Components' menu sections have. React Stately doesn't
+ * export its `SelectionManager` class, so the menu manager's own constructor (its documented
+ * `(collection, state)` signature) builds it, from a state whose focus members are the menu's.
+ * `null` for a group without `selectionMode`, whose items use the menu's manager.
+ */
+function useGroupSelection(
+  group: MenuGroupProps,
+  state: TreeState<object>,
+): SelectionManager | null {
+  const own = useMultipleSelectionState({
+    selectionMode: group.selectionMode ?? 'none',
+    disallowEmptySelection: group.deselectable === false,
+    ...(group.selectedKeys !== undefined && { selectedKeys: group.selectedKeys }),
+    ...(group.defaultSelectedKeys !== undefined && {
+      defaultSelectedKeys: group.defaultSelectedKeys,
+    }),
+    ...(group.onSelectionChange !== undefined && { onSelectionChange: group.onSelectionChange }),
+  });
+  if (!group.selectionMode || group.selectionMode === 'none') return null;
+  const menu = state.selectionManager;
+  const groupState: MultipleSelectionState = {
+    selectionMode: own.selectionMode,
+    selectionBehavior: own.selectionBehavior,
+    setSelectionBehavior: own.setSelectionBehavior,
+    selectedKeys: own.selectedKeys,
+    setSelectedKeys: own.setSelectedKeys,
+    disallowEmptySelection: own.disallowEmptySelection,
+    // Focus is the menu's: a group changes what's selected, never where focus goes.
+    get isFocused() {
+      return menu.isFocused;
+    },
+    setFocused: (focused) => menu.setFocused(focused),
+    get focusedKey() {
+      return menu.focusedKey;
+    },
+    get childFocusStrategy() {
+      return menu.childFocusStrategy;
+    },
+    setFocusedKey: (key, strategy) => menu.setFocusedKey(key, strategy),
+    disabledKeys: menu.disabledKeys,
+    disabledBehavior: menu.disabledBehavior,
+  };
+  const Manager = menu.constructor as new (
+    collection: TreeState<object>['collection'],
+    state: MultipleSelectionState,
+  ) => SelectionManager;
+  return new Manager(state.collection, groupState);
+}
+
 /**
  * Items nest their corners inside the container's: an item on an outer edge gets the
  * outer corner less the 4px padding, and every other corner is 4px.
@@ -898,12 +978,15 @@ function MenuSection({
 function MenuItems({
   nodes,
   state,
+  selectionManager,
   variant,
   edges,
   classNames,
 }: {
   nodes: Node<object>[];
   state: TreeState<object>;
+  /** A selectable group's own manager; the menu's when left out. */
+  selectionManager?: SelectionManager | null;
   variant: MenuVariant;
   edges: Edges;
   classNames?: MenuClassNames;
@@ -912,6 +995,7 @@ function MenuItems({
     const itemProps: MenuItemViewProps = {
       node,
       state,
+      ...(selectionManager && { selectionManager }),
       variant,
       top: index === 0 && edges.top ? 'outer' : 'plain',
       bottom: index === nodes.length - 1 && edges.bottom ? 'outer' : 'plain',
@@ -928,6 +1012,8 @@ function MenuItems({
 interface MenuItemViewProps {
   node: Node<object>;
   state: TreeState<object>;
+  /** Its group's own selection manager, in a selectable `MenuGroup`. */
+  selectionManager?: SelectionManager;
   variant: MenuVariant;
   top: 'outer' | 'plain';
   bottom: 'outer' | 'plain';
@@ -1167,6 +1253,7 @@ function SubmenuPopoverContent({
 function MenuItemView({
   node,
   state,
+  selectionManager = state.selectionManager,
   variant,
   top,
   bottom,
@@ -1180,9 +1267,9 @@ function MenuItemView({
   const props = node.props as SubmenuItemProps;
   const isDisabled = state.disabledKeys.has(node.key);
   // A plain action in a selectable menu (`checkable={false}`) is never checked.
-  const selectable = state.selectionManager.selectionMode !== 'none' && props.checkable !== false;
-  const plainInSelectable = state.selectionManager.selectionMode !== 'none' && !selectable;
-  const multiple = selectable && state.selectionManager.selectionMode === 'multiple';
+  const selectable = selectionManager.selectionMode !== 'none' && props.checkable !== false;
+  const plainInSelectable = selectionManager.selectionMode !== 'none' && !selectable;
+  const multiple = selectable && selectionManager.selectionMode === 'multiple';
   const {
     menuItemProps: ariaItemProps,
     keyboardShortcutProps,
@@ -1193,6 +1280,7 @@ function MenuItemView({
       ...triggerProps,
       key: node.key,
       'aria-label': props['aria-label'],
+      selectionManager,
       // Disabled items stay focusable (the menu's `disabledBehavior`) but do nothing.
       isDisabled,
       isSelected: plainInSelectable ? false : undefined,

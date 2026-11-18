@@ -10,6 +10,7 @@ const MenuBasic = lazyExample('menu/menu-basic', 'MenuBasic');
 const MenuContext = lazyExample('menu/menu-context', 'MenuContext');
 const MenuInstant = lazyExample('menu/menu-instant', 'MenuInstant');
 const MenuSelection = lazyExample('menu/menu-selection', 'MenuSelection');
+const MenuChoices = lazyExample('menu/menu-choices', 'MenuChoices');
 const MenuSheet = lazyExample('menu/menu-sheet', 'MenuSheet');
 const MenuSubmenu = lazyExample('menu/menu-submenu', 'MenuSubmenu');
 const MenuLayouts = lazyExample('menu/menu-layouts', 'MenuLayouts');
@@ -46,6 +47,8 @@ export async function MenuBody(): Promise<ComponentDoc> {
   const densityHtml = await highlightSource(densitySource);
   const links = await readExampleSource('menu/menu-links.tsx');
   const linksHtml = await highlightSource(links);
+  const choices = await readExampleSource('menu/menu-choices.tsx');
+  const choicesHtml = await highlightSource(choices);
   return {
     tokens: [menuTokenSet],
     overview: (
@@ -77,6 +80,14 @@ export async function MenuBody(): Promise<ComponentDoc> {
             fileName="menu-selection.tsx"
           >
             <MenuSelection />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Choices beside actions"
+            code={choices}
+            html={choicesHtml}
+            fileName="menu-choices.tsx"
+          >
+            <MenuChoices />
           </ExampleViewer>
           <ExampleViewer
             title="Submenus"
