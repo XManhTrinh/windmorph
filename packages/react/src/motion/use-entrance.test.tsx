@@ -108,6 +108,24 @@ describe('useEntrance', () => {
     expect(box(container)).toHaveAttribute('data-entered', 'true');
   });
 
+  it('shows its final picture, landing at once, as the page is printed', () => {
+    const { container } = render(<Chart />);
+    inView(0.1);
+    expect(box(container)).toHaveAttribute('data-entered', 'false');
+    // A print runs no frames, so a chart never scrolled to, or mid-entrance, would print as it
+    // stands: it enters, and stops being in view so its values land rather than animate.
+    act(() => {
+      window.dispatchEvent(new Event('beforeprint'));
+    });
+    expect(box(container)).toHaveAttribute('data-entered', 'true');
+    expect(box(container)).toHaveAttribute('data-in-view', 'false');
+    act(() => {
+      window.dispatchEvent(new Event('afterprint'));
+    });
+    expect(box(container)).toHaveAttribute('data-entered', 'true');
+    expect(box(container)).toHaveAttribute('data-in-view', 'true');
+  });
+
   it('draws the window in by amount of its half, top and bottom', () => {
     render(<Chart />);
     render(<Chart amount={0.5} />);

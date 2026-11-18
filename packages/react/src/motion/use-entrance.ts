@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useSyncExternalStore, type RefObject } from 'react';
+import { flushSync } from 'react-dom';
 
 export interface EntranceOptions {
   /**
@@ -32,7 +33,9 @@ const subscribeNothing = () => () => undefined;
  * picture was in the server's HTML, and replaying it from nothing would flash. Content
  * server-rendered out of view switches to its start state unseen and enters when scrolled to;
  * content the browser mounts later enters as it comes into view. A hidden tab waits until it
- * shows. On the server `entered` is `true`.
+ * shows. Printing shows the final picture: a print runs no frames, so the element enters and is
+ * out of view (its values land rather than animate) until the print is done. On the server
+ * `entered` is `true`.
  *
  * @param ref The element whose entrance it is; it must be rendered by the time effects run.
  * @example
@@ -69,6 +72,8 @@ export function useEntrance(
     // Shown whole, or come `amount` of half the window in from its top or bottom.
     let whole = false;
     let inside = false;
+    let onScreenNow = false;
+    let printing = false;
     const enter = () => {
       if (done.current || !(whole || inside) || document.hidden) return;
       done.current = true;
@@ -82,7 +87,8 @@ export function useEntrance(
         const entry = newest(entries);
         if (!entry) return;
         whole = entry.isIntersecting && entry.intersectionRatio >= 0.999;
-        setInView(entry.isIntersecting);
+        onScreenNow = entry.isIntersecting;
+        if (!printing) setInView(entry.isIntersecting);
         if (hydrating.current) {
           // Hydrated with any part on screen: it showed its final picture already. Wholly out
           // of view: show the start state, unseen, until it's scrolled to.
@@ -107,13 +113,31 @@ export function useEntrance(
       },
       { rootMargin: inset, threshold: 0 },
     );
+    // Committed before the browser lays the print out: React would otherwise render after it.
+    const beforePrint = () => {
+      printing = true;
+      done.current = true;
+      hydrating.current = false;
+      flushSync(() => {
+        setEntered(true);
+        setInView(false);
+      });
+    };
+    const afterPrint = () => {
+      printing = false;
+      setInView(onScreenNow);
+    };
     onScreen.observe(element);
     pastEdge.observe(element);
     document.addEventListener('visibilitychange', enter);
+    window.addEventListener('beforeprint', beforePrint);
+    window.addEventListener('afterprint', afterPrint);
     return () => {
       onScreen.disconnect();
       pastEdge.disconnect();
       document.removeEventListener('visibilitychange', enter);
+      window.removeEventListener('beforeprint', beforePrint);
+      window.removeEventListener('afterprint', afterPrint);
     };
   }, [ref, amount, mountedInBrowser]);
 
