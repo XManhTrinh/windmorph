@@ -26,7 +26,7 @@ export const listDetailLayout: ComponentAccessibility = {
   consumer: [
     'Pass `listLabel` and `detailLabel` from your translations; update `detailLabel` with the open item.',
     'Pass `detailKey` (usually the pathname) and render the layout in a shared route layout, so focus can follow the open item below 840px.',
-    'Pass `back`, usually an {@link IconButton} link with an `aria-label` such as "Back", so phone users can return to the list.',
+    'Pass `back`, usually an {@link IconButton} link with an `aria-label` such as "Back", so people can return to the list while one pane shows (below 840px of the layout’s own width).',
     'Mark the open item as selected in the list (a {@link List} with `selectedKeys`), so the two panes agree.',
   ],
 };

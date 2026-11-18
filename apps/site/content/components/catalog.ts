@@ -924,7 +924,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     group: 'Containment & overlays',
     railGroup: 'containment',
     summary:
-      "M3's list-detail canonical layout: one pane at a time on phones, the list beside the open item from 840px. For settings, an inbox or a dashboard. Not an M3 component (@windmorph/react-pro).",
+      "M3's list-detail canonical layout, sized by its own width: one pane at a time below 840px, the list beside the open item from 840px. For settings, an inbox or a dashboard. Not an M3 component (@windmorph/react-pro).",
     propsComponents: ['ListDetailLayout'],
     playground: 'full',
     pro: true,
