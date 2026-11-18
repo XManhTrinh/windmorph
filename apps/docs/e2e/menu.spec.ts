@@ -1157,6 +1157,69 @@ test.describe('Menu in place: behaviour', () => {
   }
 });
 
+test.describe('Menu in place: loaded on demand', () => {
+  const CHUNK = /\/menu-in-place-[\w-]+\.js/;
+
+  test('a menu with submenus beside it, in body, never loads the in-place code', async ({
+    page,
+  }) => {
+    const loads: string[] = [];
+    page.on('request', (request) => {
+      if (CHUNK.test(request.url())) loads.push(request.url());
+    });
+    await openStory(page, 'components-menu--submenus');
+    await page.getByRole('button', { name: 'File' }).hover();
+    await page.getByRole('button', { name: 'File' }).click();
+    await page.getByRole('menuitem', { name: 'Share' }).hover();
+    await expect(page.getByRole('menu', { name: 'Share' })).toBeVisible();
+    // Past the browser's idle period, when a menu that may need it preloads it.
+    await page.waitForTimeout(1500);
+    expect(loads).toEqual([]);
+    // A menu with pages in place preloads it once the page is idle.
+    await openStory(page, PLAYER);
+    await expect.poll(() => loads.length).toBeGreaterThan(0);
+  });
+
+  test('opened before its code is in, it waits on its trigger, then opens placed and focused', async ({
+    page,
+  }) => {
+    let release = () => {};
+    const held = new Promise<void>((resolve) => (release = resolve));
+    await page.route(CHUNK, async (route) => {
+      await held;
+      await route.continue();
+    });
+    await openStory(page, PLAYER);
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await page.waitForTimeout(300);
+    // Nothing shows meanwhile, and focus stays on the open trigger, never on the page.
+    await expect(page.locator('[data-level]')).toHaveCount(0);
+    expect(
+      await page.evaluate(() => document.activeElement?.getAttribute('aria-label') ?? 'body'),
+    ).toBe('Settings');
+    const frames = await samplePaintedFrames<{ gap: number; end: number } | null>(
+      page,
+      `(() => {
+        const surface = document.querySelector('[data-level]');
+        if (!surface) return null;
+        const s = surface.getBoundingClientRect();
+        const t = document.querySelector('[aria-label="Settings"][aria-haspopup]').getBoundingClientRect();
+        return { gap: t.top - s.bottom, end: t.right - s.right };
+      })()`,
+      async () => release(),
+      800,
+    );
+    // From its first frame it's placed on its trigger: 8px above it, its end edge on the trigger's.
+    const shown = frames.filter((f): f is { gap: number; end: number } => f !== null);
+    expect(shown.length).toBeGreaterThan(0);
+    for (const f of shown) {
+      expect(Math.abs(f.gap - 8)).toBeLessThanOrEqual(1);
+      expect(Math.abs(f.end)).toBeLessThanOrEqual(1);
+    }
+    await expect(page.getByRole('menuitem', { name: /^Quality/ })).toBeFocused();
+  });
+});
+
 test.describe('Menu in place under reduced motion', () => {
   test.use({ reducedMotion: 'reduce' });
 
