@@ -84,6 +84,9 @@ describe('AnimatedNumber', () => {
   it('shows a computed value with at most three decimals, and a tiny one exactly', async () => {
     const { container } = render(<AnimatedNumber value={2 / 3} />);
     expect(parts(container).spoken).toHaveTextContent('0.667');
+    // A float sum's leftover isn't padded: 0.1 + 0.2 reads 0.3, as Intl's own default.
+    const sum = render(<AnimatedNumber value={0.1 + 0.2} />);
+    expect(parts(sum.container).spoken).toHaveTextContent(/^0\.3$/);
     const tiny = render(<AnimatedNumber value={1.5e-7} format={String} />);
     await act(() => new Promise((resolve) => setTimeout(resolve, 20)));
     // Eight decimals: rounded to seven it would read 2e-7.

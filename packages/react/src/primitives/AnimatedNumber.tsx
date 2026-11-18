@@ -64,7 +64,11 @@ export function AnimatedNumber({
   ...props
 }: AnimatedNumberProps) {
   const { locale } = useLocale();
-  const decimals = format ? decimalsOf(value) : Math.min(MOST_DEFAULT_DECIMALS, decimalsOf(value));
+  // The default reads the value as Intl would at three decimals, so a float's leftover (0.1 + 0.2)
+  // isn't padded with zeros.
+  const decimals = format
+    ? decimalsOf(value)
+    : decimalsOf(Number(value.toFixed(MOST_DEFAULT_DECIMALS)));
   const formatter = useMemo(
     () =>
       new Intl.NumberFormat(locale, {
@@ -118,7 +122,7 @@ export function AnimatedNumber({
     >
       {/* A box as wide as the final value wherever the root lays it out (inline, a block, a
           centred line), with the moving figure laid over it. */}
-      <span aria-hidden="true" className="relative inline-grid">
+      <span aria-hidden="true" className="relative inline-grid whitespace-nowrap">
         <span className="invisible [grid-area:1/1]">{final}</span>
         {/* Out of the box's sizing, so a longer figure counting down never widens it. */}
         <span
