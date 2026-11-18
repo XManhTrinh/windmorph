@@ -9,7 +9,21 @@ const LIST = `flex flex-col gap-2 ps-5 ${TEXT} [&>li]:list-disc`;
 const HEADING = 'text-headline-small text-on-surface';
 const SECTION = 'flex flex-col gap-3';
 
-const BAR_SLOTS = ['strip', 'part', 'fill', 'share', 'legend', 'readout'];
+const BAR_SLOTS = [
+  'strip',
+  'part',
+  'fill',
+  'share',
+  'legend',
+  'legendItem',
+  'legendKey',
+  'readout',
+  'readoutTitle',
+  'readoutRow',
+  'readoutValue',
+  'readoutKey',
+  'readoutName',
+];
 const LIST_SLOTS = ['strip', 'part', 'fill', 'list', 'row', 'key', 'name', 'share', 'figure'];
 
 /** SegmentedBar page body: examples, when to use it, behaviour, parts and tokens. */
@@ -125,10 +139,11 @@ export async function SegmentedBarBody(): Promise<ComponentDoc> {
               print every figure.
             </li>
             <li>
-              <InlineCode>texture</InlineCode> adds a pattern to each part and its key (the first
-              slot solid, a hatch for each slot after it, dots for &quot;Other&quot;, and a pattern
-              per step when ordered), for print or anyone who doesn&apos;t tell the colours apart.
-              Forced colours turn the patterns on by themselves.
+              With two or more parts, each part and its key carry a pattern (the first slot solid, a
+              hatch for each slot after it, and a pattern per step when ordered), for anyone who
+              doesn&apos;t tell the colours apart; <InlineCode>texture={'{false}'}</InlineCode>{' '}
+              turns them off. &quot;Other&quot; is always dotted, and forced colours always draw the
+              patterns. Printed, the colours stay.
             </li>
             <li>
               The parts grow to their shares when the bar first comes into view, and a change moves

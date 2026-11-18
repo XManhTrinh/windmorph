@@ -177,15 +177,16 @@ export default async function ChartsPage() {
             others are hidden.
           </li>
           <li>
-            An ordered ramp, five steps of slot 1&apos;s hue from lightest to darkest, draws parts
-            that follow a scale (a survey&apos;s &quot;never&quot; to &quot;always&quot;):{' '}
-            <InlineCode>ordered</InlineCode> on <InlineCode>SegmentedBar</InlineCode> and{' '}
-            <InlineCode>SegmentedList</InlineCode>.
+            An ordered ramp, five steps of slot 1&apos;s hue from lightest to darkest (the lightest
+            still 3:1 against the surface), draws parts that follow a scale (a survey&apos;s
+            &quot;never&quot; to &quot;always&quot;): <InlineCode>ordered</InlineCode> on{' '}
+            <InlineCode>SegmentedBar</InlineCode> and <InlineCode>SegmentedList</InlineCode>.
           </li>
           <li>
             Colour is never the only key. Every series is named in its legend, readout and table,
-            and <InlineCode>texture</InlineCode> adds a hatch per series, on by itself in forced
-            colours.
+            and with two or more series or parts each has a pattern of its own (hatches on bars and
+            parts, dashes on lines; <InlineCode>texture={'{false}'}</InlineCode> turns them off),
+            always drawn in forced colours. &quot;Other&quot; is always dotted.
           </li>
           <li>
             A theme made with <InlineCode>createTheme</InlineCode> gets its own palette through{' '}

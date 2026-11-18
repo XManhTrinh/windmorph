@@ -86,12 +86,17 @@ export async function FileTriggerBody(): Promise<ComponentDoc> {
           </h2>
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
-              <InlineCode>onFileAccept</InlineCode> gets the chosen files as an array, never empty.
-              Choosing the same file again still calls it.
+              <InlineCode>onFileAccept</InlineCode> gets the chosen files that match{' '}
+              <InlineCode>accept</InlineCode> as an array, never empty. Choosing the same file again
+              still calls it.
             </li>
             <li>
-              <InlineCode>accept</InlineCode> lists MIME types or extensions; check the real type on
-              the server, since a file&apos;s name and type can lie.
+              <InlineCode>accept</InlineCode> lists MIME types, wildcards or extensions. The system
+              dialog only hints at it (a person can pick any file there, and a folder&apos;s
+              contents ignore it), so a chosen file off it goes to{' '}
+              <InlineCode>onFileReject</InlineCode>, with the <InlineCode>reason</InlineCode>{' '}
+              <InlineCode>type</InlineCode>, never to <InlineCode>onFileAccept</InlineCode>. Check
+              the real type on the server too, since a file&apos;s name and type can lie.
             </li>
             <li>
               <InlineCode>multiple</InlineCode> allows several files,{' '}

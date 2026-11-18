@@ -9,7 +9,7 @@ const LIST = `flex flex-col gap-2 ps-5 ${TEXT} [&>li]:list-disc`;
 const HEADING = 'text-headline-small text-on-surface';
 const SECTION = 'flex flex-col gap-3';
 
-const SLOTS = ['root', 'track', 'buffered', 'played', 'thumb', 'bubbleAnchor', 'bubble'];
+const SLOTS = ['root', 'track', 'buffered', 'hover', 'played', 'thumb', 'bubbleAnchor', 'bubble'];
 
 /** MediaTimeSlider page body: examples, when to use it, behaviour, parts and tokens. */
 export async function MediaTimeSliderBody(): Promise<ComponentDoc> {
@@ -94,6 +94,19 @@ export async function MediaTimeSliderBody(): Promise<ComponentDoc> {
               <InlineCode>h:mm:ss</InlineCode> for an hour or longer, in the locale&apos;s digits;{' '}
               <InlineCode>formatTime</InlineCode> writes your own. It shows above the bar, outside
               the slider&apos;s box, so leave about 40px above it.
+            </li>
+            <li>
+              Under a mouse or pen, the stretch from the played part to the pointer fills with a
+              light tint of the played colour, where a press would land (
+              <InlineCode>--wm-media-time-slider-hover-color</InlineCode>;{' '}
+              <InlineCode>transparent</InlineCode> turns it off). A touch never shows it.{' '}
+              <InlineCode>--wm-media-time-slider-thumb-size-rest</InlineCode> keeps a dot at rest
+              (none by default), so a paused player shows where it is.
+            </li>
+            <li>
+              The bar runs left to right in every language, as media progress does: on a
+              right-to-left page it fills from the left, Arrow Right moves forward and the pointer
+              reads from the left.
             </li>
             <li>
               A touch waits to tell a tap, a drag and a scroll apart, as the core{' '}

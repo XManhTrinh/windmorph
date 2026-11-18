@@ -8,12 +8,13 @@ export const listDetailLayout: ComponentAccessibility = {
     role: 'Two landmarks: the list pane is a `navigation` region (`nav`), or a `region` (`section`) with `listAs="section"`; the detail pane is a `region` (`section`).',
     name: 'The list pane is named by `listLabel` ("Settings"), the detail pane by `detailLabel` (the open item\'s title).',
     states:
-      'None. Below 840px the hidden pane is `display: none`, so it is out of the accessibility tree.',
+      "None. Below 840px the hidden pane is `display: none`, so it is out of the accessibility tree; while it fades out it is already `inert`, so neither Tab, a screen reader's cursor nor a press reaches it.",
   },
   focus: [
     'Below 840px, when `detailKey` changes, focus moves to the pane now showing (unless focus is already inside it), without scrolling the page, so keyboard and screen reader users land on the new content. Both panes take focus this way only (`tabIndex={-1}`), never by Tab.',
     "A pane focused this way from the keyboard shows M3's focus indicator inside its edge.",
     'From 840px focus stays where it is, usually on the item that was chosen.',
+    "Below 840px, focus inside the pane that's leaving (on Back, say) moves to the pane showing as the switch starts, so it never drops to the page.",
   ],
   touchTarget: {
     none: 'The layout has no controls of its own; the list items and the back control keep their own targets.',

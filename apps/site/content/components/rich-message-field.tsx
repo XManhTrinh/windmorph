@@ -148,16 +148,16 @@ export async function RichMessageFieldBody(): Promise<ComponentDoc> {
               <InlineCode>onSubmit</InlineCode> gets it trimmed. Everything else is the
               frame&apos;s: <InlineCode>tools</InlineCode> (after Aa),{' '}
               <InlineCode>banner</InlineCode>, <InlineCode>attachments</InlineCode>,{' '}
-              <InlineCode>onFileAccept</InlineCode>, <InlineCode>maxLength</InlineCode> (never cut;
-              it counts the stored marker text, so markers and mentions count:{' '}
-              <InlineCode>*bold*</InlineCode> is 6), <InlineCode>expandOnFocus</InlineCode>,{' '}
-              <InlineCode>docked</InlineCode> and the rest. <InlineCode>handleRef</InlineCode> adds{' '}
-              <InlineCode>format</InlineCode>, <InlineCode>setLink</InlineCode> and{' '}
-              <InlineCode>removeLink</InlineCode> to <InlineCode>focus</InlineCode>,{' '}
-              <InlineCode>insertText</InlineCode> and <InlineCode>clear</InlineCode>. Focusing the
-              text (a press on the field or a tool, <InlineCode>insertText</InlineCode>) never
-              scrolls the page; the app&apos;s <InlineCode>focus()</InlineCode> brings a field that
-              is wholly off screen into view.
+              <InlineCode>onFileAccept</InlineCode> and <InlineCode>onFileReject</InlineCode>,{' '}
+              <InlineCode>maxLength</InlineCode> (never cut; it counts the stored marker text, so
+              markers and mentions count: <InlineCode>*bold*</InlineCode> is 6),{' '}
+              <InlineCode>expandOnFocus</InlineCode>, <InlineCode>docked</InlineCode> and the rest.{' '}
+              <InlineCode>handleRef</InlineCode> adds <InlineCode>format</InlineCode>,{' '}
+              <InlineCode>setLink</InlineCode> and <InlineCode>removeLink</InlineCode> to{' '}
+              <InlineCode>focus</InlineCode>, <InlineCode>insertText</InlineCode> and{' '}
+              <InlineCode>clear</InlineCode>. Focusing the text (a press on the field or a tool,{' '}
+              <InlineCode>insertText</InlineCode>) never scrolls the page; the app&apos;s{' '}
+              <InlineCode>focus()</InlineCode> brings a field that is wholly off screen into view.
             </li>
             <li>
               <InlineCode>FormattedText</InlineCode> shows the marker format as elements, never HTML

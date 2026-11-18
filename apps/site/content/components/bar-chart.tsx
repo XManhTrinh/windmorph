@@ -25,6 +25,8 @@ const SLOTS = [
   'readoutTitle',
   'readoutRow',
   'readoutValue',
+  'readoutKey',
+  'readoutName',
   'readoutTotal',
 ];
 
@@ -208,9 +210,11 @@ export async function BarChartBody(): Promise<ComponentDoc> {
               <InlineCode>ChartLegend</InlineCode> and <InlineCode>ChartTooltip</InlineCode> are
               those parts on their own: one legend for several charts, as in the example above, or a
               readout for a chart you draw yourself. <InlineCode>ChartLegend</InlineCode> is a list
-              of keys, or chips once it has <InlineCode>onHiddenChange</InlineCode>;{' '}
-              <InlineCode>ChartTooltip</InlineCode> is drawn as the core&apos;s rich tooltip and is
-              hidden from assistive technology, so what it shows must be said another way too.
+              of keys, or chips once it has <InlineCode>hiddenSeries</InlineCode>,{' '}
+              <InlineCode>defaultHiddenSeries</InlineCode> or{' '}
+              <InlineCode>onHiddenSeriesChange</InlineCode>; <InlineCode>ChartTooltip</InlineCode>{' '}
+              is drawn as the core&apos;s rich tooltip and is hidden from assistive technology, so
+              what it shows must be said another way too.
             </li>
             <li>
               <InlineCode>chartColor(slot)</InlineCode> gives a slot&apos;s colour as the charts
@@ -221,9 +225,10 @@ export async function BarChartBody(): Promise<ComponentDoc> {
               the same slots with <InlineCode>slot</InlineCode>.
             </li>
             <li>
-              <InlineCode>texture</InlineCode> hatches each series&apos; bars (slot 1 stays solid),
-              and its keys to match, for where hue isn&apos;t enough, such as print; forced colours
-              turn it on by themselves.
+              With two or more series, each series&apos; bars are hatched (slot 1 stays solid), and
+              its keys to match, for anyone who doesn&apos;t tell the colours apart;{' '}
+              <InlineCode>texture={'{false}'}</InlineCode> turns them off. Forced colours always
+              draw them. Printed, the colours stay.
             </li>
           </ul>
         </section>

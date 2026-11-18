@@ -9,7 +9,7 @@ const LIST = `flex flex-col gap-2 ps-5 ${TEXT} [&>li]:list-disc`;
 const HEADING = 'text-headline-small text-on-surface';
 const SECTION = 'flex flex-col gap-3';
 
-const SLOTS = ['label', 'figure', 'value', 'unit', 'change', 'changeIcon', 'trend'];
+const SLOTS = ['label', 'figure', 'value', 'unit', 'change', 'changeIcon', 'context', 'trend'];
 const SPARKLINE_SLOTS = ['trend', 'point'];
 
 /** StatTile page body: examples, when to use it, behaviour, parts and tokens. */

@@ -161,8 +161,11 @@ export async function MessageFieldBody(): Promise<ComponentDoc> {
             </li>
             <li>
               <InlineCode>onFileAccept</InlineCode> gets files pasted or dropped onto the field that
-              match <InlineCode>accept</InlineCode>; the field shows its drag-over state. Without
-              it, files are ignored and text pastes as usual.
+              match <InlineCode>accept</InlineCode>; the field shows its drag-over state, and{' '}
+              <InlineCode>onFileReject</InlineCode> gets the ones that don&apos;t, each with the{' '}
+              <InlineCode>reason</InlineCode> <InlineCode>type</InlineCode>. A paste with no file
+              taken still pastes its text. Without <InlineCode>onFileAccept</InlineCode>, files are
+              ignored and text pastes as usual.
             </li>
             <li>
               <InlineCode>maxLength</InlineCode> never cuts what&apos;s written: past it, the

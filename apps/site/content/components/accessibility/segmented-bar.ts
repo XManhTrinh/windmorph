@@ -53,7 +53,7 @@ export const segmentedBar: ComponentAccessibility = {
     'Name each bar or list with `aria-label` ("Visits by device"), or put it in a `ChartFrame`, whose title names it.',
     'Keep to two to five parts, largest first, so anything past six folds the smallest into "Other". Labels are text, never HTML.',
     'Use `ordered` only for parts with an order, and keep them to five.',
-    'Turn `texture` on where colour may not be told apart (print, a setting of your own); the key names every part either way.',
+    'Keep `texture` on (it is, for two or more parts) where colour may not be told apart; the key names every part either way.',
     'Translate `labels.describePart`, `labels.parts`, `labels.other` and `labels.noValue`, or set them once for the app with a {@link LabelsProvider} (its `Chart` words).',
   ],
 };

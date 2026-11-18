@@ -11,7 +11,7 @@ export const mediaTimeSlider: ComponentAccessibility = {
     { keys: ['Home', 'End'], action: 'Goes to the start or the end.' },
   ],
   keyboardNotes: [
-    'Right to left, Arrow Left moves forward and Arrow Right back, as the bar runs from the right.',
+    'On a right-to-left page too, Arrow Right moves forward and Arrow Left back: the bar runs left to right in every language, as media progress does.',
     'Each key calls `onChangeEnd` (and `onChange` when it moves the position), so a player seeks once per key press.',
   ],
   screenReader: {
@@ -33,7 +33,7 @@ export const mediaTimeSlider: ComponentAccessibility = {
     'The whole bar is a 48px tall target, however thin it draws; a press anywhere on it seeks there.',
   ],
   motion: [
-    'The bar grows and the handle appears on the fast spatial spring; under reduced motion both change at once.',
+    'The bar grows and the handle grows from its resting size (none by default) on the fast spatial spring; under reduced motion both change at once.',
     'The bubble fades in and out, under reduced motion too: a fade is not movement.',
   ],
   consumer: [

@@ -9,7 +9,7 @@ const LIST = `flex flex-col gap-2 ps-5 ${TEXT} [&>li]:list-disc`;
 const HEADING = 'text-headline-small text-on-surface';
 const SECTION = 'flex flex-col gap-3';
 
-const SLOTS = ['list', 'row', 'name', 'bar', 'figure'];
+const SLOTS = ['list', 'row', 'name', 'track', 'bar', 'figure'];
 
 /** RankedBars page body: examples, when to use them, behaviour, parts and tokens. */
 export async function RankedBarsBody(): Promise<ComponentDoc> {
@@ -65,9 +65,9 @@ export async function RankedBarsBody(): Promise<ComponentDoc> {
             </li>
             <li>
               A row marked <InlineCode>rest</InlineCode> (&quot;Everywhere else&quot;) goes last
-              whatever its size, in the quiet colour, so the remainder never ranks among the parts.
-              The other bars take the charts&apos; first colour slot, built from the theme&apos;s
-              primary.
+              whatever its size, in the quiet colour and dotted, so the remainder never ranks among
+              the parts. The other bars take the charts&apos; first colour slot, built from the
+              theme&apos;s primary.
             </li>
             <li>
               Every bar is drawn against the largest amount shown, the rest row&apos;s included. A

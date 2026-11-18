@@ -99,10 +99,14 @@ export async function MediaUploadGridBody(): Promise<ComponentDoc> {
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
               The grid keeps nothing: the app holds the photos in <InlineCode>items</InlineCode> and
-              changes them in the callbacks. <InlineCode>onAdd(files)</InlineCode> gets only files
-              matching <InlineCode>accept</InlineCode>, and no more than fit under{' '}
+              changes them in the callbacks. <InlineCode>onFileAccept(files)</InlineCode> gets only
+              files matching <InlineCode>accept</InlineCode>, and no more than fit under{' '}
               <InlineCode>maxItems</InlineCode>; at the limit the add tile goes away and drops are
-              refused.
+              refused. <InlineCode>onFileReject(rejections)</InlineCode> then gets the rest of a
+              pick or drop, each with its <InlineCode>reason</InlineCode>:{' '}
+              <InlineCode>type</InlineCode> (off <InlineCode>accept</InlineCode>) or{' '}
+              <InlineCode>room</InlineCode> (past <InlineCode>maxItems</InlineCode>), so you can say
+              why a photo didn&apos;t appear.
             </li>
             <li>
               Show a chosen file at once with <InlineCode>URL.createObjectURL(file)</InlineCode> as

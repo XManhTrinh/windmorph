@@ -55,7 +55,7 @@ export const barChart: ComponentAccessibility = {
     'Give each place a full `name` ("Week of 1 June"): it is what screen readers, the readout and the table say. The `tick` is only for the axis.',
     'Put units and currencies in `formatValue`, so the value text says them.',
     'Show every value another way too: a `ChartFrame` gives the table view, since the readout enhances and is hidden from assistive technology.',
-    'Refer to series by name, never by colour alone, and turn on `texture` where hue may not be enough, such as print.',
+    'Refer to series by name, never by colour alone. Keep `texture` on (it is, for two or more series) unless every series is told apart some other way, such as a label on each line.',
     'A chart that updates by itself needs a way to pause it (WCAG 2.2.2).',
     'Translate `labels` (`describePlace`, `total`, `noValue`, `legend`, `place`), or set them once for the app with a `LabelsProvider` under `Chart`.',
     'For a theme of your own, add its chart palette with `withChartColors`, so the slots are made for it as the built-in themes’ are.',
