@@ -409,8 +409,9 @@ export interface MenuProps
    */
   portalContainer?: Element | null;
   /**
-   * Words the menu shows in a sheet. Set them on the root menu. A {@link LabelsProvider} sets them
-   * for the whole app.
+   * Words the menu shows above a submenu shown in place (in a sheet, or with
+   * `submenuPresentation="replace"`). Set them on the root menu. A {@link LabelsProvider} sets
+   * them for the whole app.
    */
   labels?: Partial<MenuLabels>;
   /**
@@ -420,7 +421,8 @@ export interface MenuProps
   backIcon?: ReactElement;
   /**
    * Open and close with no motion (M3: "In dense products, such as on desktop, menus can
-   * open instantly to reduce motion"). Submenus follow their root menu. Popovers only: a menu
+   * open instantly to reduce motion"), and change pages shown in place with none. Submenus
+   * follow their root menu. Popovers only: a menu
    * shown as a bottom sheet (`presentation="sheet"`, or `auto` on a compact window) keeps the
    * sheet's slide, as M3's and Compose's modal bottom sheets always animate; under reduced
    * motion it fades instead.
