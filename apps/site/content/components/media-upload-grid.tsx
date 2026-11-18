@@ -41,7 +41,7 @@ export async function MediaUploadGridBody(): Promise<ComponentDoc> {
             Examples
           </h2>
           <ExampleViewer
-            title="A post composer: progress, retry, reorder and a menu"
+            title="A post composer: progress, retry, reorder, a menu and refused files"
             code={composer}
             html={composerHtml}
             fileName="media-upload-grid-composer.tsx"
@@ -102,15 +102,22 @@ export async function MediaUploadGridBody(): Promise<ComponentDoc> {
               changes them in the callbacks. <InlineCode>onFileAccept(files)</InlineCode> gets only
               files matching <InlineCode>accept</InlineCode>, and no more than fit under{' '}
               <InlineCode>maxItems</InlineCode>; at the limit the add tile goes away.{' '}
-              <InlineCode>onFileReject(rejections)</InlineCode> gets the files a pick or drop
-              brought that weren&apos;t taken, after <InlineCode>onFileAccept</InlineCode> and never
-              with an empty list, each with its <InlineCode>reason</InlineCode> (
-              <InlineCode>type</InlineCode>, off <InlineCode>accept</InlineCode>, or{' '}
-              <InlineCode>room</InlineCode>, past <InlineCode>maxItems</InlineCode>), so you can say
-              why a file didn&apos;t appear. A full grid still takes a drop, only to report its
-              files as <InlineCode>room</InlineCode>, and isn&apos;t drawn as a drop target then. A
-              drag whose types can&apos;t match <InlineCode>accept</InlineCode> is refused while
-              it&apos;s over the grid, with the no-drop cursor, so it&apos;s never reported.
+              <InlineCode>accept</InlineCode> reads as <InlineCode>FileTrigger</InlineCode>&apos;s:
+              list the extensions beside the MIME types (
+              <InlineCode>{"['text/csv', '.csv']"}</InlineCode>), since a file&apos;s type comes
+              from the system and can differ from the one you expect; <InlineCode>*</InlineCode> or{' '}
+              <InlineCode>*/*</InlineCode> takes any file, and an entry may hold several types,
+              comma-separated. <InlineCode>onFileReject(rejections)</InlineCode> gets the files a
+              pick or drop brought that weren&apos;t taken, after{' '}
+              <InlineCode>onFileAccept</InlineCode> and never with an empty list, each with its{' '}
+              <InlineCode>reason</InlineCode> (<InlineCode>type</InlineCode>, off{' '}
+              <InlineCode>accept</InlineCode>, or <InlineCode>room</InlineCode>, past{' '}
+              <InlineCode>maxItems</InlineCode>), so you can say why a file didn&apos;t appear. A
+              full grid still takes a drop, only to report it: its files off{' '}
+              <InlineCode>accept</InlineCode> as <InlineCode>type</InlineCode>, those matching as{' '}
+              <InlineCode>room</InlineCode>; it isn&apos;t drawn as a drop target then. A drag whose
+              types can&apos;t match <InlineCode>accept</InlineCode> is refused while it&apos;s over
+              the grid, with the no-drop cursor, so it&apos;s never reported.
             </li>
             <li>
               Show a chosen file at once with <InlineCode>URL.createObjectURL(file)</InlineCode> as

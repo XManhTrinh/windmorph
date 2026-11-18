@@ -1,16 +1,33 @@
 'use client';
 
-import { MediaUploadGrid, type MediaUploadItem } from '@windmorph/react-pro';
+import { MediaUploadGrid, type FileRejection, type MediaUploadItem } from '@windmorph/react-pro';
 import { useEffect, useState } from 'react';
 import { SAMPLE_PHOTOS } from './sample-photos';
 
 const MAX_PHOTOS = 10;
 
+/** Why files didn't appear, in the app's own words. */
+function refusal(rejections: FileRejection[]) {
+  const wrongType = rejections.filter((rejection) => rejection.reason === 'type');
+  const noRoom = rejections.length - wrongType.length;
+  return [
+    wrongType.length > 0 &&
+      `${wrongType.map((rejection) => rejection.file.name).join(', ')}: only JPEG, PNG, WebP and GIF photos can be added.`,
+    noRoom > 0 &&
+      `A post holds ${MAX_PHOTOS} photos, so ${noRoom === 1 ? '1 photo was' : `${noRoom} photos were`} left out.`,
+  ]
+    .filter(Boolean)
+    .join(' ');
+}
+
 /**
  * A post composer's photos. New files "upload" with progress (a timer stands in for the
- * server); the failed one uploads again on Retry. Drag to reorder, or use the menu.
+ * server); the failed one uploads again on Retry. Drag to reorder, or use the menu. A file the
+ * grid doesn't take (off `accept`, or past `maxItems`) comes back to `onFileReject`, and the
+ * line under the grid says why it didn't appear.
  */
 export function MediaUploadGridComposer() {
+  const [notice, setNotice] = useState('');
   const [items, setItems] = useState<MediaUploadItem[]>(() => [
     {
       key: 'sample-0',
@@ -68,7 +85,10 @@ export function MediaUploadGridComposer() {
         items={items}
         accept={['image/jpeg', 'image/png', 'image/webp', 'image/gif']}
         maxItems={MAX_PHOTOS}
-        onFileAccept={(files) =>
+        onFileAccept={(files) => {
+          // Clears the last notice; `onFileReject`, called after this, sets a new one if a file
+          // was refused.
+          setNotice('');
           setItems((current) => [
             ...current,
             ...files.map((file) => ({
@@ -78,8 +98,10 @@ export function MediaUploadGridComposer() {
               status: 'uploading' as const,
               progress: 0,
             })),
-          ])
-        }
+          ]);
+        }}
+        // Called after `onFileAccept`, only when something was refused.
+        onFileReject={(rejections) => setNotice(refusal(rejections))}
         onReorder={(keys) =>
           setItems((current) => keys.map((key) => current.find((item) => item.key === key)!))
         }
@@ -105,6 +127,10 @@ export function MediaUploadGridComposer() {
         ]}
         onItemAction={(key, action) => move(key, action === 'earlier' ? -1 : 1)}
       />
+      {/* In the page from the start, so each new notice is announced. */}
+      <p role="status" className="mt-3 text-body-medium text-on-surface-variant">
+        {notice}
+      </p>
     </div>
   );
 }

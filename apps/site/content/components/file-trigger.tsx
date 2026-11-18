@@ -91,10 +91,15 @@ export async function FileTriggerBody(): Promise<ComponentDoc> {
               still calls it.
             </li>
             <li>
-              <InlineCode>accept</InlineCode> lists MIME types, wildcards or extensions. The system
-              dialog only hints at it (a person can pick any file there, and a folder&apos;s
-              contents ignore it), so a chosen file off it never reaches{' '}
-              <InlineCode>onFileAccept</InlineCode>.{' '}
+              <InlineCode>accept</InlineCode> lists MIME types, wildcards or extensions, in any
+              case. List the extensions beside the MIME types (
+              <InlineCode>{"['text/csv', '.csv']"}</InlineCode>), since a file&apos;s type comes
+              from the system and can differ from the one you expect (a CSV is{' '}
+              <InlineCode>application/vnd.ms-excel</InlineCode> where a spreadsheet app owns it).{' '}
+              <InlineCode>*</InlineCode> or <InlineCode>*/*</InlineCode> takes any file, as does no
+              list, and an entry may hold several types, comma-separated. The system dialog only
+              hints at it (a person can pick any file there, and a folder&apos;s contents ignore
+              it), so a chosen file off it never reaches <InlineCode>onFileAccept</InlineCode>.{' '}
               <InlineCode>onFileReject(rejections)</InlineCode> gets the files a pick brought that
               weren&apos;t taken, after <InlineCode>onFileAccept</InlineCode> and never with an
               empty list, each with its <InlineCode>reason</InlineCode> (

@@ -166,9 +166,11 @@ export async function RichMessageFieldBody(): Promise<ComponentDoc> {
               brought that weren&apos;t taken, after <InlineCode>onFileAccept</InlineCode> and never
               with an empty list, each with its <InlineCode>reason</InlineCode> (
               <InlineCode>type</InlineCode>, off <InlineCode>accept</InlineCode>), so you can say
-              why a file didn&apos;t appear. A paste that takes no file goes in as text; if it
-              carries text, it&apos;s a text paste and reports nothing, since copied cells or a
-              document bring a picture of themselves too.
+              why a file didn&apos;t appear. A paste whose HTML holds words is a text paste whatever
+              files it carries (copied cells or a document bring a picture of themselves), neither
+              taken nor reported; a copied picture, whose HTML is the image alone, is taken. A paste
+              that takes no file still pastes its text, and reports its files only if it carries no
+              text.
             </li>
             <li>
               <InlineCode>FormattedText</InlineCode> shows the marker format as elements, never HTML
