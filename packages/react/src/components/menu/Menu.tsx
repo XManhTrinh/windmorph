@@ -15,6 +15,7 @@ import {
   type ElementType,
   type FocusEvent,
   type JSX,
+  type KeyboardEvent as ReactKeyboardEvent,
   type Key,
   type ReactElement,
   type ReactNode,
@@ -68,6 +69,7 @@ import { COMPACT_WINDOW, useMediaQuery } from '../date-picker/use-media-query';
 import { Divider } from '../divider/Divider';
 import { LazyBottomSheet, usePreloadBottomSheet } from '../sheet/lazy-bottom-sheet';
 import { BackIcon } from '../sheet/sheet-icons';
+import { useBoundaryInContainer } from './use-boundary-in-container';
 import { usePageHeight } from './use-page-height';
 import { useRevealEntering } from './use-reveal-entering';
 import { menuOwnWidth, menuStyles, type MenuLayout, type MenuVariant } from './menu-styles';
@@ -675,6 +677,16 @@ const MenuPageContext = createContext<MenuPageContextValue | null>(null);
 const subscribeToNothing = () => () => {};
 
 /**
+ * Keys that move focus in a menu (React Aria's) and whose default the browser would also take:
+ * scrolling the nearest element around the menu that scrolls, such as a pane holding its
+ * `portalContainer`, which carried the open menu away (2026-11-18). React Aria leaves it.
+ */
+const FOCUS_MOVING_KEYS = new Set(['Home', 'End', 'PageUp', 'PageDown']);
+
+/** See `useBoundaryInContainer`. */
+const ABSOLUTE = { position: 'absolute' } as const;
+
+/**
  * Which way the last page change went, for the page coming in (`data-page-direction`):
  * `undefined` until the first change, so the first page never moves in as the menu opens.
  * Derived as the level changes, in the same render, so the page and the direction it reads
@@ -791,6 +803,7 @@ function MenuPopover({
   const [heldSide, setHeldSide] = useState<string | null>(null);
   const requested = toPhysicalPlacement(placement, direction);
   const placing = usePlaceAgainOnResize(boundary);
+  const boundaryElement = useBoundaryInContainer(boundary, popoverRef, placing);
   const {
     popoverProps,
     underlayProps,
@@ -803,7 +816,7 @@ function MenuPopover({
       shouldFlip: !heldSide,
       offset,
       containerPadding,
-      ...(boundary && { boundaryElement: boundary }),
+      ...(boundaryElement && { boundaryElement }),
       shouldUpdatePosition: placing,
     },
     trigger.state,
@@ -836,8 +849,10 @@ function MenuPopover({
         {...popoverProps}
         ref={setPopover}
         // React Aria's placement wins over a consumer style's and, through the attribute
-        // (styles/utilities.css), over consumer inset classes.
-        style={{ ...style, ...popoverProps.style }}
+        // (styles/utilities.css), over consumer inset classes. In a `portalContainer` it's
+        // absolute from the start, as React Aria makes it once placed, so the first placement
+        // and the boundary's stand-in count from the same containing block.
+        style={{ ...style, ...popoverProps.style, ...(boundary && ABSOLUTE) }}
         data-overlay-placement=""
         className={styles.popover({ class: cn(menuOwnWidth, className) })}
       >
@@ -1097,6 +1112,9 @@ function MenuList({
         // Focus events bubble through portals: count only focus inside this menu's element.
         onFocus: (event: FocusEvent<HTMLDivElement>) => {
           if (event.currentTarget.contains(event.target)) setActive?.(level);
+        },
+        onKeyDown: (event: ReactKeyboardEvent<HTMLDivElement>) => {
+          if (FOCUS_MOVING_KEYS.has(event.key)) event.preventDefault();
         },
       })}
       ref={ref}
@@ -1599,6 +1617,7 @@ function SubmenuPopoverContent({
   const tree = useContext(MenuTreeContext)!;
   const popoverRef = useRef<HTMLDivElement>(null);
   const { submenuLevel, ...ariaMenuProps } = menuProps;
+  const boundaryElement = useBoundaryInContainer(tree.boundary, popoverRef, null);
   const { popoverProps: positionProps, placement } = usePopover(
     {
       ...popoverProps,
@@ -1612,7 +1631,7 @@ function SubmenuPopoverContent({
       offset: 6,
       crossOffset: -4,
       // Within the root's `portalContainer`, as the root menu is.
-      ...(tree.boundary && { boundaryElement: tree.boundary }),
+      ...(boundaryElement && { boundaryElement }),
     },
     state,
   );
@@ -1627,7 +1646,7 @@ function SubmenuPopoverContent({
     <div
       {...positionProps}
       ref={popoverRef}
-      style={{ ...style, ...positionProps.style }}
+      style={{ ...style, ...positionProps.style, ...(tree.boundary && ABSOLUTE) }}
       data-overlay-placement=""
       className={styles.popover({ class: cn(menuOwnWidth, className) })}
     >

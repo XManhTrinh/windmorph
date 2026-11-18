@@ -53,25 +53,21 @@ export const persistentScrollbar = [
   'supports-[not_selector(::-webkit-scrollbar)]:[scrollbar-width:thin] supports-[not_selector(::-webkit-scrollbar)]:[scrollbar-color:var(--md-sys-color-outline)_transparent]',
 ];
 
-/**
- * Where submenus show in place of the menu that opened them (a bottom sheet, or a popover with
- * `submenuPresentation="replace"`): every page but the last is hidden, the first page (the menu,
- * not portalled) and every earlier submenu page (portalled in after it, in an overlay scope), so
- * nested pages stack the same way.
- */
+// Where submenus show in place of the menu that opened them (a bottom sheet, or a popover with
+// `submenuPresentation="replace"`): every page but the last is hidden, the first page (the menu,
+// not portalled) and every earlier submenu page (portalled in after it, in an overlay scope), so
+// nested pages stack the same way.
 const pageStack = [
   '[&>:not([data-overlay-scope]):has(~[data-overlay-scope])]:hidden',
   '[&>[data-overlay-scope]:has(~[data-overlay-scope])>*]:hidden',
 ];
 
-/**
- * A page coming in (`submenuTransition`): it fades in on the fast effects spring, and with
- * `slide` also moves in 30px from the end edge going forward and from the start edge going back
- * (M3's forward and backward pattern), on the default spatial spring. The pages read the
- * direction from their container's `data-page-direction`, which is set from the first page
- * change on, so the first page never moves as the menu opens: the reveal does that. The page
- * going out is hidden at once.
- */
+// A page coming in (`submenuTransition`): it fades in on the fast effects spring, and with
+// `slide` also moves in 30px from the end edge going forward and from the start edge going back
+// (M3's forward and backward pattern), on the default spatial spring. The pages read the
+// direction from their container's `data-page-direction`, which is set from the first page
+// change on, so the first page never moves as the menu opens: the reveal does that. The page
+// going out is hidden at once.
 const pageEnter = [
   'opacity-100 [[data-page-direction]_&]:starting:opacity-0',
   '[[data-page-direction]_&]:starting:[translate:calc(var(--m3-menu-page-x,0px)*var(--m3-menu-page-sign,1))_0]',
@@ -80,10 +76,8 @@ const pageEnter = [
   '[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-default-easing)]',
 ];
 
-/**
- * What the container of the pages tells them: the slide's offset for the direction (left and
- * right swap in right to left), only with `slide`.
- */
+// What the container of the pages tells them: the slide's offset for the direction (left and
+// right swap in right to left), only with `slide`.
 const pageDirection = [
   '[--m3-menu-page-sign:1] rtl:[--m3-menu-page-sign:-1]',
   'data-[page-transition=slide]:data-[page-direction=forward]:[--m3-menu-page-x:30px]',

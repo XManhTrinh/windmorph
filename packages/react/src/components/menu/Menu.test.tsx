@@ -1467,11 +1467,19 @@ describe('Menu in an element (portalContainer)', () => {
     const box = vi.spyOn(player, 'getBoundingClientRect');
     await openMenu('Settings');
     expect(box).toHaveBeenCalled();
+    // React Aria measures a stand-in in the page where the player sits in its own coordinates.
+    const standIn = document.querySelector<HTMLElement>('[data-menu-boundary]')!;
+    expect(standIn.parentElement).toBe(document.documentElement);
+    expect(standIn).toHaveAttribute('aria-hidden', 'true');
+    expect(standIn.style.visibility).toBe('hidden');
     const before = box.mock.calls.length;
     screen.getByRole('menuitem', { name: 'Playback speed' }).focus();
     await userEvent.keyboard('{ArrowRight}');
     await screen.findByRole('menu', { name: 'Playback speed' });
     expect(box.mock.calls.length).toBeGreaterThan(before);
+    await userEvent.keyboard('{Escape}{Escape}');
+    await closed();
+    expect(standIn).not.toBeInTheDocument();
     unmount();
 
     // In an app's portal provider's container, the menu is placed within the window.
@@ -1487,6 +1495,17 @@ describe('Menu in an element (portalContainer)', () => {
     expect(provided).toContainElement(screen.getByRole('menu'));
     expect(providedBox).not.toHaveBeenCalled();
     provided.remove();
+  });
+
+  it('moves focus with Home, End, Page Up and Page Down without scrolling what holds the menu', async () => {
+    render(<Player />);
+    await openMenu('Settings');
+    // Their default would scroll a pane around the player, and the menu with it.
+    for (const key of ['End', 'Home', 'PageDown', 'PageUp']) {
+      expect(fireEvent.keyDown(document.activeElement!, { key }), key).toBe(false);
+    }
+    await userEvent.keyboard('{End}');
+    expect(screen.getByRole('menuitem', { name: 'Playback speed' })).toHaveFocus();
   });
 
   it('opens a sheet over the window, not in the element', async () => {

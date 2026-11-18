@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useId,
   useLayoutEffect,
   useRef,
@@ -19,7 +20,6 @@ import {
 } from '../theme/context';
 import { themeAttributes, themeAttributesOver, type ThemeState } from '../theme/state';
 import type { Density } from '../tokens/density';
-import { useWarnOnce } from '../utils/warn-once';
 import { ContainerButtonContext } from './ButtonContext';
 import { ChipSetDisabledContext } from './ChipSetContext';
 import { DialogTriggerContext, SheetTriggerContext } from './OverlayTriggerContext';
@@ -77,7 +77,7 @@ const DRAWS_NO_CHILDREN = new Set([
   'video',
 ]);
 
-/** Whether an element draws children of ours: an HTML element that isn't one of those above. */
+// Whether an element draws children of ours: an HTML element that isn't one of those above.
 function drawsChildren(element: Element) {
   return (
     element.namespaceURI === 'http://www.w3.org/1999/xhtml' &&
@@ -227,10 +227,14 @@ export function Overlay({
   const fullscreen = useIsSSR() ? null : openedInFullscreen;
   const ownContainer = portalContainer ?? getContainer?.() ?? undefined;
   const container = ownContainer ?? fullscreen ?? undefined;
-  useWarnOnce(
-    portalContainer !== undefined && !drawsChildren(portalContainer),
-    `[@windmorph/react] An overlay's portalContainer must draw its children: a <${portalContainer?.localName}> never shows an overlay put inside it. Pass an element around it, such as the player that holds a video.`,
-  );
+  // Development only, once per container.
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production' || !portalContainer) return;
+    if (drawsChildren(portalContainer)) return;
+    console.warn(
+      `[@windmorph/react] An overlay's portalContainer must draw its children: a <${portalContainer.localName}> never shows an overlay put inside it. Pass an element around it, such as the player that holds a video.`,
+    );
+  }, [portalContainer]);
   // In `document.body`, the wrapper carries only what differs from `<html>`, so an app's own
   // `:root` values for the system tokens reach the overlay too; in an element of the page (a
   // container of the caller's or an app's, or the element in full screen), only what differs
