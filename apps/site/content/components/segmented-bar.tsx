@@ -76,8 +76,9 @@ export async function SegmentedBarBody(): Promise<ComponentDoc> {
             <li>
               <InlineCode>parts</InlineCode> are <InlineCode>{'{ key, label, value }'}</InlineCode>,
               drawn in the order you give them. Keep each <InlineCode>key</InlineCode> the same
-              across updates, so a part keeps its colour and its block moves rather than being
-              replaced.
+              across updates, so its block moves rather than being replaced. Colours go by order, so
+              a part added before others moves their colours along; pin{' '}
+              <InlineCode>slot</InlineCode> to keep a part&apos;s colour when parts come and go.
             </li>
             <li>
               Six parts at most are drawn, since more stop being told apart by colour. Past six, the
@@ -161,11 +162,12 @@ export async function SegmentedBarBody(): Promise<ComponentDoc> {
             </li>
             <li>
               In a <InlineCode>ChartFrame</InlineCode>, the frame&apos;s title names it, unless it
-              has an <InlineCode>aria-label</InlineCode> of its own. A{' '}
-              <InlineCode>SegmentedBar</InlineCode> gives the frame its parts for the table view
-              (part, amount and share); a <InlineCode>SegmentedList</InlineCode> gives none, since
-              its rows are its figures. While the frame is <InlineCode>pending</InlineCode>, the
-              parts&apos; colours dim and their figures keep their contrast.
+              has an <InlineCode>aria-label</InlineCode> or <InlineCode>aria-labelledby</InlineCode>{' '}
+              of its own. A <InlineCode>SegmentedBar</InlineCode> gives the frame its parts for the
+              table view (part, amount and share); a <InlineCode>SegmentedList</InlineCode> gives
+              none, since its rows are its figures. While the frame is{' '}
+              <InlineCode>pending</InlineCode>, the parts&apos; colours dim and their figures keep
+              their contrast.
             </li>
           </ul>
         </section>

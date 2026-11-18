@@ -62,7 +62,7 @@ const QUESTIONS = [
   },
 ] as const;
 
-const IMPORT_SNIPPET = `import { ChartFrame, LineChart, StatTile } from '@windmorph/react-pro/charts';
+const IMPORT_SNIPPET = `import { ChartFrame, LineChart } from '@windmorph/react-pro/charts';
 
 <ChartFrame title="Sign-ups" description="The last 12 weeks">
   <LineChart places={weeks} placeLabel="Week" series={[{ key: 'sign-ups', label: 'Sign-ups', values }]} />
@@ -179,9 +179,10 @@ export default async function ChartsPage() {
             development builds warn.
           </li>
           <li>
-            An ordered ramp, five steps of slot 1&apos;s hue from lightest to darkest (the lightest
-            still 3:1 against the surface), draws parts that follow a scale (a survey&apos;s
-            &quot;never&quot; to &quot;always&quot;): <InlineCode>ordered</InlineCode> on{' '}
+            An ordered ramp, five steps of slot 1&apos;s hue, lightest to darkest in light mode and
+            the reverse in dark (the faintest still 3:1 against the surface), draws parts that
+            follow a scale (a survey&apos;s &quot;never&quot; to &quot;always&quot;): set{' '}
+            <InlineCode>ordered</InlineCode> (off by default) on{' '}
             <InlineCode>SegmentedBar</InlineCode> and <InlineCode>SegmentedList</InlineCode>.
           </li>
           <li>
@@ -204,10 +205,13 @@ export default async function ChartsPage() {
           <InlineCode>
             style={'{{'} background: chartColor(2){' }}'}
           </InlineCode>
-          ), for marks of your own beside a chart, such as a key in a sentence.
+          ), for marks of your own beside a chart, such as a key in a sentence. The table below
+          holds the charts&apos; sizes and timing too: the line width and points, the bars&apos;
+          thickness and corners, the legend&apos;s gap, and the fades as a place is read or new
+          numbers load.
         </p>
         <CodeBlock code={TOKEN_SNIPPET} html={tokenHtml} lang="css" title="chart-colours.css" />
-        <TokenTable set={chartTokenSet} caption="Chart colour tokens" />
+        <TokenTable set={chartTokenSet} caption="Chart tokens" />
       </section>
 
       <section className={SECTION}>
@@ -221,8 +225,9 @@ export default async function ChartsPage() {
           </li>
           <li>
             A line or bar chart is one tab stop: a slider over its places, whose arrow keys step
-            through them and whose value says each place&apos;s figures in words. The pointer and a
-            finger read the nearest place.
+            through them and whose value says each place&apos;s figures in words. With two or more
+            series, its legend&apos;s chips come before it in Tab order, one stop each. The pointer
+            and a finger read the nearest place.
           </li>
           <li>
             <InlineCode>ChartFrame</InlineCode>&apos;s table view holds every value, for anyone who

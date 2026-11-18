@@ -60,7 +60,8 @@ export async function StatTileBody(): Promise<ComponentDoc> {
               <InlineCode>label</InlineCode> says what the number is and names the tile, a group.{' '}
               <InlineCode>formatValue</InlineCode> writes <InlineCode>value</InlineCode>; by default
               it is in the nearest <InlineCode>LocaleProvider</InlineCode>&apos;s locale, else the
-              browser&apos;s, with up to two decimals. <InlineCode>unit</InlineCode> sits smaller
+              browser&apos;s, with up to two decimals, or three significant digits under one
+              (&quot;0.004&quot;, never &quot;0&quot;). <InlineCode>unit</InlineCode> sits smaller
               beside the number (&quot;min&quot;), so a long unit never wraps the number.
             </li>
             <li>

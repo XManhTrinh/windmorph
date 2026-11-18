@@ -14,7 +14,7 @@ export const chartFrame: ComponentAccessibility = {
     "When the table view's rows are cut off, they are a tab stop of their own that the arrow and page keys scroll, as a plain `DataTable`'s are.",
   ],
   screenReader: {
-    role: 'The core `Card` (a plain container) with a heading, the chart, and in the table view a `table`.',
+    role: 'The core `Card` (a plain container) with a heading, the chart, and in the table view a `table`; below the medium width (600px of the table view’s own width) the table view is a list, as a `DataTable` below its `compactBelow`.',
     name: 'The title is a heading (`h3` by default, `headingLevel`). It names every chart inside through `aria-labelledby`, unless a chart has a name of its own, and names the table view too.',
     states:
       'The table switch is a toggle button named `labels.showTable` ("Show as a table"), the same name in both views, with `aria-pressed` saying whether the table shows. While `pending`, the chart area is `aria-busy` over the chart or the table, never over a state, whose announcements some screen readers would hold back inside a busy area; the table view shows its loading bar too.',

@@ -13,10 +13,11 @@ const gigabytes = new Intl.NumberFormat('en', {
 const gb = (value: number) => gigabytes.format(value);
 
 /**
- * Storage against a 100 GB limit. From `warningAt` the fill turns to the warning colour and the
- * line under the track says "Close to the limit" with a mark; past `max` it says "Over the
- * limit" in the error colour, while the figure keeps the real amount. A notch marks where the
- * warning starts. `note` holds your own words: what is left, or what to do.
+ * Storage against a 100 GB limit. From `warningAt` the line under the track says "Close to the
+ * limit" with a mark, and the fill and the mark turn to the warning colour; past `max` it says
+ * "Over the limit", the fill and the mark in the error colour. The words keep the note's colour,
+ * and the figure keeps the real amount. A notch marks where the warning starts. `note` holds your
+ * own words: what is left, or what to do.
  */
 export function MeterStorage() {
   return (

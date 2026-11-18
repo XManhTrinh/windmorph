@@ -1822,7 +1822,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     group: 'Charts',
     railGroup: 'charts',
     summary:
-      'One number and how it moved: what it is, the figure, its change against something, and a small trend beside it. Not an M3 component (@windmorph/react-pro).',
+      'One number and how it moved: what it is, the figure, its change against something, and a small trend under the number. Not an M3 component (@windmorph/react-pro).',
     propsComponents: ['StatTile', 'Sparkline'],
     playground: 'full',
     pro: true,
@@ -1910,7 +1910,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     group: 'Charts',
     railGroup: 'charts',
     summary:
-      "One whole in a few parts, as a bar that prints its figures or a thin bar above a list of the parts; ordered, in the theme's ramp from lightest to darkest. Not an M3 component (@windmorph/react-pro).",
+      "One whole in a few parts, as a bar that prints its figures or a thin bar above a list of the parts; parts with an order can take the theme's ramp, lightest to darkest (the reverse in dark mode). Not an M3 component (@windmorph/react-pro).",
     propsComponents: ['SegmentedBar', 'SegmentedList'],
     playground: 'full',
     pro: true,

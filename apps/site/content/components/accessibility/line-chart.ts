@@ -41,7 +41,7 @@ export const lineChart: ComponentAccessibility = {
       'Being a native range input, it can be stepped by a phone’s screen reader, which sends no key events (a swipe up or down).',
       'With no places it stays in the page and focusable, `aria-disabled` rather than disabled, so focus on it never drops to the page, and says "No value" rather than a bare 0.',
       'The value text follows the keys and a screen reader’s own steps, never the pointer hovering a focused chart, so what is heard doesn’t change under a resting mouse.',
-      '`aria-description`, `aria-roledescription`, the braille labels and `aria-details` go to the slider; other `aria-*` and `data-*` attributes go to the root.',
+      '`aria-describedby`, `aria-description`, `aria-roledescription`, the braille labels and `aria-details` go to the slider; other `aria-*` and `data-*` attributes go to the root.',
     ],
   },
   focus: [

@@ -91,9 +91,10 @@ export async function RankedBarsBody(): Promise<ComponentDoc> {
             <li>
               Each step after the first says its share of the step before,{' '}
               <InlineCode>labels.ofPrevious</InlineCode> (&quot;65% of the step before&quot;),
-              written by <InlineCode>formatShare</InlineCode> (a whole percentage by default). A
-              step says none when the step before has nothing above nought, or when its own value
-              isn&apos;t a number.
+              written by <InlineCode>formatShare</InlineCode>: by default a whole percentage, never
+              &quot;0%&quot; above nought (&quot;0.3%&quot;) nor &quot;100%&quot; short of the whole
+              (&quot;99.9%&quot;). A step says none when the step before has nothing above nought,
+              or when its own value isn&apos;t a number.
             </li>
             <li>
               The bars are on one scale, against the largest step, and a step of nought or no value
@@ -131,9 +132,10 @@ export async function RankedBarsBody(): Promise<ComponentDoc> {
             </li>
             <li>
               In a <InlineCode>ChartFrame</InlineCode>, the frame&apos;s title names the list,
-              unless it has an <InlineCode>aria-label</InlineCode> of its own. They give the frame
-              no table, since every figure is already printed, so the frame shows no table switch
-              unless you pass it a <InlineCode>table</InlineCode>.
+              unless it has an <InlineCode>aria-label</InlineCode> or{' '}
+              <InlineCode>aria-labelledby</InlineCode> of its own. They give the frame no table,
+              since every figure is already printed, so the frame shows no table switch unless you
+              pass it a <InlineCode>table</InlineCode>.
             </li>
           </ul>
         </section>

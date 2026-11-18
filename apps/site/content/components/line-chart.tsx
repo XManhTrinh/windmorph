@@ -91,8 +91,8 @@ export async function LineChartBody(): Promise<ComponentDoc> {
             </li>
             <li>
               Keep the keys steady: a place that keeps its <InlineCode>key</InlineCode> when the
-              period changes moves instead of being redrawn, and a series that keeps its own keeps
-              its colour.
+              period changes moves instead of being redrawn, and so does a series that keeps its
+              own.
             </li>
             <li>
               <InlineCode>subject</InlineCode> is the series the chart is about: it gets the wash
@@ -105,10 +105,11 @@ export async function LineChartBody(): Promise<ComponentDoc> {
               with straight lines.
             </li>
             <li>
-              Series take the colour slots in order and keep theirs when another is hidden;{' '}
-              <InlineCode>slot</InlineCode> pins one (1 to 8), so the same thing is the same colour
-              on every chart of a page. Eight series are drawn; a ninth and later are only in a
-              frame&apos;s table view, and development builds warn.
+              Series take the colour slots in order and keep theirs when another is hidden, but a
+              series added before them moves their colours along. Pin <InlineCode>slot</InlineCode>{' '}
+              (1 to 8) to keep a series&apos; colour when series come and go, so the same thing is
+              the same colour on every chart of a page. Eight series are drawn; a ninth and later
+              are only in a frame&apos;s table view, and development builds warn.
             </li>
             <li>
               The side labels run from nought, or from the least value below it, to a round number
@@ -236,9 +237,13 @@ export async function LineChartBody(): Promise<ComponentDoc> {
               a readout for a chart you draw yourself. <InlineCode>ChartLegend</InlineCode> is a
               list of keys, or chips once it has <InlineCode>hiddenSeries</InlineCode>,{' '}
               <InlineCode>defaultHiddenSeries</InlineCode> or{' '}
-              <InlineCode>onHiddenSeriesChange</InlineCode>. <InlineCode>ChartTooltip</InlineCode>{' '}
-              is drawn as the core&apos;s rich tooltip and is hidden from assistive technology, so
-              what it shows must be said another way too.
+              <InlineCode>onHiddenSeriesChange</InlineCode>. It draws the charts&apos; patterns only
+              when each item has its series&apos; <InlineCode>slot</InlineCode> (the series&apos;
+              own, else the one its order gave it) and <InlineCode>{"mark: 'line'"}</InlineCode>,
+              for a line&apos;s dashes; <InlineCode>texture</InlineCode> is on from two items (
+              <InlineCode>texture={'{false}'}</InlineCode> turns it off).{' '}
+              <InlineCode>ChartTooltip</InlineCode> is drawn as the core&apos;s rich tooltip and is
+              hidden from assistive technology, so what it shows must be said another way too.
             </li>
             <li>
               <InlineCode>chartColor(slot)</InlineCode> gives a slot&apos;s colour as the charts

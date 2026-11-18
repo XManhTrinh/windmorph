@@ -86,8 +86,7 @@ export async function BarChartBody(): Promise<ComponentDoc> {
               Each of the <InlineCode>series</InlineCode> has a <InlineCode>key</InlineCode>, a{' '}
               <InlineCode>label</InlineCode> and one value per place, in the places&apos; order.{' '}
               <InlineCode>null</InlineCode>, or anything that isn&apos;t a finite number, is no
-              value there. Keep the keys steady, so a bar moves instead of being redrawn and a
-              series keeps its colour.
+              value there. Keep the keys steady, so a bar moves instead of being redrawn.
             </li>
             <li>
               Several series stack in the order given, the first at the bottom. Only the outer end
@@ -96,9 +95,10 @@ export async function BarChartBody(): Promise<ComponentDoc> {
             </li>
             <li>
               A bar takes 62% of its slot and at most 24px, so bars never touch. Series take the
-              colour slots in order and keep theirs when another is hidden;{' '}
-              <InlineCode>slot</InlineCode> pins one (1 to 8). Eight series are drawn; a ninth and
-              later are only in a frame&apos;s table view, and development builds warn.
+              colour slots in order and keep theirs when another is hidden, but a series added
+              before them moves their colours along. Pin <InlineCode>slot</InlineCode> (1 to 8) to
+              keep a series&apos; colour when series come and go. Eight series are drawn; a ninth
+              and later are only in a frame&apos;s table view, and development builds warn.
             </li>
             <li>
               The side labels run from nought, or from the lowest stack below it, to a round number
@@ -216,9 +216,14 @@ export async function BarChartBody(): Promise<ComponentDoc> {
               readout for a chart you draw yourself. <InlineCode>ChartLegend</InlineCode> is a list
               of keys, or chips once it has <InlineCode>hiddenSeries</InlineCode>,{' '}
               <InlineCode>defaultHiddenSeries</InlineCode> or{' '}
-              <InlineCode>onHiddenSeriesChange</InlineCode>; <InlineCode>ChartTooltip</InlineCode>{' '}
-              is drawn as the core&apos;s rich tooltip and is hidden from assistive technology, so
-              what it shows must be said another way too.
+              <InlineCode>onHiddenSeriesChange</InlineCode>. It draws the charts&apos; patterns only
+              when each item has its series&apos; <InlineCode>slot</InlineCode> (the series&apos;
+              own, else the one its order gave it): a bar&apos;s hatch, or with{' '}
+              <InlineCode>{"mark: 'line'"}</InlineCode> a line&apos;s dashes;{' '}
+              <InlineCode>texture</InlineCode> is on from two items (
+              <InlineCode>texture={'{false}'}</InlineCode> turns it off).{' '}
+              <InlineCode>ChartTooltip</InlineCode> is drawn as the core&apos;s rich tooltip and is
+              hidden from assistive technology, so what it shows must be said another way too.
             </li>
             <li>
               <InlineCode>chartColor(slot)</InlineCode> gives a slot&apos;s colour as the charts

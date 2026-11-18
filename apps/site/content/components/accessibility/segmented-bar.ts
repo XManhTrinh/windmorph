@@ -61,6 +61,7 @@ export const segmentedBar: ComponentAccessibility = {
     'Keep to two to five parts, largest first, so anything past six folds the smallest into "Other". Labels are text, never HTML.',
     'Use `ordered` only for parts with an order, and keep them to five.',
     'Keep `texture` on (it is, for two or more parts) where colour may not be told apart; the key names every part either way.',
-    'Translate `labels.describePart`, `labels.parts`, `labels.other` and `labels.noValue`, or set them once for the app with a {@link LabelsProvider} (its `Chart` words).',
+    'In forced-colours mode the patterns are always drawn: each part is `Canvas` with a `CanvasText` edge and its pattern in `CanvasText` (the first slot or step a solid `CanvasText` block, "Other" dotted), a share printed on a part sits on a `Canvas` patch, and the colour keys (in the key, the readout and a `SegmentedList`’s rows) carry the same patterns, so a part is matched to its name without colour.',
+    'Translate `labels.describePart`, `labels.parts`, `labels.other`, `labels.noValue` and the table view’s column headers (`labels.part`, `labels.amount` and `labels.share`), or set them once for the app with a {@link LabelsProvider} (its `Chart` words).',
   ],
 };

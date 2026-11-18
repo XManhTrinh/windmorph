@@ -8,7 +8,7 @@ export const rankedBars: ComponentAccessibility = {
     role: "`RankedBars` is a list (`ul`), one item per row; `FunnelBars` is an ordered list (`ol`), one item per step, since its steps' order is the meaning.",
     name: 'Named by `aria-label` or `aria-labelledby`, or in a `ChartFrame` by its title; a development build warns about one with no name.',
     states:
-      'Each item reads its name and its amount as text, apart ("Paris, 1,240"), in the order drawn: largest first with the rest last, or a funnel\'s steps in their order. A funnel step after the first also reads its share of the step before ("Paid, 150, 75% of the step before", `labels.ofPrevious`).',
+      'Each item reads its name and its amount as text, apart ("Paris, 1,204"), in the order drawn: largest first with the rest last, or a funnel\'s steps in their order. A funnel step after the first also reads its share of the step before ("Paid, 548, 90% of the step before", `labels.ofPrevious`).',
     notes: [
       'The bars are hidden from assistive tech (`aria-hidden`); the amounts say the same.',
       'An amount that isn\'t a number reads `labels.noValue` ("No value"), never "NaN".',
@@ -30,5 +30,6 @@ export const rankedBars: ComponentAccessibility = {
     "Keep a funnel's steps in the order people take them; it never sorts them.",
     'Labels are text, never HTML; a long one wraps rather than being cut, so it can say all it needs.',
     'Translate `labels.ofPrevious` and `labels.noValue`, or set them once for the app with a {@link LabelsProvider} (its `Chart` words).',
+    'In forced-colours mode every bar is `CanvasText` and the rest row’s bar `GrayText`, while names, amounts and a funnel’s shares take the system text colour; the rest row is told apart by its name and its place, last, too. Keep `classNames` overrides from removing them.',
   ],
 };
