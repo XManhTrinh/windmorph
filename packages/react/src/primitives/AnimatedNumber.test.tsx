@@ -136,7 +136,32 @@ describe('AnimatedNumber', () => {
     const { rerender } = render(<AnimatedNumber value={1} ref={() => undefined} />);
     rerender(<AnimatedNumber value={2} ref={() => undefined} />);
     rerender(<AnimatedNumber value={3} ref={() => undefined} />);
-    expect(observers).toBe(1);
+    // One entrance: its pair of observers (on screen, and come in past the edge).
+    expect(observers).toBe(2);
+  });
+
+  it('shows numbers again after a value that isn’t one', async () => {
+    const format = (value: number) => (Number.isFinite(value) ? String(value) : 'No value');
+    const { container, rerender } = render(<AnimatedNumber value={12} format={format} />);
+    rerender(<AnimatedNumber value={Number.NaN} format={format} />);
+    await act(() => new Promise((resolve) => setTimeout(resolve, 50)));
+    expect(parts(container).moving).toHaveTextContent('No value');
+    rerender(<AnimatedNumber value={15} format={format} />);
+    await act(() => new Promise((resolve) => setTimeout(resolve, 600)));
+    expect(parts(container).moving).toHaveTextContent('15');
+  });
+
+  it('never rounds its figure outside the move', async () => {
+    const format = (value: number) => String(value);
+    const { container, rerender } = render(<AnimatedNumber value={4.3} format={format} />);
+    rerender(<AnimatedNumber value={10} format={format} />);
+    const shown: number[] = [];
+    for (let frame = 0; frame < 30; frame++) {
+      await act(() => new Promise((resolve) => setTimeout(resolve, 16)));
+      shown.push(Number(parts(container).moving.textContent));
+    }
+    // Whole numbers (the target's), never below where it started.
+    expect(Math.min(...shown)).toBeGreaterThanOrEqual(4.3);
   });
 
   it('puts its own props on the root', () => {

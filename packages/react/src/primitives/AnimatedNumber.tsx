@@ -104,7 +104,14 @@ export function AnimatedNumber({
   const write = (next: number) => {
     const { low, high } = bounds.current;
     const scale = 10 ** decimals;
-    const figure = Math.round(Math.min(high, Math.max(low, next)) * scale) / scale;
+    // Held within the move's span (none to hold within when either end isn't a number), and
+    // rounded toward the target where plain rounding would land outside it (4.3 rising to 10
+    // shows 5, never 4).
+    const held = Number.isFinite(low) && Number.isFinite(high);
+    const clamped = held ? Math.min(high, Math.max(low, next)) : next;
+    let figure = Math.round(clamped * scale) / scale;
+    if (held && figure < low) figure = Math.ceil(clamped * scale) / scale;
+    if (held && figure > high) figure = Math.floor(clamped * scale) / scale;
     shown.current = figure;
     if (textRef.current) textRef.current.textContent = show(figure);
   };

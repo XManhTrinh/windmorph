@@ -75,6 +75,17 @@ describe('useM3SpringValue', () => {
     expect(result.current.get()).toBeGreaterThan(0);
   });
 
+  it('jumps to and from a target that isn’t a finite number', () => {
+    const { result, rerender } = renderHook(({ target }) => useM3SpringValue(target), {
+      initialProps: { target: 10 },
+    });
+    rerender({ target: Number.NaN });
+    expect(result.current.get()).toBeNaN();
+    rerender({ target: 20 });
+    // A spring from NaN would stay NaN: it lands.
+    expect(result.current.get()).toBe(20);
+  });
+
   it('jumps when it may not animate', () => {
     const { result, rerender } = renderHook(
       ({ target }) => useM3SpringValue(target, { animate: false }),

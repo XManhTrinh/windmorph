@@ -61,7 +61,13 @@ export function useM3SpringValue(
   });
 
   useEffect(() => {
-    if (!animated || (reducedMotion && family === 'spatial')) {
+    // A spring to or from something that isn't a number stays one: it lands at once instead.
+    if (
+      !animated ||
+      (reducedMotion && family === 'spatial') ||
+      !Number.isFinite(target) ||
+      !Number.isFinite(value.get())
+    ) {
       value.jump(target);
       return;
     }
