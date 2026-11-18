@@ -180,6 +180,20 @@ export const primitivesChecks = {
   useM3Interaction: hook,
   useM3Morph: hook,
   useM3Spring: hook,
+  useM3SpringValue: hook,
+  useM3SpringValues: hook,
+  useEntrance: hook,
+  useNearestReveal: hook,
+  AnimatedNumber: { kind: 'component', render: () => <Primitives.AnimatedNumber value={1284} /> },
+  resample: { kind: 'value', run: () => Primitives.resample([0, 10], 5).join(' ') },
+  staggerDelays: {
+    kind: 'value',
+    run: () =>
+      Primitives.staggerDelays(4)
+        .map((delay) => delay.toFixed(3))
+        .join(' '),
+  },
+  themeSelector: { kind: 'value', run: () => Primitives.themeSelector('ocean', 'high', 'dark') },
   useLabels: hook,
   useRevealEntering: hook,
   useScrollKeys: hook,

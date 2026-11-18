@@ -24,7 +24,11 @@ export interface ThemeCssOptions {
 }
 
 /**
- * Selectors for one theme × contrast × mode block.
+ * Selectors for one theme × contrast × mode block of the theme CSS. Public in `/primitives`
+ * (2026-11-17) for CSS of an app's own (or a library's) that follows the themes exactly as the
+ * colour roles do, so a `ThemeScope` and the system mode pick the right values with no script.
+ * A `system` block goes inside `@media (prefers-color-scheme: dark)`.
+ *
  * A missing `data-contrast` behaves like `standard`; a missing `data-mode` like `light`;
  * the default theme also applies to a root without `data-theme`.
  *
@@ -32,14 +36,20 @@ export interface ThemeCssOptions {
  * rule (`:root { --md-sys-color-primary: … }`, `[data-theme='ocean'] { … }`) wins. Among the
  * theme's own rules, source order decides: an element matches one theme and one contrast
  * level, and {@link generateThemeCss} writes light before dark and system, so the mode rule
- * that also matches comes later and wins.
+ * that also matches comes later and wins. Write yours the same way: for each contrast level,
+ * the `light` block (which also serves `system` on a light screen), then `dark`, then
+ * `system` inside the media query.
+ *
+ * @param name A theme name, as `createTheme` takes it (lowercase kebab-case).
+ * @param isDefault Also match a root with no `data-theme`, as the default theme does.
  */
-function selectors(
+export function themeSelector(
   name: string,
   contrast: ContrastLevel,
   mode: ResolvedColorMode | 'system',
-  isDefault: boolean,
+  isDefault = false,
 ): string {
+  assertThemeName(name);
   const themeParts = [`[data-theme="${name}"]`];
   if (isDefault) themeParts.push(':root:not([data-theme])');
   const contrastParts = [`[data-contrast="${contrast}"]`];
@@ -74,10 +84,10 @@ export function generateThemeCss(
   for (const contrast of contrastLevels) {
     const light = declarations(seed, 'light', contrast);
     const dark = declarations(seed, 'dark', contrast);
-    blocks.push(`${selectors(name, contrast, 'light', isDefault)} {\n${light}\n}`);
-    blocks.push(`${selectors(name, contrast, 'dark', isDefault)} {\n${dark}\n}`);
+    blocks.push(`${themeSelector(name, contrast, 'light', isDefault)} {\n${light}\n}`);
+    blocks.push(`${themeSelector(name, contrast, 'dark', isDefault)} {\n${dark}\n}`);
     blocks.push(
-      `@media (prefers-color-scheme: dark) {\n${selectors(name, contrast, 'system', isDefault)} {\n${dark}\n}\n}`,
+      `@media (prefers-color-scheme: dark) {\n${themeSelector(name, contrast, 'system', isDefault)} {\n${dark}\n}\n}`,
     );
   }
   return blocks.join('\n\n');

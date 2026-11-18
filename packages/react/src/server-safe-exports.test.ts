@@ -95,4 +95,13 @@ describe.each(['index.ts', 'primitives.ts', 'next.ts'])('%s', (entry) => {
       .map(([name, file]) => `${name} (${relative(src, file)})`);
     expect(clientOnly).toEqual([]);
   });
+
+  // A hook runs only in a client component, and a module without the directive that a server
+  // component imports (through this entry) can't call one: Next refuses to build it.
+  it('exports every hook from a "use client" module', () => {
+    const serverHooks = [...exports]
+      .filter(([name, file]) => /^use[A-Z]/.test(name) && !isClientModule(file))
+      .map(([name, file]) => `${name} (${relative(src, file)})`);
+    expect(serverHooks).toEqual([]);
+  });
 });

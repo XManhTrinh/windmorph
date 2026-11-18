@@ -22,14 +22,15 @@ const importSnippet = `import {
   SelectionControl, selectionControlStyles,
   // Motion
   useM3Spring, getM3Spring, springWithVelocityToLinearEasing, springProgressWithVelocity,
+  useM3SpringValue, useM3SpringValues, resample, AnimatedNumber, staggerDelays, useEntrance,
   // Overlay plumbing
   TriggerContext, useTriggerProps, usePresence, DomDirectionLocale, localeWithDirection,
   // Scrolling
-  useKeepPressedInPlace, useScrollRestoration, useScrollKeys,
+  useKeepPressedInPlace, useNearestReveal, useScrollRestoration, useScrollKeys,
   useSliderTouchTrack, sliderThumbInputProps, sliderArrowRaises,
   // Building your own component
   splitRootProps, pickWidgetAria, pickDescriptionAria, type RootDOMProps, type WrapperRootDOMProps, type DescriptionAria,
-  splitDataAttributes, mergeDataTokens, ThemeScopeContext, generateSchemeColors,
+  splitDataAttributes, mergeDataTokens, ThemeScopeContext, generateSchemeColors, themeSelector,
   useLabels, type LabelsKey, type LabelsOf,
   // Static shapes (precomputed outlines, no shape engine)
   type MaterialShapePath, materialShapeMask, materialShapePaths,
@@ -289,6 +290,27 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
               1, at a time in seconds), as the bottom sheet settles after a drag.
             </li>
             <li>
+              Motion on values, on the theme&apos;s springs:{' '}
+              <InlineCode>useM3SpringValue</InlineCode> (a Motion value that springs to each new
+              target from where it is and at the speed it has, so a new target mid-move doesn&apos;t
+              restart it), <InlineCode>useM3SpringValues</InlineCode> (a list of numbers that moves
+              as one, each keeping its speed; a list of another length starts from the old one read
+              at the new places with <InlineCode>resample</InlineCode>, so a line of 7 points
+              becomes one of 84 by moving, or, given <InlineCode>keys</InlineCode>, is matched by
+              name, so a sliding window&apos;s kept elements carry on and new ones start at{' '}
+              <InlineCode>rest</InlineCode>), <InlineCode>AnimatedNumber</InlineCode> (a number that
+              counts between values, formatted in the page&apos;s locale or by your function;
+              assistive technology reads only the value it settles on, and its box keeps that
+              width), <InlineCode>staggerDelays</InlineCode> (when each of a row&apos;s items starts
+              an entrance: the times a spring of the count passes it, as the FAB menu staggers, so
+              any number of items arrives within one spring&apos;s time) and{' '}
+              <InlineCode>useEntrance</InlineCode> (plays an entrance once, as an element first
+              comes into view, and never for content on screen as the page hydrates). A delay waits
+              only from rest: a value already moving turns to its new target at once. Under reduced
+              motion a spatial value or list and a number change at once, and an effects value keeps
+              its fade.
+            </li>
+            <li>
               <InlineCode>TriggerContext</InlineCode> (an overlay trigger hands its press handler
               and ARIA to a button-like child) and <InlineCode>useTriggerProps</InlineCode> (a
               trigger of your own merges its props into an enclosing trigger&apos;s, so triggers
@@ -307,6 +329,12 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
               on screen while an open item above it folds, by scrolling its scroller as much as the
               fold on every frame, as the List&apos;s tree grid does; pair it with{' '}
               <InlineCode>overflow-anchor: none</InlineCode> on the folding parts).
+            </li>
+            <li>
+              <InlineCode>useNearestReveal</InlineCode> (give it the element a React Aria collection
+              hook was given, such as a grid that scrolls inside a box of its own: arrow keys then
+              bring the next item into view without first centring the whole collection, so the page
+              moves only as far as the item needs, as in the List and Tabs).
             </li>
             <li>
               <InlineCode>useSliderTouchTrack</InlineCode> (wraps React Aria&apos;s{' '}
@@ -382,7 +410,10 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
               <InlineCode>ThemeScopeContext</InlineCode> (the theme of the nearest{' '}
               <InlineCode>ThemeProvider</InlineCode> or <InlineCode>ThemeScope</InlineCode>, to
               provide one for a subtree), <InlineCode>generateSchemeColors</InlineCode> (every
-              colour role as a hex value, for checks such as contrast).
+              colour role as a hex value, for checks such as contrast) and{' '}
+              <InlineCode>themeSelector</InlineCode> (the selector of one theme, contrast level and
+              mode in the theme CSS, for values of your own that follow the themes as the colour
+              roles do, scoped themes and the system mode included).
             </li>
             <li>
               Static shapes: the 35 M3 Expressive shapes precomputed as outlines, one{' '}
