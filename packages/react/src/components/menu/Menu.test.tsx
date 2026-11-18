@@ -811,36 +811,45 @@ describe('Menu', () => {
     await closed();
   });
 
-  it('names the menu by its own aria-label in the popover and the sheet alike, else by its trigger', async () => {
+  it('names the menu by its own aria-label or aria-labelledby in the popover and the sheet alike, else by its trigger', async () => {
+    type Naming = { 'aria-label'?: string; 'aria-labelledby'?: string };
     function Options({
-      label,
+      naming,
       presentation,
     }: {
-      label?: string;
+      naming: Naming;
       presentation: 'popover' | 'sheet';
     }) {
       return (
-        <MenuTrigger>
-          <Button>More options</Button>
-          <Menu presentation={presentation} {...(label !== undefined && { 'aria-label': label })}>
-            <MenuItem key="rename">Rename</MenuItem>
-            <MenuItem key="share">Share</MenuItem>
-          </Menu>
-        </MenuTrigger>
+        <>
+          <h2 id="document-heading">Document</h2>
+          <MenuTrigger>
+            <Button>More options</Button>
+            <Menu presentation={presentation} {...naming}>
+              <MenuItem key="rename">Rename</MenuItem>
+              <MenuItem key="share">Share</MenuItem>
+            </Menu>
+          </MenuTrigger>
+        </>
       );
     }
+    const cases: [Naming, string][] = [
+      [{ 'aria-label': 'Settings' }, 'Settings'],
+      [{ 'aria-labelledby': 'document-heading' }, 'Document'],
+      // `aria-labelledby` wins over `aria-label`, so the sheet's dialog takes it too.
+      [{ 'aria-label': 'Settings', 'aria-labelledby': 'document-heading' }, 'Document'],
+      [{}, 'More options'],
+    ];
     for (const presentation of ['popover', 'sheet'] as const) {
-      const named = render(<Options label="Settings" presentation={presentation} />);
-      await openMenu('More options');
-      expect(await screen.findByRole('menu', { name: 'Settings' })).toBeInTheDocument();
-      if (presentation === 'sheet') {
-        expect(screen.getByRole('dialog', { name: 'Settings' })).toBeInTheDocument();
+      for (const [naming, name] of cases) {
+        const view = render(<Options naming={naming} presentation={presentation} />);
+        await openMenu('More options');
+        expect(await screen.findByRole('menu', { name })).toBeInTheDocument();
+        if (presentation === 'sheet') {
+          expect(screen.getByRole('dialog', { name })).toBeInTheDocument();
+        }
+        view.unmount();
       }
-      named.unmount();
-      const unnamed = render(<Options presentation={presentation} />);
-      await openMenu('More options');
-      expect(await screen.findByRole('menu', { name: 'More options' })).toBeInTheDocument();
-      unnamed.unmount();
     }
   });
 

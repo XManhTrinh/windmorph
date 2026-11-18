@@ -69,7 +69,7 @@ export const menu: ComponentAccessibility = {
   ],
   screenReader: {
     role: '`menu` holding `menuitem`s; `menuitemradio` or `menuitemcheckbox` in a single- or multi-select menu. A `MenuGroup` is a `group`. With `presentation="sheet"` the menu sits in a modal bottom sheet, a `dialog` named like the menu.',
-    name: "From a `MenuTrigger`, the menu is named by its own `aria-label` or `aria-labelledby` when it has one, else by its trigger's label, in the popover and the bottom sheet alike; a submenu is named by the item that opens it. A `ContextMenuTrigger` menu, and a `MenuGroup` without a visible heading, take their own `aria-label`. An item is named by its label and its `description`, in that order, so its name holds the text it shows; an `aria-label` replaces both.",
+    name: "From a `MenuTrigger`, the menu is named by its own `aria-label` or `aria-labelledby` when it has one (`aria-labelledby` when it has both), else by its trigger's label, in the popover and the bottom sheet alike; a submenu is named by the item that opens it. A `ContextMenuTrigger` menu, and a `MenuGroup` without a visible heading, take their own `aria-label`. An item is named by its label and its `description`, in that order, so its name holds the text it shows; an `aria-label` replaces both.",
     states:
       'The trigger announces that it opens a menu (`aria-haspopup`) and whether it is open (`aria-expanded`); a context menu target announces neither. Items announce checked (`aria-checked`) in a selectable menu, disabled (`aria-disabled`), and a submenu item announces its submenu (`aria-haspopup="menu"`, `aria-expanded`).',
     notes: [

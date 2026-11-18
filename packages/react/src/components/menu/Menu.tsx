@@ -472,11 +472,12 @@ function MenuSheet({
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
   const [activeLevel, setActiveLevel] = useState(0);
   const menuProps = mergeProps(triggerMenuProps(trigger, props), props);
-  const label = menuProps['aria-label'];
-  const naming =
-    label != null
-      ? { 'aria-label': label }
-      : { 'aria-labelledby': menuProps['aria-labelledby'] ?? '' };
+  // The sheet takes the menu's name: its `aria-labelledby` when it has one, which names the
+  // menu over an `aria-label` (its own, or the trigger's), else its `aria-label`.
+  const labelledBy = menuProps['aria-labelledby'];
+  const naming = labelledBy
+    ? { 'aria-labelledby': labelledBy }
+    : { 'aria-label': menuProps['aria-label'] ?? '' };
   return (
     <LazyBottomSheet
       {...naming}
