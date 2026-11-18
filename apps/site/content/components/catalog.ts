@@ -11,6 +11,7 @@ export type ComponentGroup =
   | 'Containment & overlays'
   | 'Navigation'
   | 'Feedback & pickers'
+  | 'Charts'
   | 'Primitives';
 
 /**
@@ -19,7 +20,14 @@ export type ComponentGroup =
  * `group`) splits into `feedback` and `pickers` here.
  */
 export type RailGroupId =
-  'actions' | 'inputs' | 'containment' | 'navigation' | 'feedback' | 'pickers' | 'primitives';
+  | 'actions'
+  | 'inputs'
+  | 'containment'
+  | 'navigation'
+  | 'feedback'
+  | 'pickers'
+  | 'charts'
+  | 'primitives';
 
 export interface RailGroup {
   id: RailGroupId;
@@ -39,6 +47,7 @@ export const RAIL_GROUPS: RailGroup[] = [
   { id: 'feedback', railLabel: 'Feedback', fullName: 'Feedback' },
   // pickers members: date-picker, time-picker, picker-dialog
   { id: 'pickers', railLabel: 'Pickers', fullName: 'Pickers' },
+  { id: 'charts', railLabel: 'Charts', fullName: 'Charts' },
   { id: 'primitives', railLabel: 'Primitives', fullName: 'Primitives' },
 ];
 
@@ -1805,6 +1814,165 @@ export const COMPONENT_META: ComponentMeta[] = [
       'docked',
       'time list',
       'dropdown',
+    ],
+  },
+  {
+    slug: 'stat-tile',
+    title: 'Stat tile',
+    group: 'Charts',
+    railGroup: 'charts',
+    summary:
+      'One number and how it moved: what it is, the figure, its change against something, and a small trend beside it. Not an M3 component (@windmorph/react-pro).',
+    propsComponents: ['StatTile', 'Sparkline'],
+    playground: 'full',
+    pro: true,
+    related: ['meter', 'line-chart', 'chart-frame'],
+    whenNotToUse:
+      'For a value against a limit, use a Meter; for how something changed over time in detail, a Line chart.',
+    keywords: [
+      'kpi',
+      'metric',
+      'scorecard',
+      'big number',
+      'sparkline',
+      'trend',
+      'dashboard',
+      'figure',
+      'change',
+      'delta',
+    ],
+  },
+  {
+    slug: 'meter',
+    title: 'Meter',
+    group: 'Charts',
+    railGroup: 'charts',
+    summary:
+      'A value on a known scale, such as storage used or a quota, with a warning past a threshold said in words, never by colour alone. Not an M3 component (@windmorph/react-pro).',
+    propsComponents: ['Meter', 'MeterList'],
+    playground: 'full',
+    pro: true,
+    related: ['stat-tile', 'progress', 'segmented-bar'],
+    whenNotToUse:
+      "For a task's progress, use a Progress indicator; for one whole split into parts, a Segmented bar.",
+    keywords: ['gauge', 'quota', 'usage', 'limit', 'capacity', 'storage', 'threshold', 'level'],
+  },
+  {
+    slug: 'line-chart',
+    title: 'Line chart',
+    group: 'Charts',
+    railGroup: 'charts',
+    summary:
+      'Lines over time: one subject with a wash under it and others to compare with, read by pointer, finger and keyboard. Not an M3 component (@windmorph/react-pro).',
+    propsComponents: ['LineChart', 'ChartLegend', 'ChartTooltip'],
+    playground: 'full',
+    pro: true,
+    related: ['bar-chart', 'stat-tile', 'chart-frame'],
+    whenNotToUse:
+      'For a total made of parts over time, use a Bar chart; for one number and its trend, a Stat tile.',
+    keywords: [
+      'line graph',
+      'time series',
+      'trend',
+      'over time',
+      'graph',
+      'plot',
+      'comparison',
+      'series',
+    ],
+  },
+  {
+    slug: 'bar-chart',
+    title: 'Bar chart',
+    group: 'Charts',
+    railGroup: 'charts',
+    summary:
+      'Columns over places: one series, or several stacked into a total, read by pointer, finger and keyboard. Not an M3 component (@windmorph/react-pro).',
+    propsComponents: ['BarChart', 'ChartLegend', 'ChartTooltip'],
+    playground: 'full',
+    pro: true,
+    related: ['line-chart', 'ranked-bars', 'chart-frame'],
+    whenNotToUse:
+      'To rank parts against each other, use Ranked bars; for a trend across many places, a Line chart.',
+    keywords: [
+      'column chart',
+      'stacked bars',
+      'histogram',
+      'graph',
+      'totals',
+      'over time',
+      'series',
+    ],
+  },
+  {
+    slug: 'segmented-bar',
+    title: 'Segmented bar',
+    group: 'Charts',
+    railGroup: 'charts',
+    summary:
+      "One whole in a few parts, as a bar that prints its figures or a thin bar above a list of the parts; ordered, in the theme's ramp from lightest to darkest. Not an M3 component (@windmorph/react-pro).",
+    propsComponents: ['SegmentedBar', 'SegmentedList'],
+    playground: 'full',
+    pro: true,
+    related: ['ranked-bars', 'meter', 'chart-frame'],
+    whenNotToUse:
+      "To compare parts that don't add up to a whole, use Ranked bars; for a value against a limit, a Meter.",
+    keywords: [
+      'stacked bar',
+      'share',
+      'breakdown',
+      'composition',
+      'parts of a whole',
+      'percentage',
+      'pie chart',
+      'donut',
+    ],
+  },
+  {
+    slug: 'ranked-bars',
+    title: 'Ranked bars',
+    group: 'Charts',
+    railGroup: 'charts',
+    summary:
+      "Parts compared on one scale, largest first, with the rest in one row last; and a funnel's steps with each one's share of the step before. Not an M3 component (@windmorph/react-pro).",
+    propsComponents: ['RankedBars', 'FunnelBars'],
+    playground: 'full',
+    pro: true,
+    related: ['segmented-bar', 'bar-chart', 'chart-frame'],
+    whenNotToUse:
+      'For parts that make up one whole, use a Segmented bar; for change over time, a Bar chart or Line chart.',
+    keywords: [
+      'bar list',
+      'leaderboard',
+      'top items',
+      'ranking',
+      'funnel',
+      'conversion',
+      'drop-off',
+      'horizontal bars',
+    ],
+  },
+  {
+    slug: 'chart-frame',
+    title: 'Chart frame',
+    group: 'Charts',
+    railGroup: 'charts',
+    summary:
+      'The card a chart sits in: its title names the chart, a switch shows the same numbers as a table, and it has empty, loading, pending and error states. Not an M3 component (@windmorph/react-pro).',
+    propsComponents: ['ChartFrame'],
+    playground: 'full',
+    pro: true,
+    related: ['line-chart', 'bar-chart', 'data-table'],
+    whenNotToUse:
+      'A chart that needs no title or table, such as a sparkline in a tile, can stand on its own.',
+    keywords: [
+      'chart card',
+      'chart container',
+      'data table view',
+      'loading',
+      'empty state',
+      'error',
+      'dashboard card',
     ],
   },
   {

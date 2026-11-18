@@ -242,7 +242,13 @@ export default async function ProPage() {
         <p className={TEXT}>
           Pro installs beside the core, which it lists as a peer dependency, at the same minor
           version. Its rich text components (<InlineCode>@windmorph/react-pro/rich-text</InlineCode>
-          ) also need the Tiptap packages Pro lists as optional peer dependencies.
+          ) also need the Tiptap packages Pro lists as optional peer dependencies. Its charts (
+          <InlineCode>@windmorph/react-pro/charts</InlineCode>) load only in an app that imports
+          them, and bring their own colours: see{' '}
+          <a href="/charts" className={LINK}>
+            Charts
+          </a>
+          .
         </p>
         <p className={TEXT}>
           Import Pro&apos;s stylesheet after the core&apos;s, and let Tailwind scan both packages.

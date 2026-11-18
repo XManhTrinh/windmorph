@@ -7,7 +7,8 @@ export type ImportEntry =
   | '@windmorph/react-pro'
   | '@windmorph/react-pro/rich-text'
   | '@windmorph/react-pro/data-grid'
-  | '@windmorph/react-pro/calendar';
+  | '@windmorph/react-pro/calendar'
+  | '@windmorph/react-pro/charts';
 
 /** Pages whose exports come from an entry other than their package's main one. */
 const ENTRY_BY_SLUG: Record<string, ImportEntry> = {
@@ -15,6 +16,13 @@ const ENTRY_BY_SLUG: Record<string, ImportEntry> = {
   'rich-message-field': '@windmorph/react-pro/rich-text',
   'data-grid': '@windmorph/react-pro/data-grid',
   calendar: '@windmorph/react-pro/calendar',
+  'stat-tile': '@windmorph/react-pro/charts',
+  meter: '@windmorph/react-pro/charts',
+  'line-chart': '@windmorph/react-pro/charts',
+  'bar-chart': '@windmorph/react-pro/charts',
+  'segmented-bar': '@windmorph/react-pro/charts',
+  'ranked-bars': '@windmorph/react-pro/charts',
+  'chart-frame': '@windmorph/react-pro/charts',
 };
 
 /** The entry a component page's exports come from. */

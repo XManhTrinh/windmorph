@@ -6,6 +6,9 @@ import { CONTAINMENT_M3_DESCRIPTORS } from './containment-m3';
 import { INPUTS_PRO_DESCRIPTORS } from './inputs-pro';
 import { INPUTS_M3_DESCRIPTORS } from './inputs-m3';
 import { ACTIONS_DESCRIPTORS } from './actions';
+import { CHARTS_FIGURES_DESCRIPTORS } from './charts-figures';
+import { CHARTS_CARTESIAN_DESCRIPTORS } from './charts-cartesian';
+import { CHARTS_PARTS_DESCRIPTORS } from './charts-parts';
 import type { PlaygroundDescriptor } from './shared';
 
 export type { PlaygroundDescriptor } from './shared';
@@ -23,4 +26,7 @@ export const PLAYGROUND_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   ...NAVIGATION_DESCRIPTORS,
   ...DATA_NAVIGATION_DESCRIPTORS,
   ...FEEDBACK_PICKERS_DESCRIPTORS,
+  ...CHARTS_FIGURES_DESCRIPTORS,
+  ...CHARTS_CARTESIAN_DESCRIPTORS,
+  ...CHARTS_PARTS_DESCRIPTORS,
 };

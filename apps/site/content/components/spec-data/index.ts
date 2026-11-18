@@ -5,6 +5,9 @@ import { CONTAINMENT_M3_SPEC } from './containment-m3';
 import { CONTAINMENT_PRO_SPEC } from './containment-pro';
 import { NAVIGATION_SPEC } from './navigation';
 import { FEEDBACK_PICKERS_SPEC } from './feedback-pickers';
+import { CHARTS_FIGURES_SPEC } from './charts-figures';
+import { CHARTS_CARTESIAN_SPEC } from './charts-cartesian';
+import { CHARTS_PARTS_SPEC } from './charts-parts';
 import type { ComponentSpecData } from './types';
 
 export type {
@@ -28,6 +31,9 @@ export const SPEC_DATA: Record<string, ComponentSpecData> = {
   ...CONTAINMENT_PRO_SPEC,
   ...NAVIGATION_SPEC,
   ...FEEDBACK_PICKERS_SPEC,
+  ...CHARTS_FIGURES_SPEC,
+  ...CHARTS_CARTESIAN_SPEC,
+  ...CHARTS_PARTS_SPEC,
 };
 
 /** The m3.material.io URL of a spec page path (`buttons/specs`). */

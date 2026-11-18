@@ -1,6 +1,7 @@
 import * as core from '@windmorph/react';
 import * as pro from '@windmorph/react-pro';
 import * as calendar from '@windmorph/react-pro/calendar';
+import * as charts from '@windmorph/react-pro/charts';
 import * as dataGrid from '@windmorph/react-pro/data-grid';
 import * as richText from '@windmorph/react-pro/rich-text';
 import { describe, expect, it } from 'vitest';
@@ -18,6 +19,7 @@ const ENTRIES: Record<ImportEntry, Record<string, unknown>> = {
   '@windmorph/react-pro/rich-text': richText,
   '@windmorph/react-pro/data-grid': dataGrid,
   '@windmorph/react-pro/calendar': calendar,
+  '@windmorph/react-pro/charts': charts,
 };
 
 describe('component import lines', () => {

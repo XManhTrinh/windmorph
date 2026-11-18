@@ -249,6 +249,27 @@ export const GUIDE_ENTRIES: SearchEntry[] = [
     keywords: ['M3 spec', 'coverage', 'differences', 'extensions', 'Material 3 Expressive'],
   },
   {
+    title: 'Charts',
+    summary:
+      'Which chart answers which question, the chart colours for every theme, and how the charts read and move. In Windmorph Pro.',
+    href: '/charts',
+    kind: 'guide',
+    keywords: [
+      'chart',
+      'charts',
+      'graph',
+      'data visualisation',
+      'data visualization',
+      'dashboard',
+      'palette',
+      'withChartColors',
+      'chartColor',
+      'pie chart',
+      'donut',
+      '@windmorph/react-pro/charts',
+    ],
+  },
+  {
     title: 'Windmorph Pro',
     summary:
       'Paid components on the free core, not on sale yet: what Pro includes, registering interest and using it beside the core.',

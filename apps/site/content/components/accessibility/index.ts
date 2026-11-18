@@ -31,6 +31,13 @@ import { listDetailLayout } from './list-detail-layout';
 import { carousel } from './carousel';
 import { mediaGrid } from './media-grid';
 import { mediaTimeSlider } from './media-time-slider';
+import { statTile } from './stat-tile';
+import { meter } from './meter';
+import { lineChart } from './line-chart';
+import { barChart } from './bar-chart';
+import { segmentedBar } from './segmented-bar';
+import { rankedBars } from './ranked-bars';
+import { chartFrame } from './chart-frame';
 import { mediaViewer } from './media-viewer';
 import { shapedIcon } from './shaped-icon';
 import { commentRow } from './comment-row';
@@ -115,6 +122,13 @@ export const ACCESSIBILITY: Record<string, ComponentAccessibility> = {
   'media-grid': mediaGrid,
   'media-viewer': mediaViewer,
   'media-time-slider': mediaTimeSlider,
+  'stat-tile': statTile,
+  meter: meter,
+  'line-chart': lineChart,
+  'bar-chart': barChart,
+  'segmented-bar': segmentedBar,
+  'ranked-bars': rankedBars,
+  'chart-frame': chartFrame,
   'shaped-icon': shapedIcon,
   'comment-row': commentRow,
   collapse: collapse,

@@ -151,6 +151,8 @@ export const DATA_NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
     notControlled: {
       defaultState: 'A starting table state, as `state`.',
       compactBelow: 'Off in the narrow preview; the examples turn into a list on a narrow window.',
+      maxHeight:
+        'A height in px or any CSS length; the "Rows that scroll under the header" example sets 320.',
       filters:
         'Filter fields of your own; the "Search, sort, filter, columns and pages" example shows them.',
       actions: 'Buttons of your own for the toolbar.',

@@ -46,6 +46,13 @@ import { CommentRowBody } from './comment-row';
 import { LoadMoreBody } from './load-more';
 import { MediaGridBody } from './media-grid';
 import { MediaTimeSliderBody } from './media-time-slider';
+import { StatTileBody } from './stat-tile';
+import { MeterBody } from './meter';
+import { LineChartBody } from './line-chart';
+import { BarChartBody } from './bar-chart';
+import { SegmentedBarBody } from './segmented-bar';
+import { RankedBarsBody } from './ranked-bars';
+import { ChartFrameBody } from './chart-frame';
 import { ReactionSummaryBody } from './reaction-summary';
 import { ExpandableTextBody } from './expandable-text';
 import { ReactionPickerBody } from './reaction-picker';
@@ -174,6 +181,13 @@ const BODIES: Record<string, ComponentDocLoader> = {
   'load-more': LoadMoreBody,
   'media-grid': MediaGridBody,
   'media-time-slider': MediaTimeSliderBody,
+  'stat-tile': StatTileBody,
+  meter: MeterBody,
+  'line-chart': LineChartBody,
+  'bar-chart': BarChartBody,
+  'segmented-bar': SegmentedBarBody,
+  'ranked-bars': RankedBarsBody,
+  'chart-frame': ChartFrameBody,
   'reaction-summary': ReactionSummaryBody,
   'expandable-text': ExpandableTextBody,
   alert: AlertBody,

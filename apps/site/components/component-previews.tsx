@@ -354,6 +354,131 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
       </span>
     </span>
   ),
+  'stat-tile': (
+    <Col gap={2}>
+      <Text w={56} />
+      <span className="text-headline-small text-on-surface">4,218</span>
+      <Row gap={1}>
+        <span className="size-2 shrink-0 rotate-45 border-l-2 border-t-2 border-success" />
+        <span className="block h-1.5 w-10 shrink-0 rounded-corner-full bg-success" />
+      </Row>
+      <span className="relative block h-7 w-36 rounded-ee-[100%] border-e-2 border-b-2 border-outline">
+        <span className="absolute -end-1.5 -top-1.5 size-3 rounded-full bg-primary" />
+      </span>
+    </Col>
+  ),
+  meter: (
+    <span className="flex w-40 flex-col gap-2">
+      <Text w={48} />
+      <span className="text-title-medium text-on-surface">
+        86 <span className="text-body-small text-on-surface-variant">of 100 GB</span>
+      </span>
+      <span className="relative block h-2 w-full overflow-hidden rounded-full bg-surface-container-highest">
+        <span className="absolute inset-y-0 start-0 w-[86%] rounded-full bg-warning" />
+        <span className="absolute inset-y-0 start-[80%] w-0.5 bg-surface" />
+      </span>
+      <Row gap={1}>
+        <span className="size-2.5 shrink-0 rotate-45 rounded-[2px] bg-warning" />
+        <Text w={72} />
+      </Row>
+    </span>
+  ),
+  'line-chart': (
+    <span className="flex w-40 flex-col">
+      <svg viewBox="0 0 160 64" className="h-16 w-40 overflow-visible">
+        <path
+          d="M0 50 L32 40 L64 44 L96 26 L128 30 L160 14 L160 64 L0 64 Z"
+          className="fill-primary/15"
+        />
+        <path
+          d="M0 56 L32 52 L64 53 L96 44 L128 46 L160 38"
+          className="fill-none stroke-tertiary stroke-2 [stroke-linecap:round] [stroke-linejoin:round]"
+        />
+        <path
+          d="M0 50 L32 40 L64 44 L96 26 L128 30 L160 14"
+          className="fill-none stroke-primary stroke-2 [stroke-linecap:round] [stroke-linejoin:round]"
+        />
+      </svg>
+      <span className="block h-px w-full bg-outline" />
+    </span>
+  ),
+  'bar-chart': (
+    <span className="flex h-16 w-40 items-end justify-around border-b border-outline">
+      {[
+        [18, 10, 6],
+        [22, 10, 8],
+        [26, 12, 8],
+        [20, 12, 6],
+        [30, 14, 8],
+        [34, 14, 10],
+      ].map(([first, second, third], index) => (
+        <span key={index} className="flex w-4 flex-col-reverse gap-0.5">
+          <span className="block bg-primary" style={{ height: first }} />
+          <span className="block bg-tertiary" style={{ height: second }} />
+          <span
+            className="block rounded-t-corner-extra-small bg-secondary"
+            style={{ height: third }}
+          />
+        </span>
+      ))}
+    </span>
+  ),
+  'segmented-bar': (
+    <span className="flex w-44 flex-col gap-2.5">
+      <span className="flex h-5 gap-0.5">
+        <span className="block grow-[5] basis-0 rounded-corner-extra-small bg-primary" />
+        <span className="block grow-[3] basis-0 rounded-corner-extra-small bg-tertiary" />
+        <span className="block grow-[1.5] basis-0 rounded-corner-extra-small bg-secondary" />
+        <span className="block grow-[0.8] basis-0 rounded-corner-extra-small bg-outline" />
+      </span>
+      <Row gap={3}>
+        {['bg-primary', 'bg-tertiary', 'bg-secondary'].map((fill) => (
+          <span key={fill} className="flex items-center gap-1">
+            <span className={`block size-2 shrink-0 rounded-[2px] ${fill}`} />
+            <Text w={18} />
+          </span>
+        ))}
+      </Row>
+    </span>
+  ),
+  'ranked-bars': (
+    <Col gap={3}>
+      {[96, 58, 36, 48].map((width, row) => (
+        <Row key={row}>
+          <Text w={32} strong />
+          <span className="flex w-24">
+            <span
+              className={`block h-2.5 rounded-e-corner-extra-small ${row === 3 ? 'bg-outline' : 'bg-primary'}`}
+              style={{ width }}
+            />
+          </span>
+          <Text w={16} />
+        </Row>
+      ))}
+    </Col>
+  ),
+  'chart-frame': (
+    <Panel w={176} h={104} round="md" fill="high">
+      <span className="flex items-start justify-between">
+        <Col gap={1}>
+          <Text w={64} strong />
+          <Text w={44} />
+        </Col>
+        <span className="flex size-4 shrink-0 flex-col rounded-[3px] border-2 border-on-surface-variant">
+          <span className="h-0.5 bg-on-surface-variant" />
+        </span>
+      </span>
+      <span className="mt-auto flex h-10 items-end gap-1.5">
+        {[18, 26, 22, 34, 30, 40].map((height, index) => (
+          <span
+            key={index}
+            className="block w-3 rounded-t-corner-extra-small bg-primary"
+            style={{ height }}
+          />
+        ))}
+      </span>
+    </Panel>
+  ),
   chips: (
     <Row gap={1}>
       <Shape w={56} h={28} fill="secondary" round="sm" />
