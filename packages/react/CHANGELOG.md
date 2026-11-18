@@ -2,6 +2,22 @@
 
 All notable changes to `@windmorph/react`, newest first. Each version is grouped by kind (Added, Changed, Deprecated, Removed, Fixed, Security), and each entry links to its pull request. The [What's new](https://windmorph.dev/whats-new) page tells the same story in plain words.
 
+## 0.2.10 — 2026-11-18
+
+### Added
+
+- Motion on values in `@windmorph/react/primitives`: `useM3SpringValue` and `useM3SpringValues` spring a number or a list of numbers on the theme's springs, keeping their speed when a new target arrives (`resample` reads a list at another length, and `keys` match a list by name, so a sliding window's kept elements carry on, with `rest` setting where a new one starts); `AnimatedNumber` counts between values; `staggerDelays` and `useEntrance` play an entrance one item after another, once, when it is first seen. ([#96](https://github.com/XManhTrinh/windmorph/pull/96))
+- `useNearestReveal` in `@windmorph/react/primitives`, for collections built on React Aria's hooks outside the core: arrow keys bring an item into view without first centring the whole collection, so the page moves only as far as the item needs. ([#96](https://github.com/XManhTrinh/windmorph/pull/96))
+- `themeSelector` in `@windmorph/react/primitives`, the selector of one theme, contrast level and mode in the theme CSS, for values of your own that follow the themes as the colour roles do. ([#96](https://github.com/XManhTrinh/windmorph/pull/96))
+
+### Changed
+
+- Needs `motion` 14.12 or later (the peer range is now `^14.12.0`): the motion primitives rely on its `useTransform` catching up with a value set as it subscribes again. ([#96](https://github.com/XManhTrinh/windmorph/pull/96))
+
+### Fixed
+
+- A polite announcement waiting for its live region (a focused button turning pending) writes through the region's own document, so it no longer throws when its page goes away first. ([#96](https://github.com/XManhTrinh/windmorph/pull/96))
+
 ## 0.2.9 — 2026-11-16
 
 ### Added

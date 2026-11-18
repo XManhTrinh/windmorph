@@ -34,6 +34,100 @@ const CORE_PAGE_COUNT = COMPONENT_META.filter(
  */
 export const RELEASES: Release[] = [
   {
+    version: '0.2.10',
+    date: '2026-11-18',
+    summary: (
+      <>
+        Motion on numbers: a value or a list of values that springs on the theme&apos;s springs, a
+        figure that counts to its new value, and entrances that play once, one item after another.
+        In Windmorph Pro, a family of charts and a <InlineCode>DataTable</InlineCode> that scrolls
+        under its header.
+      </>
+    ),
+    sections: [
+      {
+        title: 'Motion on values',
+        items: [
+          <>
+            <InlineCode>useM3SpringValue</InlineCode> and <InlineCode>useM3SpringValues</InlineCode>{' '}
+            in <InlineCode>@windmorph/react/primitives</InlineCode> move a number, or a list of
+            numbers, on the theme&apos;s springs, and keep their speed when a new target arrives
+            mid-way. Matched by <InlineCode>keys</InlineCode>, the values a sliding window keeps
+            carry on where they are, and <InlineCode>rest</InlineCode> says where a new one starts.
+          </>,
+          <>
+            <InlineCode>AnimatedNumber</InlineCode> counts from one value to the next, in the
+            value&apos;s own decimals; screen readers and copying get the value itself, never the
+            figures passing.
+          </>,
+          <>
+            <InlineCode>staggerDelays</InlineCode> and <InlineCode>useEntrance</InlineCode> play an
+            entrance one item after another, once, when it first comes into view. Under reduced
+            motion, values change at once.
+          </>,
+        ],
+      },
+      {
+        title: 'Components',
+        items: [
+          <>
+            <InlineCode>useNearestReveal</InlineCode> is public, for collections built on React
+            Aria&apos;s hooks outside the core: arrow keys bring an item into view without first
+            centring the whole collection, so the page moves only as far as the item needs.
+          </>,
+          <>
+            <InlineCode>themeSelector</InlineCode> gives the selector of one theme, contrast level
+            and mode in the theme CSS, for values of your own that follow the themes as the colour
+            roles do.
+          </>,
+          <>
+            Windmorph now needs <InlineCode>motion</InlineCode> 14.12 or later.
+          </>,
+        ],
+      },
+      {
+        title: 'Fixes',
+        items: [
+          <>
+            A polite announcement waiting for its live region (a focused button turning pending) no
+            longer throws when its page goes away first.
+          </>,
+        ],
+      },
+      {
+        title: 'Windmorph Pro',
+        items: [
+          <>
+            Charts, in <InlineCode>@windmorph/react-pro/charts</InlineCode>, on the theme&apos;s
+            colours and springs in every theme, mode and contrast level:{' '}
+            <InlineCode>StatTile</InlineCode> with a <InlineCode>Sparkline</InlineCode>,{' '}
+            <InlineCode>Meter</InlineCode>, <InlineCode>LineChart</InlineCode>,{' '}
+            <InlineCode>BarChart</InlineCode>, <InlineCode>SegmentedBar</InlineCode> and{' '}
+            <InlineCode>SegmentedList</InlineCode> (plain parts, or ordered from lightest to
+            darkest), <InlineCode>RankedBars</InlineCode> and <InlineCode>FunnelBars</InlineCode>.
+            They are drawn in the server&apos;s HTML, read by pointer, finger and keyboard, and move
+            from where they are when the numbers change.
+          </>,
+          <>
+            <InlineCode>ChartFrame</InlineCode>, the card a chart sits in: its title names the
+            chart, a switch shows the same numbers as a table, and it has empty, loading, pending
+            and error states.
+          </>,
+          <>
+            <InlineCode>DataTable</InlineCode> takes <InlineCode>maxHeight</InlineCode>: the rows
+            scroll under the header. Columns cut off by a narrow window stay within the
+            keyboard&apos;s reach, arrow keys no longer scroll the page to centre the table, and the
+            compact list shows every figure with its column&apos;s name.
+          </>,
+          <>
+            <InlineCode>RichMessageField</InlineCode>&apos;s mention list keeps its first suggestion
+            when it opens under a pointer at rest, so Enter mentions the best match.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: '0.2.9',
     date: '2026-11-16',
     summary: (
