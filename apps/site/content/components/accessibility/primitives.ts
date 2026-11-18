@@ -21,7 +21,7 @@ export const primitives: ComponentAccessibility = {
     },
   ],
   keyboardNotes: [
-    "`DomDirectionLocale` gives React Aria the element's laid-out direction (the same locale with only its script changed), so arrow keys follow an RTL layout while dates and numbers keep the app's language.",
+    "`DomDirectionLocale` gives React Aria the element's laid-out direction (the same locale with its script changed, keeping its digits, hour cycle and calendar), so arrow keys follow an RTL layout while dates and numbers keep the app's language.",
   ],
   screenReader: {
     role: '`ButtonBase` is a `button`, a `link` with `href`, or a `div` with `role="button"`. `useM3Interaction` adds no role: it is presentation only. `ErrorText` has the `alert` role, and `FieldErrorIcon` the `img` role.',
