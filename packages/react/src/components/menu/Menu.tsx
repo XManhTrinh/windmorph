@@ -277,6 +277,12 @@ export interface MenuClassNames {
   trailingIcon?: string;
   /** The dividers between groups in the `divider` layout. */
   divider?: string;
+  /** The row above a submenu shown in place of its menu: its back button and its title. */
+  header?: string;
+  /** The back button in that row, which goes back to the menu that opened the submenu. */
+  back?: string;
+  /** The submenu's title in that row: the label of the item that opened it. */
+  title?: string;
 }
 
 export interface MenuProps
@@ -351,6 +357,11 @@ export interface MenuProps
    * for the whole app.
    */
   labels?: Partial<MenuLabels>;
+  /**
+   * The icon of the back button above a submenu shown in place of its menu. Set it on the root
+   * menu. @default Material Symbols `arrow_back`, mirrored in right-to-left
+   */
+  backIcon?: ReactElement;
   /**
    * Open and close with no motion (M3: "In dense products, such as on desktop, menus can
    * open instantly to reduce motion"). Submenus follow their root menu. Popovers only: a menu
@@ -464,6 +475,7 @@ function MenuSheet({
   offset: _offset,
   variant = 'standard',
   labels: labelsProp,
+  backIcon,
   className,
   style,
   ...props
@@ -471,6 +483,8 @@ function MenuSheet({
   const labels = useLabels('Menu', DEFAULT_LABELS, labelsProp);
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
   const [activeLevel, setActiveLevel] = useState(0);
+  const level = trigger.state.expandedKeysStack.length;
+  const pageDirection = usePageDirection(level);
   const menuProps = mergeProps(triggerMenuProps(trigger, props), props);
   // The sheet takes the menu's name: its `aria-labelledby` when it has one, which names the
   // menu over an `aria-label` (its own, or the trigger's), else its `aria-label`.
@@ -491,7 +505,12 @@ function MenuSheet({
       style={style}
       classNames={props.classNames?.sheet ? { panel: props.classNames.sheet } : undefined}
     >
-      <div ref={setContainer} className={menuStyles().sheetContent()}>
+      <div
+        ref={setContainer}
+        data-level={level}
+        data-page-direction={pageDirection}
+        className={menuStyles().sheetContent()}
+      >
         <MenuTreeContext
           value={{
             rootState: trigger.state,
@@ -502,8 +521,10 @@ function MenuSheet({
             variant,
             density: props.density,
             instant: false,
-            sheet: true,
+            replace: true,
             labels,
+            classNames: props.classNames,
+            backIcon,
           }}
         >
           <MenuList
@@ -512,6 +533,7 @@ function MenuSheet({
             variant={variant}
             level={0}
             embedded
+            pageClassName={menuStyles().page()}
             onClose={trigger.state.close}
             autoFocus={trigger.state.focusStrategy ?? 'first'}
           />
@@ -533,14 +555,18 @@ interface MenuTreeContextValue {
   layout: MenuLayout;
   variant: MenuVariant;
   density: MenuProps['density'];
-  /** Submenus open and close with no motion too. */
+  /** Submenus open and close with no motion too, and pages change with none. */
   instant: boolean;
   /**
-   * In a sheet, a submenu takes the sheet's place of the menu that opened it, below a back
-   * button, instead of opening beside its item.
+   * A submenu takes the place of the menu that opened it, below a back button, instead of
+   * opening beside its item: always in a sheet, and in a popover with
+   * `submenuPresentation="replace"`. `container` then holds the pages.
    */
-  sheet: boolean;
+  replace: boolean;
   labels: MenuLabels;
+  /** The root menu's parts, for the row above each page. */
+  classNames: MenuClassNames | undefined;
+  backIcon: ReactElement | undefined;
 }
 
 const MenuTreeContext = createContext<MenuTreeContextValue | null>(null);
@@ -549,6 +575,20 @@ const MenuTreeContext = createContext<MenuTreeContextValue | null>(null);
 const MenuListContext = createContext<RefObject<HTMLDivElement | null> | null>(null);
 
 const subscribeToNothing = () => () => {};
+
+/**
+ * Which way the last page change went, for the page coming in (`data-page-direction`):
+ * `undefined` until the first change, so the first page never moves in as the menu opens.
+ * Derived as the level changes, in the same render, so the page and the direction it reads
+ * arrive together.
+ */
+function usePageDirection(level: number): 'forward' | 'back' | undefined {
+  const [last, setLast] = useState<{ level: number; direction?: 'forward' | 'back' }>({ level });
+  if (last.level === level) return last.direction;
+  const direction = level > last.level ? 'forward' : 'back';
+  setLast({ level, direction });
+  return direction;
+}
 
 /**
  * React Aria resolves `start` / `end` from its locale context, not the DOM `dir`, so an
@@ -572,6 +612,7 @@ function MenuPopover({
   layout = 'divider',
   variant = 'standard',
   labels: labelsProp,
+  backIcon,
   className,
   style,
   ...props
@@ -667,8 +708,10 @@ function MenuPopover({
                 variant,
                 density: props.density,
                 instant,
-                sheet: false,
+                replace: false,
                 labels,
+                classNames: props.classNames,
+                backIcon,
               }}
             >
               <MenuList
@@ -727,8 +770,10 @@ type MenuListProps = Omit<
     /** 0 for the root menu, then one more per submenu. */
     level: number;
     listRef?: RefObject<HTMLDivElement | null>;
-    /** In a sheet: the list spans it, with no surface of its own. */
+    /** Shown in place of other pages: the list spans their container, with no surface of its own. */
     embedded?: boolean;
+    /** The first page shown in place: its motion as it shows again (`menuStyles().page()`). */
+    pageClassName?: string;
   };
 
 /**
@@ -759,6 +804,7 @@ function MenuList({
   classNames,
   listRef,
   embedded = false,
+  pageClassName,
   ref: forwardedRef,
   ...allProps
 }: MenuListProps) {
@@ -802,8 +848,9 @@ function MenuList({
   const scrolled = useHasScrolled(ref, requestedLayout === 'gap');
   const layout: MenuLayout = scrolled ? 'divider' : requestedLayout;
   const styles = menuStyles({ variant, layout, embedded });
-  // While a submenu is open, the menu holding focus is rounder than the others (M3).
-  const submenuOpen = Boolean(tree && tree.rootState.expandedKeysStack.length > 0);
+  // While a submenu is open beside it, the menu holding focus is rounder than the others (M3);
+  // in place, only one page shows.
+  const submenuOpen = Boolean(tree && !tree.replace && tree.rootState.expandedKeysStack.length > 0);
   const shape = !submenuOpen ? undefined : tree?.activeLevel === level ? 'active' : 'inactive';
   const setActive = tree?.setActiveLevel;
 
@@ -821,7 +868,7 @@ function MenuList({
       data-variant={variant}
       data-layout={layout}
       data-shape={shape}
-      className={styles.menu({ class: classNames?.panel })}
+      className={styles.menu({ class: cn(pageClassName, classNames?.panel) })}
     >
       <MenuListContext value={ref}>
         {groups.map((group, index) => {
@@ -1130,9 +1177,10 @@ function SubmenuItemView(props: MenuItemViewProps) {
     submenuState,
     itemRef,
   );
-  // In a sheet a submenu replaces its menu, so hovering an item doesn't open it.
+  // In place, a submenu replaces its menu, so hovering an item doesn't open it (it would change
+  // the content under the pointer).
   const { isOpen, onHoverChange, ...triggerProps } = submenuTriggerProps;
-  // A sheet's submenu hides the item that opened it, so React Aria's focus on the item when
+  // In place, a submenu hides the item that opened it, so React Aria's focus on the item when
   // the submenu closes (← or Escape) finds it hidden. Once the menu shows again, the item
   // takes focus back from the closed submenu (or the back button), unless every menu closed.
   const wasOpen = useRef(isOpen);
@@ -1140,7 +1188,7 @@ function SubmenuItemView(props: MenuItemViewProps) {
     const closed = wasOpen.current && !isOpen;
     wasOpen.current = isOpen;
     const item = itemRef.current;
-    if (!closed || !tree.sheet || !tree.rootState.isOpen || !item) return;
+    if (!closed || !tree.replace || !tree.rootState.isOpen || !item) return;
     const active = item.ownerDocument.activeElement;
     if (active == null || active === item.ownerDocument.body) item.focus();
   });
@@ -1148,12 +1196,12 @@ function SubmenuItemView(props: MenuItemViewProps) {
     <>
       <MenuItemView
         {...props}
-        triggerProps={tree.sheet ? triggerProps : { ...triggerProps, onHoverChange }}
+        triggerProps={tree.replace ? triggerProps : { ...triggerProps, onHoverChange }}
         itemRef={itemRef}
         submenuOpen={isOpen}
       />
-      {tree.sheet ? (
-        <SubmenuSheetPanel
+      {tree.replace ? (
+        <SubmenuPage
           state={submenuState}
           submenuRef={submenuRef}
           menuProps={submenuProps}
@@ -1175,13 +1223,14 @@ function SubmenuItemView(props: MenuItemViewProps) {
 }
 
 /**
- * A submenu in a sheet (M3 adapts menus into bottom sheets on small screens, where there's
- * no room beside an item): it takes the place of the menu that opened it, which the sheet
- * hides while it's open, below a back button and its item's label. ← (→ in right-to-left),
- * Escape and the back button go back. It's portalled into the sheet after its menu, so the
- * sheet's focus scope covers it.
+ * A submenu shown in place of the menu that opened it, in a sheet (M3 adapts menus into
+ * bottom sheets on small screens, where there's no room beside an item) or in a popover with
+ * `submenuPresentation="replace"`: the container hides that menu while it's open, and the
+ * page shows a back button and its item's label above the submenu's list. ← (→ in
+ * right-to-left), Escape and the back button go back. It's portalled into the container after
+ * its menu, so the sheet's or the popover's focus scope covers it.
  */
-function SubmenuSheetPanel({
+function SubmenuPage({
   state,
   submenuRef,
   menuProps,
@@ -1195,17 +1244,26 @@ function SubmenuSheetPanel({
   const { submenuLevel, ...ariaMenuProps } = menuProps;
   const own = submenu.props;
   const variant = own.variant ?? tree.variant;
-  const styles = menuStyles({ variant });
+  const styles = menuStyles({ variant, instant: tree.instant });
+  const part = (name: 'header' | 'back' | 'title') =>
+    cn(tree.classNames?.[name], own.classNames?.[name]);
   return (
     <Overlay portalContainer={tree.container} disableFocusManagement>
-      <div data-submenu-panel="" className={styles.sheetPanel()}>
-        <div className={styles.sheetHeader()}>
-          <SheetBackButton
+      <div
+        data-submenu-panel=""
+        // The header reads the menu's tokens, as the items do.
+        data-tokens="md-comp-menus"
+        data-variant={variant}
+        className={styles.sheetPanel()}
+      >
+        <div className={styles.sheetHeader({ class: part('header') })}>
+          <MenuBackButton
             label={tree.labels.back}
+            icon={tree.backIcon}
             onPress={() => state.close()}
-            className={styles.sheetBack()}
+            className={styles.sheetBack({ class: part('back') })}
           />
-          <span className={styles.sheetTitle()}>{title}</span>
+          <span className={styles.sheetTitle({ class: part('title') })}>{title}</span>
         </div>
         <MenuList
           {...mergeProps(ariaMenuProps, own)}
@@ -1223,13 +1281,15 @@ function SubmenuSheetPanel({
   );
 }
 
-/** The back button above a sheet's submenu: 48px, with an outline focus ring. */
-function SheetBackButton({
+/** The back button above a submenu shown in place: 48px, with an outline focus ring. */
+function MenuBackButton({
   label,
+  icon,
   onPress,
   className,
 }: {
   label: string;
+  icon: ReactElement | undefined;
   onPress: () => void;
   className: string;
 }) {
@@ -1243,7 +1303,7 @@ function SheetBackButton({
       ref={ref}
       className={className}
     >
-      <BackIcon />
+      {icon ?? <BackIcon />}
     </button>
   );
 }

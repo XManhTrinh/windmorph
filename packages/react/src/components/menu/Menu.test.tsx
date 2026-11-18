@@ -948,6 +948,10 @@ describe('Menu', () => {
     await openMenu('File');
     const sheet = await screen.findByRole('dialog', { name: 'File' });
     const share = within(sheet).getByRole('menuitem', { name: 'Share' });
+    // The pages read which way the last change went, from the first change on, so the menu
+    // itself never comes in as a page as the sheet opens.
+    const pages = within(sheet).getByRole('menu', { name: 'File' }).parentElement!;
+    expect(pages).not.toHaveAttribute('data-page-direction');
     // Hovering doesn't open it: it would replace the menu under the pointer.
     await userEvent.hover(share);
     await new Promise((resolve) => setTimeout(resolve, 300));
@@ -959,6 +963,7 @@ describe('Menu', () => {
     await waitFor(() =>
       expect(within(submenu).getByRole('menuitem', { name: 'Email' })).toHaveFocus(),
     );
+    expect(pages).toHaveAttribute('data-page-direction', 'forward');
     // After the menu that opened it, which the sheet's styles hide, below a back button and
     // the item's label; the list spans the sheet like the menu's.
     const panel = submenu.closest('[data-submenu-panel]')!;
@@ -973,6 +978,9 @@ describe('Menu', () => {
       expect(screen.queryByRole('menu', { name: 'Share' })).not.toBeInTheDocument(),
     );
     await waitFor(() => expect(share).toHaveFocus());
+    expect(root.parentElement).toHaveAttribute('data-page-direction', 'back');
+    // Shown again, the menu comes in as a page does.
+    expect(root.className).toContain('starting:opacity-0');
 
     // So does the back button.
     await userEvent.keyboard('{Enter}');
@@ -1170,6 +1178,41 @@ describe('Menu classNames', () => {
     // The sheet's outermost element: around the layer that moves the panel.
     expect(sheet.parentElement!.parentElement).toHaveClass('absolute');
     expect(within(sheet).getByRole('menu')).toHaveClass('panel-x');
+  });
+
+  it("puts header, back and title on the row above a submenu's page, with the menu's back icon", async () => {
+    render(
+      <MenuTrigger>
+        <Button>File</Button>
+        <Menu
+          aria-label="File"
+          presentation="sheet"
+          backIcon={<svg data-testid="back-icon" />}
+          classNames={{ header: 'app-header', back: 'app-back', title: 'app-title' }}
+        >
+          <SubmenuTrigger>
+            <MenuItem key="share">Share</MenuItem>
+            <Menu aria-label="Share" classNames={{ title: 'share-title' }}>
+              <MenuItem key="email">Email</MenuItem>
+            </Menu>
+          </SubmenuTrigger>
+        </Menu>
+      </MenuTrigger>,
+    );
+    await openMenu('File');
+    const sheet = await screen.findByRole('dialog', { name: 'File' });
+    within(sheet).getByRole('menuitem', { name: 'Share' }).focus();
+    await userEvent.keyboard('{ArrowRight}');
+    const back = await within(sheet).findByRole('button', { name: 'Back' });
+    expect(back).toHaveClass('app-back');
+    expect(within(back).getByTestId('back-icon')).toBeInTheDocument();
+    const header = back.parentElement!;
+    expect(header).toHaveClass('app-header');
+    expect(within(header).getByText('Share')).toHaveClass('app-title', 'share-title');
+    // The row reads the menu's tokens, as the items do, so `vibrant` and overrides reach it.
+    const page = header.closest('[data-submenu-panel]')!;
+    expect(page).toHaveAttribute('data-tokens', 'md-comp-menus');
+    expect(page).toHaveAttribute('data-variant', 'standard');
   });
 });
 
