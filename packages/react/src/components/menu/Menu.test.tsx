@@ -679,6 +679,39 @@ describe('Menu', () => {
     await closed();
   });
 
+  it('names the menu by its own aria-label in the popover and the sheet alike, else by its trigger', async () => {
+    function Options({
+      label,
+      presentation,
+    }: {
+      label?: string;
+      presentation: 'popover' | 'sheet';
+    }) {
+      return (
+        <MenuTrigger>
+          <Button>More options</Button>
+          <Menu presentation={presentation} {...(label !== undefined && { 'aria-label': label })}>
+            <MenuItem key="rename">Rename</MenuItem>
+            <MenuItem key="share">Share</MenuItem>
+          </Menu>
+        </MenuTrigger>
+      );
+    }
+    for (const presentation of ['popover', 'sheet'] as const) {
+      const named = render(<Options label="Settings" presentation={presentation} />);
+      await openMenu('More options');
+      expect(await screen.findByRole('menu', { name: 'Settings' })).toBeInTheDocument();
+      if (presentation === 'sheet') {
+        expect(screen.getByRole('dialog', { name: 'Settings' })).toBeInTheDocument();
+      }
+      named.unmount();
+      const unnamed = render(<Options presentation={presentation} />);
+      await openMenu('More options');
+      expect(await screen.findByRole('menu', { name: 'More options' })).toBeInTheDocument();
+      unnamed.unmount();
+    }
+  });
+
   it('opens in a bottom sheet with presentation="sheet", keeping the menu keyboard', async () => {
     const onAction = vi.fn();
     const { baseElement } = render(<EditMenu presentation="sheet" onAction={onAction} />);

@@ -30,6 +30,20 @@ export interface MenuTriggerContextValue {
 
 const omitLabelledBy = ({ 'aria-labelledby': _, ...props }: AriaMenuOptions<unknown>) => props;
 
+/**
+ * The trigger's props for its menu, under one naming rule for the popover and the sheet alike:
+ * a `Menu` with its own `aria-label` or `aria-labelledby` is named by it (the trigger's
+ * `aria-labelledby` would otherwise win, as a label beats `aria-label`); one without is named
+ * after its trigger, as React Aria and the APG menu button do (2026-11-18).
+ */
+export function triggerMenuProps(
+  trigger: MenuTriggerContextValue,
+  own: { 'aria-label'?: string | undefined; 'aria-labelledby'?: string | undefined },
+): AriaMenuOptions<unknown> {
+  const named = own['aria-label'] !== undefined || own['aria-labelledby'] !== undefined;
+  return named ? omitLabelledBy(trigger.menuProps) : trigger.menuProps;
+}
+
 export const MenuTriggerContext = createContext<MenuTriggerContextValue | null>(null);
 
 export interface MenuTriggerProps {

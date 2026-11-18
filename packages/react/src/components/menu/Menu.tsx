@@ -69,7 +69,7 @@ import { LazyBottomSheet, usePreloadBottomSheet } from '../sheet/lazy-bottom-she
 import { BackIcon } from '../sheet/sheet-icons';
 import { useRevealEntering } from './use-reveal-entering';
 import { menuOwnWidth, menuStyles, type MenuLayout, type MenuVariant } from './menu-styles';
-import { MenuTriggerContext, type MenuTriggerContextValue } from './menu-trigger';
+import { MenuTriggerContext, triggerMenuProps, type MenuTriggerContextValue } from './menu-trigger';
 
 export {
   ContextMenuTrigger,
@@ -469,7 +469,7 @@ function MenuSheet({
   const labels = useLabels('Menu', DEFAULT_LABELS, labelsProp);
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
   const [activeLevel, setActiveLevel] = useState(0);
-  const menuProps = mergeProps(trigger.menuProps, props);
+  const menuProps = mergeProps(triggerMenuProps(trigger, props), props);
   const label = menuProps['aria-label'];
   const naming =
     label != null
@@ -669,7 +669,7 @@ function MenuPopover({
               }}
             >
               <MenuList
-                {...mergeProps(trigger.menuProps, props)}
+                {...mergeProps(triggerMenuProps(trigger, props), props)}
                 layout={layout}
                 variant={variant}
                 level={0}
