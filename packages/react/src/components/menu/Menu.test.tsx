@@ -1195,7 +1195,7 @@ describe('Menu submenus in place (submenuPresentation="replace")', () => {
     // The same surface, after the menu it hides, below a back button and the item's label.
     expect(page.closest('[data-level]')).toBe(surface);
     expect(surface).toHaveAttribute('data-level', '1');
-    const panel = page.closest('[data-submenu-panel]')!;
+    const panel = page.closest<HTMLElement>('[data-submenu-panel]')!;
     expect(root.compareDocumentPosition(panel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(within(panel).getByRole('button', { name: 'Back' })).toBeInTheDocument();
     expect(panel.firstElementChild).toHaveTextContent('Quality');
@@ -1271,6 +1271,28 @@ describe('Menu submenus in place (submenuPresentation="replace")', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'Settings' })).toHaveFocus());
   });
 
+  it('tells the pages which way they changed, from the first change on, and marks a slide', async () => {
+    const { unmount } = render(<PlayerSettings />);
+    await openMenu('Settings');
+    expect(screen.getByRole('menu', { name: 'Settings' }).parentElement).toHaveAttribute(
+      'data-page-transition',
+      'fade',
+    );
+    unmount();
+    render(<PlayerSettings submenuTransition="slide" />);
+    await openMenu('Settings');
+    const pages = screen.getByRole('menu', { name: 'Settings' }).parentElement!;
+    expect(pages).toHaveAttribute('data-page-transition', 'slide');
+    // Opening, the first page comes in with the menu's reveal, not as a page.
+    expect(pages).not.toHaveAttribute('data-page-direction');
+    screen.getByRole('menuitem', { name: /^Quality/ }).focus();
+    await userEvent.keyboard('{ArrowRight}');
+    await screen.findByRole('menu', { name: /^Quality/ });
+    expect(pages).toHaveAttribute('data-page-direction', 'forward');
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(pages).toHaveAttribute('data-page-direction', 'back'));
+  });
+
   it('closes every page and the menu on Tab', async () => {
     render(
       <>
@@ -1296,10 +1318,17 @@ describe('Menu submenus in place (submenuPresentation="replace")', () => {
 
   it('leaves a sheet in place as always, and follows submenuPresentation from 600px up with auto', async () => {
     setMediaQueries({ [COMPACT_WINDOW]: true });
-    const { unmount } = render(<PlayerSettings presentation="auto" submenuPresentation="beside" />);
+    const { unmount } = render(
+      <PlayerSettings presentation="auto" submenuPresentation="beside" submenuTransition="slide" />,
+    );
     const sheetPage = await openPage('Quality');
     expect(sheetPage.closest('[role="dialog"]')).toBeInTheDocument();
     expect(sheetPage.closest('[data-submenu-panel]')).toBeInTheDocument();
+    // The sheet's pages slide too.
+    expect(sheetPage.closest('[data-page-transition]')).toHaveAttribute(
+      'data-page-transition',
+      'slide',
+    );
     unmount();
     setMediaQueries({ [COMPACT_WINDOW]: false });
     render(<PlayerSettings presentation="auto" />);

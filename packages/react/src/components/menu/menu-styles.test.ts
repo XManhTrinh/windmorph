@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   collectClasses,
+  compiledCss,
   nonLiteralClasses,
   uncompiledClasses,
 } from '../../../test/tailwind-classes';
@@ -75,6 +76,41 @@ describe('menuStyles', () => {
     expect(menuStyles({ layout: 'divider', embedded: true }).menu().split(' ')).toContain(
       'forced-colors:outline-none',
     );
+  });
+
+  // Pages shown in place come in only once a page has changed (the first page opens with the
+  // menu's reveal), and with `slide` from the end edge going forward and the start edge going
+  // back, swapped in right to left (`submenuTransition`).
+  it('brings a page in after a page change, sliding from the reading direction', async () => {
+    const styles = menuStyles();
+    const css = (
+      await compiledCss([...styles.page().split(' '), ...styles.pages().split(' ')])
+    ).replace(/\s+/g, ' ');
+    expect(css).toMatch(
+      /@starting-style \{ \[data-page-direction\] \S+ \{ translate: calc\(var\(--m3-menu-page-x,0px\) \* var\(--m3-menu-page-sign,1\)\) 0;/,
+    );
+    expect(css).toMatch(/\[data-page-direction\] \S+starting\\:opacity-0 \{ opacity: 0%;/);
+    expect(css).toContain(
+      '[data-page-transition="slide"][data-page-direction="forward"] { --m3-menu-page-x: 30px; }',
+    );
+    expect(css).toContain(
+      '[data-page-transition="slide"][data-page-direction="back"] { --m3-menu-page-x: -30px; }',
+    );
+    expect(css).toContain(
+      ':where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) { --m3-menu-page-sign: -1; }',
+    );
+    // The sheet's container tells its pages the same.
+    for (const part of styles
+      .pages()
+      .split(' ')
+      .filter((c) => c.includes('page-'))) {
+      expect(styles.sheetContent().split(' ')).toContain(part);
+    }
+    // `instant` changes pages with no motion.
+    expect(menuStyles({ instant: true }).sheetPanel().split(' ')).toContain(
+      '[transition-property:none]',
+    );
+    expect(menuStyles({ instant: true }).page().split(' ')).toContain('[transition-property:none]');
   });
 
   // Group headings line up with the item labels: both 16px inside the group's padding.

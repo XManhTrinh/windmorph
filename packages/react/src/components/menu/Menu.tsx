@@ -372,6 +372,16 @@ export interface MenuProps
    */
   submenuPresentation?: MenuSubmenuPresentation;
   /**
+   * How a submenu shown in place (`submenuPresentation="replace"`, or in a sheet) and the page
+   * it leaves change. `fade`: the page going out goes at once and the one coming in fades in.
+   * `slide`: M3's forward and backward pattern, the page coming in sliding 30px in from the end
+   * edge going forward and from the start edge going back (mirrored in right-to-left) as it
+   * fades in. Under reduced motion only the fade stays; `instant` drops both. Set it on the
+   * root menu.
+   * @default "fade"
+   */
+  submenuTransition?: MenuSubmenuTransition;
+  /**
    * Words the menu shows in a sheet. Set them on the root menu. A {@link LabelsProvider} sets them
    * for the whole app.
    */
@@ -426,6 +436,9 @@ export type MenuPresentation = 'popover' | 'sheet' | 'auto';
 /** Where a {@link Menu}'s submenus show in a popover: beside their item, or in its place. */
 export type MenuSubmenuPresentation = 'beside' | 'replace';
 
+/** How a {@link Menu}'s pages change when its submenus show in place: a fade, or a slide as it fades. */
+export type MenuSubmenuTransition = 'fade' | 'slide';
+
 /** Words a {@link Menu} shows. */
 export interface MenuLabels {
   /**
@@ -463,6 +476,7 @@ export function Menu({
   presentation = 'popover',
   instant = false,
   submenuPresentation = 'beside',
+  submenuTransition = 'fade',
   ...props
 }: MenuProps) {
   const trigger = useContext(MenuTriggerContext);
@@ -471,7 +485,7 @@ export function Menu({
   const presence = usePresence(trigger.state.isOpen);
   const asSheet = presentation === 'sheet' || (presentation === 'auto' && compact);
   usePreloadBottomSheet(trigger.triggerRef, asSheet);
-  if (asSheet) return <MenuSheet {...props} trigger={trigger} />;
+  if (asSheet) return <MenuSheet {...props} trigger={trigger} transition={submenuTransition} />;
   // An instant menu leaves at once, without waiting for an exit transition.
   const isPresent = instant ? trigger.state.isOpen : presence.isPresent;
   const isExiting = !instant && presence.isExiting;
@@ -483,12 +497,19 @@ export function Menu({
         trigger={trigger}
         instant={instant}
         replace={submenuPresentation === 'replace'}
+        transition={submenuTransition}
         isExiting={isExiting}
         exitProps={presence.exitProps}
       />
     </Overlay>
   );
 }
+
+/** What the menu in a popover or a sheet takes: the root menu's props that pick neither. */
+type MenuShownProps = Omit<
+  MenuProps,
+  'presentation' | 'instant' | 'submenuPresentation' | 'submenuTransition'
+>;
 
 /**
  * The menu in a modal bottom sheet (M3: menus can adapt into bottom sheets on small
@@ -505,11 +526,13 @@ function MenuSheet({
   variant = 'standard',
   labels: labelsProp,
   backIcon,
+  transition,
   className,
   style,
   ...props
-}: Omit<MenuProps, 'presentation' | 'instant' | 'submenuPresentation'> & {
+}: MenuShownProps & {
   trigger: MenuTriggerContextValue;
+  transition: MenuSubmenuTransition;
 }) {
   const labels = useLabels('Menu', DEFAULT_LABELS, labelsProp);
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
@@ -540,6 +563,7 @@ function MenuSheet({
         ref={setContainer}
         data-level={level}
         data-page-direction={pageDirection}
+        data-page-transition={transition}
         className={menuStyles().sheetContent()}
       >
         <MenuTreeContext
@@ -642,6 +666,7 @@ function MenuPopover({
   trigger,
   instant,
   replace,
+  transition,
   isExiting,
   exitProps,
   placement = 'bottom-start',
@@ -654,11 +679,12 @@ function MenuPopover({
   className,
   style,
   ...props
-}: Omit<MenuProps, 'presentation' | 'instant' | 'submenuPresentation'> & {
+}: MenuShownProps & {
   trigger: MenuTriggerContextValue;
   instant: boolean;
   /** Submenus show in place, on one surface (`submenuPresentation="replace"`). */
   replace: boolean;
+  transition: MenuSubmenuTransition;
   isExiting: boolean;
   exitProps: ExitProps;
 }) {
@@ -771,6 +797,7 @@ function MenuPopover({
                   level={level}
                   variant={variant}
                   instant={instant}
+                  transition={transition}
                   className={props.classNames?.panel}
                   dataTokens={mergeDataTokens('md-comp-menus', props)}
                   setPages={setPages}
@@ -816,6 +843,7 @@ function MenuPageSurface({
   level,
   variant,
   instant,
+  transition,
   className,
   dataTokens,
   setPages,
@@ -824,6 +852,7 @@ function MenuPageSurface({
   level: number;
   variant: MenuVariant;
   instant: boolean;
+  transition: MenuSubmenuTransition;
   className: string | undefined;
   dataTokens: string;
   setPages: (element: HTMLDivElement | null) => void;
@@ -849,7 +878,12 @@ function MenuPageSurface({
       style={height === undefined ? undefined : { height }}
       className={styles.surface({ class: className })}
     >
-      <div ref={attachPages} data-page-direction={direction} className={styles.pages()}>
+      <div
+        ref={attachPages}
+        data-page-direction={direction}
+        data-page-transition={transition}
+        className={styles.pages()}
+      >
         {children}
       </div>
     </div>
