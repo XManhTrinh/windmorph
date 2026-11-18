@@ -1133,9 +1133,14 @@ function PlayerSettings({
             onAction={onAction}
             {...qualityProps}
           >
-            <MenuItem key="auto">Auto</MenuItem>
-            <MenuItem key="1080">1080p</MenuItem>
-            <MenuItem key="720">720p</MenuItem>
+            <MenuGroup aria-label="Resolutions">
+              <MenuItem key="auto">Auto</MenuItem>
+              <MenuItem key="1080">1080p</MenuItem>
+              <MenuItem key="720">720p</MenuItem>
+            </MenuGroup>
+            <MenuGroup aria-label="Playback problems" selectionMode="none">
+              <MenuItem key="stats">Show playback stats</MenuItem>
+            </MenuGroup>
           </Menu>
         </SubmenuTrigger>
         <SubmenuTrigger>
@@ -1291,6 +1296,61 @@ describe('Menu submenus in place (submenuPresentation="replace")', () => {
     expect(pages).toHaveAttribute('data-page-direction', 'forward');
     await userEvent.keyboard('{Escape}');
     await waitFor(() => expect(pages).toHaveAttribute('data-page-direction', 'back'));
+  });
+
+  it('goes back after a choice with afterSelect="back", showing the choice on the page it returns to', async () => {
+    const onAction = vi.fn();
+    render(<PlayerSettings onAction={onAction} quality={{ afterSelect: 'back' }} />);
+    const quality = await openPage('Quality');
+    await waitFor(() =>
+      expect(within(quality).getByRole('menuitemradio', { name: 'Auto' })).toHaveFocus(),
+    );
+    // Space chooses and keeps the page.
+    await userEvent.keyboard('{ArrowDown} ');
+    expect(quality).toBeInTheDocument();
+    // Enter chooses and goes back: the item shows the new choice and takes focus.
+    await userEvent.keyboard('{ArrowDown}{Enter}');
+    await waitFor(() => expect(quality).not.toBeInTheDocument());
+    expectOpen('Settings');
+    const item = screen.getByRole('menuitem', { name: /^Quality/ });
+    expect(item).toHaveTextContent('720p');
+    await waitFor(() => expect(item).toHaveFocus());
+    // A press goes back too.
+    await userEvent.keyboard('{Enter}');
+    const again = await screen.findByRole('menu', { name: /^Quality/ });
+    await userEvent.click(within(again).getByRole('menuitemradio', { name: 'Auto' }));
+    await waitFor(() => expect(again).not.toBeInTheDocument());
+    expect(item).toHaveTextContent('Auto');
+    await waitFor(() => expect(item).toHaveFocus());
+    // An action on the page still closes the whole menu.
+    await userEvent.keyboard('{Enter}');
+    const last = await screen.findByRole('menu', { name: /^Quality/ });
+    await userEvent.click(within(last).getByRole('menuitem', { name: 'Show playback stats' }));
+    expect(onAction.mock.lastCall?.[0]).toBe('stats');
+    await closed();
+  });
+
+  it('keeps a multi-select page open on a toggle with afterSelect="back"', async () => {
+    render(<PlayerSettings quality={{ afterSelect: 'back', selectionMode: 'multiple' }} />);
+    const quality = await openPage('Quality');
+    await userEvent.click(within(quality).getByRole('menuitemcheckbox', { name: '1080p' }));
+    await userEvent.keyboard('{Enter}');
+    expect(quality).toBeInTheDocument();
+    expectOpen('Settings');
+  });
+
+  it('closes only the submenu beside its item after a choice with afterSelect="back"', async () => {
+    render(<PlayerSettings submenuPresentation="beside" quality={{ afterSelect: 'back' }} />);
+    const quality = await openPage('Quality');
+    await waitFor(() =>
+      expect(within(quality).getByRole('menuitemradio', { name: 'Auto' })).toHaveFocus(),
+    );
+    await userEvent.keyboard('{ArrowDown}{Enter}');
+    const item = screen.getByRole('menuitem', { name: /^Quality/ });
+    await waitFor(() => expect(item).toHaveFocus());
+    expect(item).toHaveTextContent('1080p');
+    await waitFor(() => expect(quality).not.toBeInTheDocument(), { timeout: 1500 });
+    expectOpen('Settings');
   });
 
   it('closes every page and the menu on Tab', async () => {

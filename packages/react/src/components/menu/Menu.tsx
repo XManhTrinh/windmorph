@@ -382,6 +382,17 @@ export interface MenuProps
    */
   submenuTransition?: MenuSubmenuTransition;
   /**
+   * On a submenu's `Menu` (inside a `SubmenuTrigger`): what follows a choice on it, by press or
+   * Enter, in a single-select submenu or a single-choice `MenuGroup` of it. `close`: the whole
+   * menu closes, as in any single-select menu. `back`: only this submenu closes, so the page
+   * that opened it shows again (shown in place) or stays (beside), showing the new choice, with
+   * focus on the item that opened it; for a settings page whose choice is all it's for. Space
+   * keeps the submenu open either way, a toggle in a multi-select submenu never closes it, and
+   * an action (a plain item) still closes the whole menu.
+   * @default "close"
+   */
+  afterSelect?: MenuAfterSelect;
+  /**
    * Words the menu shows in a sheet. Set them on the root menu. A {@link LabelsProvider} sets them
    * for the whole app.
    */
@@ -438,6 +449,9 @@ export type MenuSubmenuPresentation = 'beside' | 'replace';
 
 /** How a {@link Menu}'s pages change when its submenus show in place: a fade, or a slide as it fades. */
 export type MenuSubmenuTransition = 'fade' | 'slide';
+
+/** What follows a choice on a submenu: the whole menu closes, or only the submenu, going back. */
+export type MenuAfterSelect = 'close' | 'back';
 
 /** Words a {@link Menu} shows. */
 export interface MenuLabels {
@@ -628,6 +642,15 @@ const MenuTreeContext = createContext<MenuTreeContextValue | null>(null);
 
 /** The menu element an item is rendered in (a submenu's parent). */
 const MenuListContext = createContext<RefObject<HTMLDivElement | null> | null>(null);
+
+/** A submenu's items: what follows a choice on it (`afterSelect`), and how it goes back. */
+interface MenuPageContextValue {
+  afterSelect: MenuAfterSelect;
+  /** Closes only this submenu, then focuses the item that opened it. */
+  back: () => void;
+}
+
+const MenuPageContext = createContext<MenuPageContextValue | null>(null);
 
 const subscribeToNothing = () => () => {};
 
@@ -964,6 +987,7 @@ function MenuList({
   listRef,
   embedded = false,
   pageClassName,
+  afterSelect: _afterSelect,
   ref: forwardedRef,
   ...allProps
 }: MenuListProps) {
@@ -1339,17 +1363,31 @@ function SubmenuItemView(props: MenuItemViewProps) {
   // In place, a submenu replaces its menu, so hovering an item doesn't open it (it would change
   // the content under the pointer).
   const { isOpen, onHoverChange, ...triggerProps } = submenuTriggerProps;
+  // A choice on a submenu that goes back after one (`afterSelect="back"`) closes only it.
+  const wentBack = useRef(false);
+  const page: MenuPageContextValue = {
+    afterSelect: submenu!.props.afterSelect ?? 'close',
+    back: () => {
+      wentBack.current = true;
+      submenuState.close();
+    },
+  };
   // In place, a submenu hides the item that opened it, so React Aria's focus on the item when
   // the submenu closes (← or Escape) finds it hidden. Once the menu shows again, the item
   // takes focus back from the closed submenu (or the back button), unless every menu closed.
+  // After a choice that goes back, the item takes focus too, in place or beside, where focus
+  // is still in the submenu as it leaves.
   const wasOpen = useRef(isOpen);
   useLayoutEffect(() => {
     const closed = wasOpen.current && !isOpen;
     wasOpen.current = isOpen;
+    const afterChoice = closed && wentBack.current;
+    if (closed) wentBack.current = false;
     const item = itemRef.current;
-    if (!closed || !tree.replace || !tree.rootState.isOpen || !item) return;
+    if (!closed || !(tree.replace || afterChoice) || !tree.rootState.isOpen || !item) return;
     const active = item.ownerDocument.activeElement;
-    if (active == null || active === item.ownerDocument.body) item.focus();
+    const left = active == null || active === item.ownerDocument.body;
+    if (left || (afterChoice && submenuRef.current?.contains(active))) item.focus();
   });
   return (
     <>
@@ -1359,24 +1397,26 @@ function SubmenuItemView(props: MenuItemViewProps) {
         itemRef={itemRef}
         submenuOpen={isOpen}
       />
-      {tree.replace ? (
-        <SubmenuPage
-          state={submenuState}
-          submenuRef={submenuRef}
-          menuProps={submenuProps}
-          submenu={submenu!}
-          title={props.node.rendered}
-        />
-      ) : (
-        <SubmenuPopover
-          state={submenuState}
-          triggerRef={itemRef}
-          submenuRef={submenuRef}
-          menuProps={submenuProps}
-          popoverProps={popoverProps}
-          submenu={submenu!}
-        />
-      )}
+      <MenuPageContext value={page}>
+        {tree.replace ? (
+          <SubmenuPage
+            state={submenuState}
+            submenuRef={submenuRef}
+            menuProps={submenuProps}
+            submenu={submenu!}
+            title={props.node.rendered}
+          />
+        ) : (
+          <SubmenuPopover
+            state={submenuState}
+            triggerRef={itemRef}
+            submenuRef={submenuRef}
+            menuProps={submenuProps}
+            popoverProps={popoverProps}
+            submenu={submenu!}
+          />
+        )}
+      </MenuPageContext>
     </>
   );
 }
@@ -1576,6 +1616,11 @@ function MenuItemView({
   const selectable = selectionManager.selectionMode !== 'none' && props.checkable !== false;
   const plainInSelectable = selectionManager.selectionMode !== 'none' && !selectable;
   const multiple = selectable && selectionManager.selectionMode === 'multiple';
+  // On a submenu that goes back after a choice (`afterSelect="back"`), a choice that would close
+  // the menu (press or Enter on a single choice) closes only the submenu; an action still
+  // closes the whole menu, and Space and toggles close nothing.
+  const page = useContext(MenuPageContext);
+  const goesBack = page?.afterSelect === 'back' && selectable && !multiple;
   const {
     menuItemProps: ariaItemProps,
     keyboardShortcutProps,
@@ -1593,6 +1638,7 @@ function MenuItemView({
       // M3: multi-select menus stay open until they're dismissed, Enter included; a plain
       // action closes the menu, as in any menu.
       closeOnSelect: multiple ? false : plainInSelectable ? true : undefined,
+      onClose: goesBack ? page.back : undefined,
     },
     state,
     ref,

@@ -398,6 +398,7 @@ export {
   MenuTrigger,
   SubmenuTrigger,
   type ContextMenuTriggerProps,
+  type MenuAfterSelect,
   type MenuClassNames,
   type MenuGroupProps,
   type MenuItemProps,
