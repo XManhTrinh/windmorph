@@ -8,8 +8,8 @@ import {
   MenuTrigger,
   SubmenuTrigger,
 } from '@windmorph/react';
-import { useState } from 'react';
-import { FullscreenIcon, SettingsIcon } from '../../components/icons';
+import { useEffect, useState } from 'react';
+import { FullscreenExitIcon, FullscreenIcon, SettingsIcon } from '../../components/icons';
 
 const QUALITIES = [
   ['auto', 'Auto'],
@@ -41,6 +41,7 @@ export function MenuPlayerSettings() {
   const [quality, setQuality] = useState(new Set(['auto']));
   const [speed, setSpeed] = useState(new Set(['1']));
   const [loop, setLoop] = useState(new Set<string>());
+  const fullscreen = useFullscreen();
   const keep = (set: (keys: Set<string>) => void) => (keys: unknown) =>
     set(new Set(keys as Set<string>));
   return (
@@ -102,13 +103,33 @@ export function MenuPlayerSettings() {
           </Menu>
         </MenuTrigger>
         <IconButton
-          icon={<FullscreenIcon />}
-          aria-label="Full screen"
-          onPress={() =>
-            document.fullscreenElement ? document.exitFullscreen() : player?.requestFullscreen()
-          }
+          icon={fullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
+          aria-label={fullscreen ? 'Exit full screen' : 'Full screen'}
+          onPress={() => toggleFullscreen(player)}
         />
       </div>
     </div>
   );
+}
+
+/**
+ * Whether the page shows an element in full screen, following the browser (Escape or the
+ * browser's own control leave it too).
+ */
+function useFullscreen() {
+  const [fullscreen, setFullscreen] = useState(false);
+  useEffect(() => {
+    const update = () => setFullscreen(document.fullscreenElement !== null);
+    document.addEventListener('fullscreenchange', update);
+    return () => document.removeEventListener('fullscreenchange', update);
+  }, []);
+  return fullscreen;
+}
+
+/** Shows `element` in full screen, or leaves it; a browser may refuse, which changes nothing. */
+function toggleFullscreen(element: HTMLElement | null) {
+  const change = document.fullscreenElement
+    ? document.exitFullscreen()
+    : element?.requestFullscreen();
+  change?.catch(() => undefined);
 }

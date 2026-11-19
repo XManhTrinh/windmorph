@@ -19,7 +19,7 @@ import {
   type MenuSubmenuTransition,
   type MenuVariant,
 } from '@windmorph/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AddIcon, DeleteIcon, EditIcon, SearchIcon, SendIcon, StarIcon } from './icons';
 import {
   LAYOUT_OVERRIDES,
@@ -288,6 +288,34 @@ const FullscreenIcon = () => (
   </svg>
 );
 
+const FullscreenExitIcon = () => (
+  <svg viewBox="0 -960 960 960" fill="currentColor">
+    <path d="M240-120v-120H120v-80h200v200h-80Zm400 0v-200h200v80H720v120h-80ZM120-640v-80h120v-120h80v200H120Zm520 0v-200h80v120h120v80H640Z" />
+  </svg>
+);
+
+/**
+ * Whether the page shows an element in full screen, following the browser (Escape or the
+ * browser's own control leave it too).
+ */
+function useFullscreen() {
+  const [fullscreen, setFullscreen] = useState(false);
+  useEffect(() => {
+    const update = () => setFullscreen(document.fullscreenElement !== null);
+    document.addEventListener('fullscreenchange', update);
+    return () => document.removeEventListener('fullscreenchange', update);
+  }, []);
+  return fullscreen;
+}
+
+/** Shows `element` in full screen, or leaves it; a browser may refuse, which changes nothing. */
+function toggleFullscreen(element: HTMLElement | null) {
+  const change = document.fullscreenElement
+    ? document.exitFullscreen()
+    : element?.requestFullscreen();
+  change?.catch(() => undefined);
+}
+
 /** Consumer classes on the player for the container's override matrix (architecture §10). */
 const PLAYER_OVERRIDES = {
   none: '',
@@ -396,6 +424,7 @@ export const PlayerSettings: StoryObj<{
     const [subtitles, setSubtitles] = useState(new Set(['off']));
     const [size, setSize] = useState(new Set(['medium']));
     const [loop, setLoop] = useState(new Set<string>());
+    const isFullscreen = useFullscreen();
     const page = { selectionMode: 'single', deselectable: false, afterSelect } as const;
     const settings = (
       <MenuTrigger>
@@ -471,11 +500,9 @@ export const PlayerSettings: StoryObj<{
     const fullscreen = (
       <IconButton
         variant="standard"
-        icon={<FullscreenIcon />}
-        aria-label="Full screen"
-        onPress={() =>
-          document.fullscreenElement ? document.exitFullscreen() : player?.requestFullscreen()
-        }
+        icon={isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
+        aria-label={isFullscreen ? 'Exit full screen' : 'Full screen'}
+        onPress={() => toggleFullscreen(player)}
       />
     );
     return (

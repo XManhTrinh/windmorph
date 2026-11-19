@@ -1161,6 +1161,32 @@ test.describe('Menu in place: behaviour', () => {
     await atTrigger();
   });
 
+  test('the full-screen button is named by its state, and a refused request changes nothing', async ({
+    page,
+  }) => {
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await openStory(page, PLAYER);
+    const enter = page.getByRole('button', { name: 'Full screen', exact: true });
+    await enter.click();
+    await expect
+      .poll(() => page.evaluate(() => document.fullscreenElement?.getAttribute('data-testid')))
+      .toBe('player');
+    const exit = page.getByRole('button', { name: 'Exit full screen' });
+    await exit.click();
+    await expect.poll(() => page.evaluate(() => document.fullscreenElement)).toBeNull();
+    await expect(enter).toBeVisible();
+    // Refused, as in a frame that doesn't allow it: the player stays as it is, with no error.
+    await page.evaluate(() => {
+      HTMLElement.prototype.requestFullscreen = () =>
+        Promise.reject(new TypeError('Full screen is not allowed here'));
+    });
+    await enter.click();
+    await frames(page, 2);
+    await expect(enter).toBeVisible();
+    expect(errors).toEqual([]);
+  });
+
   test('a trigger outside the element: the menu opens kept within its width', async ({ page }) => {
     const player = await openPlayer(page, {}, { triggerOutside: true });
     const [s, p] = await Promise.all([
