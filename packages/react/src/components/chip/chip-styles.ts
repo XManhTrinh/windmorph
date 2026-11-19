@@ -86,10 +86,10 @@ export const chipStyles = tv({
     content: 'relative inline-flex min-w-0 items-center',
     // Icons: disabled beats their own colours through the named group's specificity.
     leading:
-      'inline-flex shrink-0 items-center justify-center [&>svg]:size-[18px] group-data-disabled/chip:text-on-surface/38',
+      'inline-flex shrink-0 items-center justify-center [&>svg]:size-[18px] [&>:only-child:has(>svg)]:size-[18px] group-data-disabled/chip:text-on-surface/38',
     label: 'min-w-0 truncate',
     trailing:
-      'inline-flex size-[18px] shrink-0 items-center justify-center [&>svg]:size-full [&>:only-child]:size-full group-data-disabled/chip:text-on-surface/38',
+      'inline-flex size-[18px] shrink-0 items-center justify-center [&>svg]:size-full [&>:only-child:has(>svg)]:size-full group-data-disabled/chip:text-on-surface/38',
     // Filter chips: the built-in check grows in when selected.
     check: [
       'grid grid-cols-[0fr] opacity-0 in-data-selected:grid-cols-[1fr] in-data-selected:opacity-100',
@@ -99,7 +99,7 @@ export const chipStyles = tv({
     ],
     checkInner: 'flex min-w-0 overflow-hidden',
     checkIcon:
-      'inline-flex size-[18px] shrink-0 me-[8px] [&>svg]:size-full [&>:only-child]:size-full',
+      'inline-flex size-[18px] shrink-0 me-[8px] [&>svg]:size-full [&>:only-child:has(>svg)]:size-full',
     avatar:
       'size-[var(--m3-chip-slot)] shrink-0 overflow-hidden rounded-corner-medium [&>img]:size-full [&>img]:object-cover group-data-disabled/chip:opacity-38',
     // The remove button: an 18px icon in a 24px round state layer (less in a dense flat chip),

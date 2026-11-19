@@ -135,11 +135,11 @@ export const menuStyles = tv({
       'group-data-selected/item:grid-cols-[1fr] group-data-selected/item:opacity-100',
     ],
     selectedIconInner: 'overflow-hidden',
-    icon: 'me-[12px] inline-flex size-[20px] shrink-0 items-center justify-center text-[color:var(--_md-comp-menus-menu-item-leading-icon-color)] [&>svg]:size-full [&>:only-child]:size-full',
+    icon: 'me-[12px] inline-flex size-[20px] shrink-0 items-center justify-center text-[color:var(--_md-comp-menus-menu-item-leading-icon-color)] [&>svg]:size-full [&>:only-child:has(>svg)]:size-full',
     text: 'flex min-w-0 flex-1 flex-col',
     description: 'text-body-medium',
     trailing:
-      'ms-auto inline-flex shrink-0 items-center ps-[12px] text-label-small text-[color:var(--_md-comp-menus-menu-item-trailing-icon-color)] [&>svg]:size-[20px]',
+      'ms-auto inline-flex shrink-0 items-center ps-[12px] text-label-small text-[color:var(--_md-comp-menus-menu-item-trailing-icon-color)] [&>svg]:size-[20px] [&>:only-child:has(>svg)]:size-[20px]',
     badge: 'inline-flex shrink-0 items-center ps-[12px]',
     // A menu's place in a bottom sheet. An open submenu's panel follows the menu that opened
     // it (portalled in after it) and hides it, and any panel before it, while it's open.

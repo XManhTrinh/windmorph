@@ -151,10 +151,12 @@ export async function IconButtonBody(): Promise<ComponentDoc> {
               decorative or custom one people have to learn.
             </li>
             <li>
-              The icon fills its slot: an <InlineCode>svg</InlineCode>, or a single element of any
-              kind, such as a wrapper for an icon with a mark on its corner, which then sizes what
-              it holds (an <InlineCode>svg</InlineCode> with only a <InlineCode>viewBox</InlineCode>{' '}
-              fills it).
+              The icon fills its slot: an <InlineCode>svg</InlineCode>, or a single element that
+              holds one directly, such as a wrapper for an icon with a mark on its corner (an{' '}
+              <InlineCode>svg</InlineCode> with only a <InlineCode>viewBox</InlineCode> then fills
+              the wrapper). Anything else keeps its own size, centred: a{' '}
+              <InlineCode>BadgedBox</InlineCode> keeps its 24px icon, so the badge stays on the
+              icon's corner at every size.
             </li>
             <li>
               For a toggle, show the outlined icon when unselected and its filled form when selected
