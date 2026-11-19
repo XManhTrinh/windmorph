@@ -177,18 +177,30 @@ test.describe('Motion values', () => {
     const bars = page.getByTestId('row-bar');
     expect(await bars.first().evaluate((bar) => bar.getBoundingClientRect().height)).toBe(0);
     await page.getByTestId('row').scrollIntoViewIfNeeded();
-    const firstBar = await record(page, 'row-bar', 'height', [], 120);
-    const heights = await bars.evaluateAll((all) =>
-      all.map((bar) => bar.getBoundingClientRect().height),
+    // The first frame the first bar has risen in, read whole: the last, starting later, hasn't
+    // risen as far, however slow the machine.
+    const heights = await page.evaluate(
+      () =>
+        new Promise<number[]>((resolve) => {
+          const read = () =>
+            [...document.querySelectorAll('[data-testid="row-bar"]')].map(
+              (bar) => bar.getBoundingClientRect().height,
+            );
+          const frame = () => {
+            const now = read();
+            if (now[0]! > 0) resolve(now);
+            else requestAnimationFrame(frame);
+          };
+          requestAnimationFrame(frame);
+        }),
     );
-    // A moment in, the first bar has risen further than the last.
-    expect(firstBar.samples.at(-1)!.value).toBeGreaterThan(0);
     expect(heights[0]!).toBeGreaterThan(heights.at(-1)!);
-    await page.waitForTimeout(1000);
-    const settled = await bars.evaluateAll((all) =>
-      all.map((bar) => bar.getBoundingClientRect().height),
-    );
-    expect(settled.every((height) => height > 40)).toBe(true);
+    // Every bar comes to rest at its height.
+    await expect
+      .poll(() =>
+        bars.evaluateAll((all) => all.every((bar) => bar.getBoundingClientRect().height > 40)),
+      )
+      .toBe(true);
     // Scrolled away and back, it doesn't play again.
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.getByTestId('row').scrollIntoViewIfNeeded();
