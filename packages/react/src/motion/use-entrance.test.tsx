@@ -308,6 +308,31 @@ describe('useEntrance', () => {
     expect(box(container)).toHaveAttribute('data-entered', 'false');
   });
 
+  it('keeps listening through a print that starts while the last entrance’s pair is going', async () => {
+    const remove = vi.spyOn(window, 'removeEventListener');
+    const removed = () =>
+      remove.mock.calls.filter(([type]) => type === 'beforeprint' || type === 'afterprint').length;
+    try {
+      // The last entrance goes, and the pair's removal waits for the event being dispatched.
+      render(<Chart />).unmount();
+      // A print begins before it runs, with no entrance mounting in its beforeprint.
+      outsideAct(() => window.dispatchEvent(new Event('beforeprint')));
+      await new Promise((resolve) => setTimeout(resolve));
+      // The print is still under way: the pair stays, and an entrance mounted now prints entered.
+      expect(removed()).toBe(0);
+      const during = render(<Chart />);
+      expect(box(during.container)).toHaveAttribute('data-entered', 'true');
+      during.unmount();
+      act(() => window.dispatchEvent(new Event('afterprint')));
+      // Once it's over the pair goes, and the next entrance waits to enter.
+      await vi.waitFor(() => expect(removed()).toBe(2));
+      const { container } = render(<Chart />);
+      expect(box(container)).toHaveAttribute('data-entered', 'false');
+    } finally {
+      remove.mockRestore();
+    }
+  });
+
   it('keeps a hydrated entrance printed before its first report entered', async () => {
     holdFirstReports = true;
     const container = document.createElement('div');
@@ -347,7 +372,12 @@ describe('useEntrance', () => {
       const warnings = error.mock.calls.filter(([message]) =>
         String(message).includes('flushSync'),
       );
-      expect(warnings.length).toBeLessThanOrEqual(1);
+      // One shared flushSync, which React can't run inside the effect, warns once; and every
+      // chart still enters once React renders again.
+      expect(warnings.length).toBe(1);
+      for (const chart of [...document.querySelectorAll('[data-entered]')]) {
+        expect(chart).toHaveAttribute('data-entered', 'true');
+      }
     } finally {
       error.mockRestore();
     }

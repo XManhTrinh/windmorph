@@ -49,7 +49,9 @@ const isPrinting = () => printing || inBeforePrint();
 // single synchronous render, and a print begun inside React's own work warns once, not once for
 // each entrance (twelve tiles, twelve warnings). The pair goes only once the event being
 // dispatched is over, since a listener removed during a dispatch isn't called: an app's handler
-// that swaps the screen's charts for a print view's would otherwise take it away mid-print.
+// that swaps the screen's charts for a print view's would otherwise take it away mid-print. Nor
+// while a print is under way (between `beforeprint` and `afterprint`): the pair stays until the
+// print ends, and `afterprint` lets it go if no entrance is left.
 let attached = false;
 let removal: ReturnType<typeof setTimeout> | undefined;
 const beforePrint = () => {
@@ -58,10 +60,18 @@ const beforePrint = () => {
     for (const listener of [...printListeners]) listener(true);
   });
 };
-const afterPrint = () => {
+const detach = () => {
+  if (!attached) return;
+  attached = false;
+  printing = false;
+  window.removeEventListener('beforeprint', beforePrint);
+  window.removeEventListener('afterprint', afterPrint);
+};
+function afterPrint() {
   printing = false;
   for (const listener of [...printListeners]) listener(false);
-};
+  if (printListeners.size === 0) detach();
+}
 
 /** Calls `listener` as the page is printed and after; returns the unsubscribe. */
 function subscribeToPrint(listener: PrintListener) {
@@ -79,11 +89,8 @@ function subscribeToPrint(listener: PrintListener) {
     printListeners.delete(listener);
     if (printListeners.size > 0) return;
     removal = setTimeout(() => {
-      if (printListeners.size > 0) return;
-      attached = false;
-      printing = false;
-      window.removeEventListener('beforeprint', beforePrint);
-      window.removeEventListener('afterprint', afterPrint);
+      if (printListeners.size > 0 || printing) return;
+      detach();
     });
   };
 }
