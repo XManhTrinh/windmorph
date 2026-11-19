@@ -1096,13 +1096,15 @@ test.describe('Menu in place: behaviour', () => {
 
   test('Home and End move focus without scrolling a pane around the element', async ({ page }) => {
     await openPlayer(page, {}, { corner: 'top' });
+    const paneScroll = () => page.getByTestId('pane').evaluate((el) => el.scrollTop);
+    // The keys' default scrolls at once, before the key's events are done: End took the pane
+    // to its end and Home back to 0.
     await page.keyboard.press('End');
     await expect(page.getByRole('menuitemcheckbox', { name: 'Loop' })).toBeFocused();
+    expect(await paneScroll()).toBe(0);
     await page.keyboard.press('Home');
     await expect(page.getByRole('menuitem', { name: /^Quality/ })).toBeFocused();
-    // A smooth scroll of the pane would have moved it within these frames.
-    await frames(page, 6);
-    expect(await page.getByTestId('pane').evaluate((el) => el.scrollTop)).toBe(0);
+    expect(await paneScroll()).toBe(0);
   });
 
   test('a container resized without the window places the menu back on its trigger', async ({
