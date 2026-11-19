@@ -1,5 +1,6 @@
 'use client';
 
+import { Link } from '@windmorph/react-pro';
 import { FormattedText } from '@windmorph/react-pro/rich-text';
 
 /**
@@ -27,11 +28,7 @@ export function FormattedTextOwnLinks() {
         text={POST}
         internalLinks={(url) => url.origin === SITE_ORIGIN}
         renderLink={(link) =>
-          link.internal ? (
-            <a href={link.path} className="text-primary underline">
-              {link.label}
-            </a>
-          ) : undefined
+          link.internal ? <Link href={link.path}>{link.label}</Link> : undefined
         }
       />
     </div>

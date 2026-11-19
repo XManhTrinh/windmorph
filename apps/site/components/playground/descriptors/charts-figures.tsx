@@ -101,7 +101,7 @@ export const CHARTS_FIGURES_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
     groups: { value: 'content', min: 'content' },
     numberRanges: {
       value: { min: 0, max: 150, step: 0.1 },
-      max: { min: 10, max: 150, step: 1 },
+      max: { min: 60, max: 150, step: 1 },
       min: { min: 0, max: 50, step: 1 },
       warningAt: { min: 0, max: 150, step: 1 },
     },

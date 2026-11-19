@@ -1894,15 +1894,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     related: ['line-chart', 'ranked-bars', 'chart-frame'],
     whenNotToUse:
       'To rank parts against each other, use Ranked bars; for a trend across many places, a Line chart.',
-    keywords: [
-      'column chart',
-      'stacked bars',
-      'histogram',
-      'graph',
-      'totals',
-      'over time',
-      'series',
-    ],
+    keywords: ['column chart', 'stacked bars', 'graph', 'totals', 'over time', 'series'],
   },
   {
     slug: 'segmented-bar',
