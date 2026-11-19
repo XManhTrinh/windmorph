@@ -571,6 +571,9 @@ export function Menu({
     // opens a context menu with none.
     onArrow: trigger.contextMenu ? undefined : (focus) => trigger.state.open(focus),
     anyPress: trigger.contextMenu,
+    // In a context menu's region, typing or an arrow is the person carrying on there.
+    closeOnInput: trigger.contextMenu,
+    closeOnArrow: trigger.contextMenu,
   });
   const { setPending } = trigger;
   useLayoutEffect(() => {

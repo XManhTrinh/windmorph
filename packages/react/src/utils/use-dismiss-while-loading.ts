@@ -11,6 +11,11 @@ export interface DismissWhileLoadingOptions {
   onArrow?: (focus: 'first' | 'last') => void;
   /** A primary press anywhere closes it, the trigger's included (a context menu's region). */
   anyPress?: boolean;
+  /**
+   * ↓ or ↑ at the trigger closes it, keeping the key's own use (a context menu's region, whose
+   * content takes its arrows).
+   */
+  closeOnArrow?: boolean;
   /** Typing in the trigger closes it (a field's text box, under a modal picker). */
   closeOnInput?: boolean;
 }
@@ -40,17 +45,16 @@ export function useDismissWhileLoading(
     const dismiss = () => latest.current.close();
     let tabbing = false;
     const onKeyDown = (event: KeyboardEvent) => {
-      const { onArrow } = latest.current.options;
-      if (event.key === 'Tab') tabbing = true;
+      const { onArrow, closeOnArrow } = latest.current.options;
+      const arrow = event.key === 'ArrowDown' || event.key === 'ArrowUp';
+      if (event.key === 'Tab') tabbing = inside(event.target);
       else if (event.key === 'Escape') {
         event.preventDefault();
         event.stopPropagation();
         dismiss();
-      } else if (
-        onArrow &&
-        inside(event.target) &&
-        (event.key === 'ArrowDown' || event.key === 'ArrowUp')
-      ) {
+      } else if (arrow && inside(event.target) && closeOnArrow) {
+        dismiss();
+      } else if (arrow && inside(event.target) && onArrow) {
         event.preventDefault();
         onArrow(event.key === 'ArrowUp' ? 'last' : 'first');
       }
@@ -58,6 +62,11 @@ export function useDismissWhileLoading(
     const onPointerDown = (event: PointerEvent) => {
       const primary = event.button === 0 && latest.current.options.anyPress;
       if (primary || !inside(event.target)) dismiss();
+    };
+    // A Tab moves focus between its keydown and keyup: one that moved nothing (prevented, or
+    // from elsewhere) ends with its keyup.
+    const onKeyUp = (event: KeyboardEvent) => {
+      if (event.key === 'Tab') tabbing = false;
     };
     const onFocusIn = (event: Event) => {
       if (!inside(event.target)) dismiss();
@@ -72,12 +81,14 @@ export function useDismissWhileLoading(
       if (latest.current.options.closeOnInput && inside(event.target)) dismiss();
     };
     page.addEventListener('keydown', onKeyDown, true);
+    page.addEventListener('keyup', onKeyUp, true);
     page.addEventListener('pointerdown', onPointerDown, true);
     page.addEventListener('focusin', onFocusIn, true);
     page.addEventListener('beforeinput', onInput, true);
     trigger.addEventListener('focusout', onFocusOut);
     return () => {
       page.removeEventListener('keydown', onKeyDown, true);
+      page.removeEventListener('keyup', onKeyUp, true);
       page.removeEventListener('pointerdown', onPointerDown, true);
       page.removeEventListener('focusin', onFocusIn, true);
       page.removeEventListener('beforeinput', onInput, true);

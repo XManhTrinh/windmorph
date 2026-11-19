@@ -62,6 +62,17 @@ function Region(props: MenuProps) {
   );
 }
 
+function Notes(props: MenuProps) {
+  return (
+    <ContextMenuTrigger>
+      <textarea aria-label="Notes" />
+      <Menu aria-label="Edit" submenuPresentation="replace" {...props}>
+        <MenuItem key="paste">Paste</MenuItem>
+      </Menu>
+    </ContextMenuTrigger>
+  );
+}
+
 /** The fixtures, and the loads to await. */
 function freshMenu() {
   return {
@@ -356,5 +367,37 @@ describe('Menu opened while its code loads', () => {
     // The region's own content (a text area, a list) takes its arrows as ever.
     expect(fireEvent.keyDown(text, { key: 'ArrowDown' })).toBe(true);
     expect(fireEvent.keyDown(text, { key: 'ArrowUp' })).toBe(true);
+  });
+
+  for (const [name, keys] of [
+    ['typing', 'a'],
+    ['an arrow key', '{ArrowDown}'],
+  ] as const) {
+    it(`never opens a context menu late over ${name} in its region while its code loaded`, async () => {
+      const release = holdLoad();
+      render(<Notes />);
+      const notes = screen.getByRole('textbox', { name: 'Notes' });
+      fireEvent.contextMenu(notes, { clientX: 40, clientY: 60 });
+      notes.focus();
+      await userEvent.keyboard(keys);
+      await act(async () => {
+        release();
+        await preloadMenuInPlace();
+      });
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+      expect(notes).toHaveFocus();
+    });
+  }
+
+  it('stays open on a window switch after a Tab that moved nothing', async () => {
+    holdLoad();
+    render(<Settings submenuPresentation="replace" />);
+    trigger().focus();
+    await userEvent.keyboard('{Enter}');
+    // A Tab an app prevented (focus stays), then another window takes focus.
+    fireEvent.keyDown(trigger(), { key: 'Tab' });
+    fireEvent.keyUp(trigger(), { key: 'Tab' });
+    fireEvent.focusOut(trigger(), { relatedTarget: null });
+    expect(trigger()).toHaveAttribute('aria-expanded', 'true');
   });
 });
