@@ -23,7 +23,7 @@ import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 import { useLabels } from '../labels/use-labels';
 import { LazyBottomSheet } from '../sheet/lazy-bottom-sheet';
-import { closeOnLoadError } from '../../utils/load-on-demand';
+import { closeOnLoadError } from '../../utils/close-on-load-error';
 import { BackIcon } from '../sheet/sheet-icons';
 import {
   DEFAULT_LABELS,

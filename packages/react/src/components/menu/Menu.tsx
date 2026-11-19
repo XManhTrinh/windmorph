@@ -69,7 +69,8 @@ import { useTypeaheadDelegate } from '../../utils/typeahead';
 import { COMPACT_WINDOW, useMediaQuery } from '../date-picker/use-media-query';
 import { Divider } from '../divider/Divider';
 import { preloadBottomSheet, usePreloadBottomSheet } from '../sheet/lazy-bottom-sheet';
-import { closeOnLoadError, onDemand, usePreloadOnIntent } from '../../utils/load-on-demand';
+import { closeOnLoadError } from '../../utils/close-on-load-error';
+import { onDemand, usePreloadOnIntent } from '../../utils/load-on-demand';
 import type { MenuPopoverInPlaceProps, MenuSheetProps } from './menu-in-place';
 import { useRevealEntering } from './use-reveal-entering';
 import { menuOwnWidth, menuStyles, type MenuLayout, type MenuVariant } from './menu-styles';
@@ -384,8 +385,9 @@ export interface MenuProps
    * it leaves change. `fade`: the page going out goes at once and the one coming in fades in.
    * `slide`: M3's forward and backward pattern, the page coming in sliding 30px in from the end
    * edge going forward and from the start edge going back (mirrored in right-to-left) as it
-   * fades in. Under reduced motion only the fade stays; `instant` drops both. Set it on the
-   * root menu.
+   * fades in. Under reduced motion only the fade stays; `instant` drops both in a popover (a
+   * sheet has no `instant`: its pages always change with the transition). Set it on the root
+   * menu.
    * @default "fade"
    */
   submenuTransition?: MenuSubmenuTransition;

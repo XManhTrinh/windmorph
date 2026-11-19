@@ -32,7 +32,7 @@ import { matchesSearch } from '../../utils/search';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
-import { closeOnLoadError } from '../../utils/load-on-demand';
+import { closeOnLoadError } from '../../utils/close-on-load-error';
 import { renderedDescription } from '../../utils/rendered-description';
 import {
   ariaFlag,

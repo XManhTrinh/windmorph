@@ -30,13 +30,9 @@ export interface OnDemandComponent<P extends object> {
 
 const loadedNothing = () => undefined;
 
-/**
- * The first pause before a failed load is tried again while it's still wanted; each next
- * pause doubles, up to `LOAD_RETRY_MOST`.
- */
+/** The first pause before a still-wanted failed load is tried again; it doubles each time. */
 export const LOAD_RETRY_DELAY = 1000;
-
-/** The longest pause between tries of a failed load that's still wanted. */
+/** The longest of those pauses. */
 export const LOAD_RETRY_MOST = 30_000;
 
 /**
@@ -111,23 +107,6 @@ export function onDemand<P extends object>(
   }
 
   return { preload, Component, useLoaded };
-}
-
-/**
- * What a component does when the code it opens with fails to load (`useLoaded`'s `onError`): it
- * closes, so it isn't left open over nothing, and says so in development; its next open tries
- * again (library-internal).
- */
-export function closeOnLoadError(component: string, close: () => void) {
-  return (error: unknown) => {
-    if (process.env.NODE_ENV !== 'production') {
-      console.error(
-        `[@windmorph/react] A ${component} couldn't load the code it opens with, so it closed; it tries again when it next opens, or after a pause while it's held open.`,
-        error,
-      );
-    }
-    close();
-  };
 }
 
 /** How long after mounting a browser without `requestIdleCallback` waits before preloading. */
