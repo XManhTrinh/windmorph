@@ -6,6 +6,12 @@ import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useEntrance } from './use-entrance';
 
+const reducedMotion = vi.hoisted(() => ({ value: false }));
+vi.mock('motion/react', async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  useReducedMotion: () => reducedMotion.value,
+}));
+
 /**
  * IntersectionObservers that behave as a browser's: each reports where the element stands as it
  * starts watching, then only when that crosses its threshold or margin. `place` sets where the
@@ -72,6 +78,7 @@ beforeEach(() => {
 });
 afterEach(() => {
   vi.unstubAllGlobals();
+  reducedMotion.value = false;
 });
 /** Moves the element: every observer reports the crossings it sees. */
 const place = (next: Partial<Place>) =>
@@ -110,6 +117,14 @@ const charts = (count: number) =>
 describe('useEntrance', () => {
   it('shows the final picture on the server', () => {
     expect(renderToString(<Chart />)).toContain('data-entered="true"');
+  });
+
+  it('never waits in its start state under reduced motion, where an entrance would only jump', () => {
+    reducedMotion.value = true;
+    seen.length = 0;
+    const { container } = render(<Chart />);
+    expect(box(container)).toHaveAttribute('data-entered', 'true');
+    expect(seen).not.toContain(false);
   });
 
   it('waits in the start state when the browser mounts it, and enters once it has come in', () => {

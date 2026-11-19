@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore, type RefObject } from 'react';
 import { flushSync } from 'react-dom';
+import { useReducedMotion } from 'motion/react';
 
 export interface EntranceOptions {
   /**
@@ -18,7 +19,8 @@ export interface EntranceResult {
   /**
    * Whether the element shows its final state. `false` only while an entrance is waiting to
    * play: show the start state (bars at their baseline, a number at its start). It turns `true`
-   * once, as the element first comes into view or the page is printed.
+   * once, as the element first comes into view or the page is printed; under reduced motion it is
+   * always `true`, so nothing waits at its start to jump in.
    */
   entered: boolean;
   /**
@@ -192,5 +194,7 @@ export function useEntrance(
     };
   }, [ref, amount, mountedInBrowser]);
 
-  return { entered, inView };
+  // Under reduced motion nothing waits at its start state: an entrance would only jump in.
+  const reducedMotion = useReducedMotion() === true;
+  return { entered: entered || reducedMotion, inView };
 }
