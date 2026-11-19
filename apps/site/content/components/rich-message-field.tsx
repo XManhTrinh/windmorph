@@ -24,20 +24,26 @@ const RichMessageFieldDialog = lazyExample(
   'rich-message-field/rich-message-field-dialog',
   'RichMessageFieldDialog',
 );
+const FormattedTextOwnLinks = lazyExample(
+  'rich-message-field/formatted-text-own-links',
+  'FormattedTextOwnLinks',
+);
 
 /** Rich message field page body: purpose, examples, behaviour, accessibility and tokens. */
 export async function RichMessageFieldBody(): Promise<ComponentDoc> {
-  const [comment, post, dialog, mentions] = await Promise.all([
+  const [comment, post, dialog, mentions, ownLinks] = await Promise.all([
     readExampleSource('rich-message-field/rich-message-field-comment.tsx'),
     readExampleSource('rich-message-field/rich-message-field-post.tsx'),
     readExampleSource('rich-message-field/rich-message-field-dialog.tsx'),
     readExampleSource('rich-message-field/rich-message-field-mentions.tsx'),
+    readExampleSource('rich-message-field/formatted-text-own-links.tsx'),
   ]);
-  const [commentHtml, postHtml, dialogHtml, mentionsHtml] = await Promise.all([
+  const [commentHtml, postHtml, dialogHtml, mentionsHtml, ownLinksHtml] = await Promise.all([
     highlightSource(comment),
     highlightSource(post),
     highlightSource(dialog),
     highlightSource(mentions),
+    highlightSource(ownLinks),
   ]);
 
   return {
@@ -78,6 +84,14 @@ export async function RichMessageFieldBody(): Promise<ComponentDoc> {
             fileName="rich-message-field-mentions.tsx"
           >
             <RichMessageFieldMentions />
+          </ExampleViewer>
+          <ExampleViewer
+            title="FormattedText: the app’s own links as ordinary links, by their safe path"
+            code={ownLinks}
+            html={ownLinksHtml}
+            fileName="formatted-text-own-links.tsx"
+          >
+            <FormattedTextOwnLinks />
           </ExampleViewer>
         </section>
       </>
@@ -185,13 +199,19 @@ export async function RichMessageFieldBody(): Promise<ComponentDoc> {
               <InlineCode>location</InlineCode>, and must answer the same there), and they open in
               the same tab, through the app&apos;s <InlineCode>RouterProvider</InlineCode> on the
               page&apos;s own origin (its <InlineCode>navigate</InlineCode> gets the link as
-              written, a full <InlineCode>https://</InlineCode> address, so a router that takes a
-              path takes the address&apos;s <InlineCode>pathname</InlineCode>, search and hash, or
-              use <InlineCode>renderLink</InlineCode>), with no new-tab mark or words and{' '}
-              <InlineCode>internalLinkRel</InlineCode> (none by default) in place of{' '}
+              written, a full <InlineCode>https://</InlineCode> address), with no new-tab mark or
+              words and <InlineCode>internalLinkRel</InlineCode> (none by default) in place of{' '}
               <InlineCode>ugc nofollow</InlineCode>. <InlineCode>renderLink(link)</InlineCode>{' '}
               renders a link yourself, for instance with your router&apos;s link component; return{' '}
-              <InlineCode>undefined</InlineCode> to keep the default for that link.{' '}
+              <InlineCode>undefined</InlineCode> to keep the default for that link. For a router
+              that takes a path, render the link there and give it{' '}
+              <InlineCode>link.path</InlineCode>: the path with one leading slash, then the search
+              and hash. Never use the address&apos;s raw <InlineCode>pathname</InlineCode>:{' '}
+              <InlineCode>https://site.example//other.example/x</InlineCode> has the pathname{' '}
+              <InlineCode>//other.example/x</InlineCode>, which a browser or router reads as an
+              address on another site, so a crafted link would send people there. An address whose
+              path starts with <InlineCode>//</InlineCode> is never one of the app&apos;s own,
+              whatever <InlineCode>internalLinks</InlineCode> says.{' '}
               <InlineCode>parseMarkers</InlineCode>, <InlineCode>markersToDoc</InlineCode> and{' '}
               <InlineCode>docToMarkers</InlineCode> read and convert the format.
             </li>
