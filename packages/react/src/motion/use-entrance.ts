@@ -18,10 +18,13 @@ export interface EntranceResult {
   /**
    * Whether the element shows its final state. `false` only while an entrance is waiting to
    * play: show the start state (bars at their baseline, a number at its start). It turns `true`
-   * once, as the element first comes into view.
+   * once, as the element first comes into view or the page is printed.
    */
   entered: boolean;
-  /** Whether the element is in view now, so a change is worth animating. */
+  /**
+   * Whether the element is in view now, so a change is worth animating. `false` while the page
+   * prints, on screen or not: a print runs no frames to animate in.
+   */
   inView: boolean;
 }
 
@@ -30,17 +33,23 @@ const subscribeNothing = () => () => undefined;
 /** Told `true` on `beforeprint` and `false` on `afterprint`. */
 type PrintListener = (printing: boolean) => void;
 const printListeners = new Set<PrintListener>();
+// Between `beforeprint` and `afterprint`: an entrance mounted then (a print-only section an app
+// renders from its own `beforeprint` handler) starts entered. One the page's first entrance can't
+// know, since the shared listeners are added after that event has passed.
+let printing = false;
 
 // One pair of window listeners for every entrance on the page, added with the first and removed
 // with the last: a print commits them all in one `flushSync`, so the browser lays it out after a
 // single synchronous render, and a print begun inside React's own work warns once, not once for
 // each entrance (twelve tiles, twelve warnings).
 const beforePrint = () => {
+  printing = true;
   flushSync(() => {
     for (const listener of [...printListeners]) listener(true);
   });
 };
 const afterPrint = () => {
+  printing = false;
   for (const listener of [...printListeners]) listener(false);
 };
 
@@ -51,6 +60,8 @@ function subscribeToPrint(listener: PrintListener) {
     window.addEventListener('afterprint', afterPrint);
   }
   printListeners.add(listener);
+  // Mounted during a print: it prints entered too.
+  if (printing) listener(true);
   return () => {
     printListeners.delete(listener);
     if (printListeners.size > 0) return;
@@ -93,7 +104,8 @@ export function useEntrance(
     () => false,
   );
   const [mountedInBrowser] = useState(inBrowser);
-  const [entered, setEntered] = useState(!mountedInBrowser);
+  // Mounted during a print (`printing`): its final state at once, so its first render prints it.
+  const [entered, setEntered] = useState(() => !mountedInBrowser || printing);
   const [inView, setInView] = useState(false);
   // Entered once, for good: watching again (a new `amount`, an `Activity` shown again) never
   // sends it back to its start state.
@@ -113,7 +125,7 @@ export function useEntrance(
     let whole = false;
     let inside = false;
     let onScreenNow = false;
-    let printing = false;
+    let printingNow = false;
     const enter = () => {
       if (done.current || !(whole || inside) || document.hidden) return;
       done.current = true;
@@ -128,7 +140,7 @@ export function useEntrance(
         if (!entry) return;
         whole = entry.isIntersecting && entry.intersectionRatio >= 0.999;
         onScreenNow = entry.isIntersecting;
-        if (!printing) setInView(entry.isIntersecting);
+        if (!printingNow) setInView(entry.isIntersecting);
         if (hydrating.current) {
           // Hydrated with any part on screen: it showed its final picture already. Wholly out
           // of view: show the start state, unseen, until it's scrolled to.
@@ -158,7 +170,7 @@ export function useEntrance(
     // (`window.print()` from an effect) `flushSync` can't commit, so only CSS print styles reach
     // that print.
     const print = (now: boolean) => {
-      printing = now;
+      printingNow = now;
       if (now) {
         done.current = true;
         hydrating.current = false;

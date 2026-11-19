@@ -1,6 +1,7 @@
 import { act, render } from '@testing-library/react';
 import { Profiler, StrictMode, useEffect, useRef } from 'react';
-import { hydrateRoot } from 'react-dom/client';
+import { flushSync } from 'react-dom';
+import { createRoot, hydrateRoot } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useEntrance } from './use-entrance';
@@ -172,17 +173,43 @@ describe('useEntrance', () => {
   it('listens for a print only while an entrance is mounted, under StrictMode too', () => {
     const add = vi.spyOn(window, 'addEventListener');
     const remove = vi.spyOn(window, 'removeEventListener');
-    const prints = (spy: typeof add) =>
-      spy.mock.calls.filter(([type]) => type === 'beforeprint' || type === 'afterprint').length;
-    const { container, unmount } = render(<StrictMode>{charts(3)}</StrictMode>);
-    // StrictMode mounts, unmounts and mounts again: the pair is there once, after it.
-    expect(prints(add) - prints(remove)).toBe(2);
-    outsideAct(() => window.dispatchEvent(new Event('beforeprint')));
-    for (const chart of container.children) expect(chart).toHaveAttribute('data-entered', 'true');
-    outsideAct(() => window.dispatchEvent(new Event('afterprint')));
-    unmount();
-    // The last entrance gone, so is the pair.
-    expect(prints(add) - prints(remove)).toBe(0);
+    try {
+      const prints = (spy: typeof add) =>
+        spy.mock.calls.filter(([type]) => type === 'beforeprint' || type === 'afterprint').length;
+      const { container, unmount } = render(<StrictMode>{charts(3)}</StrictMode>);
+      // StrictMode mounts, unmounts and mounts again: the pair is there once, after it.
+      expect(prints(add) - prints(remove)).toBe(2);
+      outsideAct(() => window.dispatchEvent(new Event('beforeprint')));
+      for (const chart of container.children) {
+        expect(chart).toHaveAttribute('data-entered', 'true');
+      }
+      outsideAct(() => window.dispatchEvent(new Event('afterprint')));
+      unmount();
+      // The last entrance gone, so is the pair.
+      expect(prints(add) - prints(remove)).toBe(0);
+    } finally {
+      add.mockRestore();
+      remove.mockRestore();
+    }
+  });
+
+  it('prints an entrance an app mounts from its own beforeprint handler entered', () => {
+    // One already on the page, so the shared listeners run before the app's.
+    render(<Chart />);
+    const section = document.createElement('div');
+    document.body.append(section);
+    const root = createRoot(section);
+    const printView = () => flushSync(() => root.render(<Chart />));
+    window.addEventListener('beforeprint', printView);
+    try {
+      outsideAct(() => window.dispatchEvent(new Event('beforeprint')));
+      expect(box(section)).toHaveAttribute('data-entered', 'true');
+      outsideAct(() => window.dispatchEvent(new Event('afterprint')));
+    } finally {
+      window.removeEventListener('beforeprint', printView);
+      act(() => root.unmount());
+      section.remove();
+    }
   });
 
   it('warns at most once for a print started from an effect', () => {
