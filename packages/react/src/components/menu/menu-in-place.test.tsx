@@ -34,7 +34,11 @@ async function freshMenu() {
     if (loads.fail) throw new Error('The network is down');
     return importOriginal();
   });
-  const [menu, button] = await Promise.all([import('./Menu'), import('../button/Button')]);
+  const [menu, button, sheet] = await Promise.all([
+    import('./Menu'),
+    import('../button/Button'),
+    import('../sheet/lazy-bottom-sheet'),
+  ]);
   type MenuProps = Partial<ComponentProps<typeof menu.Menu>>;
   function Settings({ open, ...props }: MenuProps & { open?: boolean }) {
     return (
@@ -53,7 +57,11 @@ async function freshMenu() {
       </menu.MenuTrigger>
     );
   }
-  return { Settings, preload: menu.preloadMenuInPlace };
+  return {
+    Settings,
+    preload: menu.preloadMenuInPlace,
+    preloadAll: () => Promise.all([menu.preloadMenuInPlace(), sheet.preloadBottomSheet()]),
+  };
 }
 
 /** Holds the next load back until the returned function is called. */
@@ -236,4 +244,46 @@ describe('Menu code loaded on demand', () => {
     unmount();
     player.remove();
   });
+});
+
+describe('Menu opened while its code loads', () => {
+  for (const presentation of ['popover', 'sheet'] as const) {
+    it(`closes on Escape, a press outside or focus moving on, and never opens after · ${presentation}`, async () => {
+      const { Settings, preloadAll } = await freshMenu();
+      const release = holdLoad();
+      render(
+        <>
+          <Settings presentation={presentation} submenuPresentation="replace" />
+          <button type="button">Elsewhere</button>
+        </>,
+      );
+      const elsewhere = screen.getByRole('button', { name: 'Elsewhere' });
+      const open = async () => {
+        trigger().focus();
+        await userEvent.keyboard('{Enter}');
+        expect(trigger()).toHaveAttribute('aria-expanded', 'true');
+        // Nothing to point at yet: no menu is in the page.
+        expect(trigger()).not.toHaveAttribute('aria-controls');
+      };
+      await open();
+      await userEvent.keyboard('{Escape}');
+      expect(trigger()).toHaveAttribute('aria-expanded', 'false');
+      expect(trigger()).toHaveFocus();
+      await open();
+      await userEvent.click(document.body);
+      expect(trigger()).toHaveAttribute('aria-expanded', 'false');
+      await open();
+      await userEvent.tab();
+      expect(elsewhere).toHaveFocus();
+      expect(trigger()).toHaveAttribute('aria-expanded', 'false');
+      // The code coming in later opens nothing and leaves focus where it went.
+      await act(async () => {
+        release();
+        await preloadAll();
+      });
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(elsewhere).toHaveFocus();
+    });
+  }
 });

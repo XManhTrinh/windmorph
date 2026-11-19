@@ -43,6 +43,9 @@ export function LazyBottomSheet({
   return <sheet.Component {...props} />;
 }
 
+/** Whether the sheet's code is in, re-rendering the caller as it arrives (it loads nothing). */
+export const useBottomSheetLoaded = () => sheet.useLoaded(false) !== undefined;
+
 /**
  * Preloads the sheet when the pointer moves over `ref`'s element or focus enters it, while
  * `enabled` (the component would open in a sheet).

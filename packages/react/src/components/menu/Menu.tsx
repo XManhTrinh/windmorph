@@ -68,7 +68,12 @@ import { cn } from '../../utils/cn';
 import { useTypeaheadDelegate } from '../../utils/typeahead';
 import { COMPACT_WINDOW, useMediaQuery } from '../date-picker/use-media-query';
 import { Divider } from '../divider/Divider';
-import { preloadBottomSheet, usePreloadBottomSheet } from '../sheet/lazy-bottom-sheet';
+import {
+  preloadBottomSheet,
+  useBottomSheetLoaded,
+  usePreloadBottomSheet,
+} from '../sheet/lazy-bottom-sheet';
+import { useDismissWhileLoading } from '../../utils/use-dismiss-while-loading';
 import { closeOnLoadError } from '../../utils/close-on-load-error';
 import { onDemand, usePreloadOnIntent } from '../../utils/load-on-demand';
 import type { MenuPopoverInPlaceProps, MenuSheetProps } from './menu-in-place';
@@ -548,6 +553,17 @@ export function Menu({
   useEffect(() => {
     if (asSheet && open) void preloadBottomSheet().catch(() => undefined);
   }, [asSheet, open]);
+  const bottomSheetIn = useBottomSheetLoaded();
+  // Open with nothing in the page yet: Escape, a press outside and focus moving on close it,
+  // and the trigger names no menu (`aria-controls`) until one is there.
+  const waiting =
+    open && (asSheet ? !(sheetIn && bottomSheetIn) : (replace || contained) && !inPlaceIn);
+  useDismissWhileLoading(trigger.triggerRef, waiting, trigger.state.close);
+  const { setPending } = trigger;
+  useLayoutEffect(() => {
+    setPending?.(waiting);
+    return () => setPending?.(false);
+  }, [setPending, waiting]);
   // A sheet renders from its first open on, and stays to play its exits; before that nothing.
   const [sheetOpened, setSheetOpened] = useState(false);
   if (asSheet && open && !sheetOpened) setSheetOpened(true);

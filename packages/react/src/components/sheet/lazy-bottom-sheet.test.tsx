@@ -177,6 +177,39 @@ describe('lazy bottom sheet', () => {
     error.mockRestore();
   });
 
+  it('closes a sheet select opened while its sheet loads on Escape, a press outside or focus moving on', async () => {
+    const { Sort } = await load();
+    render(
+      <>
+        <Sort presentation="sheet" />
+        <button type="button">Elsewhere</button>
+      </>,
+    );
+    const elsewhere = screen.getByRole('button', { name: 'Elsewhere' });
+    const open = async () => {
+      sortField().focus();
+      await userEvent.keyboard('{Enter}');
+      expect(sortField()).toHaveAttribute('aria-expanded', 'true');
+      // Nothing to point at yet: no list is in the page.
+      expect(sortField()).not.toHaveAttribute('aria-controls');
+    };
+    await open();
+    await userEvent.keyboard('{Escape}');
+    expect(sortField()).toHaveAttribute('aria-expanded', 'false');
+    expect(sortField()).toHaveFocus();
+    await open();
+    await userEvent.click(document.body);
+    expect(sortField()).toHaveAttribute('aria-expanded', 'false');
+    await open();
+    await userEvent.tab();
+    expect(elsewhere).toHaveFocus();
+    expect(sortField()).toHaveAttribute('aria-expanded', 'false');
+    // The sheet coming in later opens nothing and leaves focus where it went.
+    await finishLoading();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(elsewhere).toHaveFocus();
+  });
+
   it('once preloaded, opens in the same pass as the open, with no Suspense delay', async () => {
     const { EditMenu, preloadBottomSheet, preloadMenuInPlace } = await load();
     const { rerender } = render(<EditMenu presentation="sheet" open={false} />);

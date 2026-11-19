@@ -9,6 +9,7 @@ import {
   Children,
   createContext,
   useRef,
+  useState,
   type MouseEvent,
   type ReactNode,
   type RefObject,
@@ -26,6 +27,21 @@ export interface MenuTriggerContextValue {
   state: RootMenuTriggerState;
   triggerRef: RefObject<HTMLElement | null>;
   menuProps: AriaMenuOptions<unknown>;
+  /**
+   * Set by the `Menu` while it's open but its code is still loading: the trigger leaves out
+   * `aria-controls` then, since the menu it names isn't in the page yet.
+   */
+  setPending?: (pending: boolean) => void;
+}
+
+/** The trigger's props without `aria-controls` while its menu isn't in the page yet. */
+function withoutMissingControls<T extends { 'aria-controls'?: string | undefined }>(
+  props: T,
+  pending: boolean,
+): T {
+  if (!pending) return props;
+  const { 'aria-controls': _, ...rest } = props;
+  return rest as T;
 }
 
 const omitLabelledBy = ({ 'aria-labelledby': _, ...props }: AriaMenuOptions<unknown>) => props;
@@ -74,17 +90,18 @@ const keepMenuFocus = (event: MouseEvent) => event.preventDefault();
 export function MenuTrigger({ children, open, defaultOpen, onOpenChange }: MenuTriggerProps) {
   const state = useMenuTriggerState({ isOpen: open, defaultOpen, onOpenChange });
   const triggerRef = useRef<HTMLElement>(null);
+  const [pending, setPending] = useState(false);
   const { menuTriggerProps, menuProps } = useMenuTrigger({}, state, triggerRef);
   // Merged into an enclosing trigger's props, so a TooltipTrigger around it still works.
   const triggerValue = useTriggerProps({
-    ...(menuTriggerProps as TriggerContextValue),
+    ...(withoutMissingControls(menuTriggerProps, pending) as TriggerContextValue),
     'data-menu-open': state.isOpen || undefined,
     onMouseDown: keepMenuFocus,
     ref: triggerRef,
   });
   const [trigger, ...menu] = Children.toArray(children);
   return (
-    <MenuTriggerContext value={{ state, triggerRef, menuProps }}>
+    <MenuTriggerContext value={{ state, triggerRef, menuProps, setPending }}>
       <TriggerContext value={triggerValue}>{trigger}</TriggerContext>
       {menu}
     </MenuTriggerContext>
@@ -128,6 +145,7 @@ export function ContextMenuTrigger({
 }: ContextMenuTriggerProps) {
   const state = useMenuTriggerState({ isOpen: open, defaultOpen, onOpenChange });
   const triggerRef = useRef<HTMLDivElement>(null);
+  const [pending, setPending] = useState(false);
   const { menuTriggerProps, menuProps } = useMenuTrigger(
     { trigger: 'contextMenu', isDisabled: disabled },
     state,
@@ -137,9 +155,11 @@ export function ContextMenuTrigger({
   // React Aria names the menu after its trigger, here the whole content: name it with the
   // `Menu`'s own `aria-label` instead.
   return (
-    <MenuTriggerContext value={{ state, triggerRef, menuProps: omitLabelledBy(menuProps) }}>
+    <MenuTriggerContext
+      value={{ state, triggerRef, menuProps: omitLabelledBy(menuProps), setPending }}
+    >
       <div
-        {...(menuTriggerProps as TriggerContextValue)}
+        {...(withoutMissingControls(menuTriggerProps, pending) as TriggerContextValue)}
         ref={triggerRef}
         data-context-menu-trigger=""
         className="contents"

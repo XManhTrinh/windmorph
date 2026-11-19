@@ -1385,6 +1385,7 @@ test.describe('Menu in an element partly off screen', () => {
 
 test.describe('Menu in place: loaded on demand', () => {
   const CHUNK = /\/menu-in-place-[\w-]+\.js/;
+  const SHEET_CHUNK = /\/BottomSheet-[\w-]+\.js/;
 
   test('a menu with submenus beside it, in body, never loads the in-place code', async ({
     page,
@@ -1440,6 +1441,52 @@ test.describe('Menu in place: loaded on demand', () => {
     await expect(page.getByRole('menuitem', { name: /^Quality/ })).toBeFocused();
     await expect(page.getByText('Loop: off')).toBeVisible();
   });
+
+  for (const [name, story, args, triggerName, held] of [
+    ['in place', PLAYER, {}, 'Settings', CHUNK],
+    ['in a sheet', 'components-menu--submenus', { presentation: 'sheet' }, 'File', SHEET_CHUNK],
+  ] as const) {
+    test(`opened while its code loads, Escape, a press outside and Tab close it, and it never takes focus after · ${name}`, async ({
+      page,
+    }) => {
+      let release = () => {};
+      const waiting = new Promise<void>((resolve) => (release = resolve));
+      let asked = () => {};
+      const requested = new Promise<void>((resolve) => (asked = resolve));
+      await page.route(held, async (route) => {
+        asked();
+        await waiting;
+        await route.continue();
+      });
+      await openStory(page, story, {}, args);
+      const trigger = page.getByRole('button', { name: triggerName, exact: true });
+      const open = async () => {
+        await trigger.focus();
+        await page.keyboard.press('Enter');
+        await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+        // No menu is in the page yet for the trigger to name.
+        await expect(trigger).not.toHaveAttribute('aria-controls');
+      };
+      await open();
+      await requested;
+      await page.keyboard.press('Escape');
+      await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+      await open();
+      await page.mouse.click(5, 5);
+      await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+      await open();
+      await page.keyboard.press('Tab');
+      await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+      const moved = await page.evaluate(() => document.activeElement?.outerHTML.slice(0, 80));
+      // The code coming in opens nothing and leaves focus where it went.
+      release();
+      await page.waitForResponse(held);
+      await frames(page, 2);
+      await expect(page.getByRole('menu')).toHaveCount(0);
+      await expect(page.getByRole('dialog')).toHaveCount(0);
+      expect(await page.evaluate(() => document.activeElement?.outerHTML.slice(0, 80))).toBe(moved);
+    });
+  }
 
   test('a menu whose code fails to load closes, and loads it on the next open', async ({
     page,
