@@ -188,6 +188,9 @@ export type MenuPopoverInPlaceProps = MenuShownProps & {
   exitProps: ExitProps;
 };
 
+/** The containers already warned about (development only). */
+const warnedContainers = new WeakSet<Element>();
+
 /**
  * A menu's popover whose submenus show in place (`submenuPresentation="replace"`), or which
  * opens inside an element (`portalContainer`), or both: the popover in its `Overlay`, in the
@@ -198,9 +201,12 @@ export function MenuPopoverInPlace(props: MenuPopoverInPlaceProps) {
   // Development only, once per container: it must draw children of ours, as the element in full
   // screen must (`Overlay`).
   useEffect(() => {
-    if (process.env.NODE_ENV === 'production' || !boundary) return;
+    if (process.env.NODE_ENV === 'production' || !boundary || warnedContainers.has(boundary)) {
+      return;
+    }
     const html = boundary.namespaceURI === 'http://www.w3.org/1999/xhtml';
     if (html && !DRAWS_NO_CHILDREN.has(boundary.localName)) return;
+    warnedContainers.add(boundary);
     console.warn(
       `[@windmorph/react] A Menu's portalContainer must draw its children: a <${boundary.localName}> never shows a menu put inside it. Pass an element around it, such as the player that holds a video.`,
     );

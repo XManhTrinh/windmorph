@@ -1631,7 +1631,7 @@ describe('Menu in an element (portalContainer)', () => {
     expect(screen.getByRole('menuitem', { name: 'Playback speed' })).toHaveFocus();
   });
 
-  it('warns in development when the element draws none of its children', async () => {
+  it('warns in development, once, when the element draws none of its children', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const video = document.createElement('video');
     document.body.append(video);
@@ -1645,6 +1645,12 @@ describe('Menu in an element (portalContainer)', () => {
     );
     await openMenu('Speed');
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('a <video> never shows'));
+    // Once per container, however often the menu opens there.
+    await userEvent.keyboard('{Escape}');
+    await closed();
+    await openMenu('Speed');
+    await screen.findByRole('menu', { name: 'Speed' });
+    expect(warn).toHaveBeenCalledTimes(1);
     warn.mockRestore();
     video.remove();
   });
