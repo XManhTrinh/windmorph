@@ -58,15 +58,27 @@ function useHeldWhileLeaving<T>(value: T, open: boolean): T {
 
 /**
  * Which way the last page change went, for the page coming in (`data-page-direction`):
- * `undefined` until the first change, so the first page never moves in as the menu opens.
- * Derived as the level changes, in the same render, so the page and the direction it reads
- * arrive together.
+ * `undefined` until the first change since the menu opened, so the first page never moves in as
+ * the menu opens (a sheet, mounted from one open to the next, kept `back` and brought its first
+ * page in from the start edge as it opened again, 2026-11-19). Derived as the level changes, in
+ * the same render, so the page and the direction it reads arrive together.
  */
-function usePageDirection(level: number): 'forward' | 'back' | undefined {
-  const [last, setLast] = useState<{ level: number; direction?: 'forward' | 'back' }>({ level });
-  if (last.level === level) return last.direction;
+function usePageDirection(level: number, open: boolean): 'forward' | 'back' | undefined {
+  const [last, setLast] = useState<{
+    level: number;
+    open: boolean;
+    direction?: 'forward' | 'back';
+  }>({ level, open });
+  if (open && !last.open) {
+    setLast({ level, open });
+    return undefined;
+  }
+  if (last.level === level) {
+    if (last.open !== open) setLast({ ...last, open });
+    return last.direction;
+  }
   const direction = level > last.level ? 'forward' : 'back';
-  setLast({ level, direction });
+  setLast({ level, open, direction });
   return direction;
 }
 
@@ -100,7 +112,7 @@ export function MenuSheet({
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
   const [activeLevel, setActiveLevel] = useState(0);
   const level = useHeldWhileLeaving(trigger.state.expandedKeysStack.length, trigger.state.isOpen);
-  const pageDirection = usePageDirection(level);
+  const pageDirection = usePageDirection(level, trigger.state.isOpen);
   const menuProps = mergeProps(triggerMenuProps(trigger, props), props);
   // The sheet takes the menu's name: its `aria-labelledby` when it has one, which names the
   // menu over an `aria-label` (its own, or the trigger's), else its `aria-label`.
@@ -308,6 +320,7 @@ function PopoverInPlace({
       {replace ? (
         <MenuPageSurface
           level={level}
+          open={trigger.state.isOpen}
           variant={variant}
           instant={instant}
           transition={transition}
@@ -331,6 +344,7 @@ function PopoverInPlace({
  */
 function MenuPageSurface({
   level,
+  open,
   variant,
   instant,
   transition,
@@ -340,6 +354,8 @@ function MenuPageSurface({
   children,
 }: {
   level: number;
+  /** Whether the menu is open (it isn't as it leaves). */
+  open: boolean;
   variant: MenuVariant;
   instant: boolean;
   transition: MenuSubmenuTransition;
@@ -349,7 +365,7 @@ function MenuPageSurface({
   children: ReactNode;
 }) {
   const [pagesRef, { height, paging, shrinking }] = usePageHeight<HTMLDivElement>(level);
-  const direction = usePageDirection(level);
+  const direction = usePageDirection(level, open);
   const attachPages = useCallback(
     (element: HTMLDivElement | null) => {
       pagesRef.current = element;

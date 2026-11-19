@@ -1016,6 +1016,41 @@ describe('Menu', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'File' })).toHaveFocus());
   });
 
+  it('opens its sheet again with the first page still, after a page went back', async () => {
+    render(
+      <MenuTrigger>
+        <Button>File</Button>
+        <Menu aria-label="File" presentation="sheet" submenuTransition="slide">
+          <MenuItem key="open">Open</MenuItem>
+          <SubmenuTrigger>
+            <MenuItem key="share">Share</MenuItem>
+            <Menu aria-label="Share">
+              <MenuItem key="email">Email</MenuItem>
+            </Menu>
+          </SubmenuTrigger>
+        </Menu>
+      </MenuTrigger>,
+    );
+    await openMenu('File');
+    let sheet = await screen.findByRole('dialog', { name: 'File' });
+    within(sheet).getByRole('menuitem', { name: 'Share' }).focus();
+    await userEvent.keyboard('{ArrowRight}');
+    await within(sheet).findByRole('menu', { name: 'Share' });
+    await userEvent.keyboard('{ArrowLeft}');
+    const pages = within(sheet).getByRole('menu', { name: 'File' }).parentElement!;
+    await waitFor(() => expect(pages).toHaveAttribute('data-page-direction', 'back'));
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument(), {
+      timeout: 1500,
+    });
+    // Opened again, the first page comes in with the sheet, not as a page coming back.
+    await openMenu('File');
+    sheet = await screen.findByRole('dialog', { name: 'File' });
+    expect(within(sheet).getByRole('menu', { name: 'File' }).parentElement).not.toHaveAttribute(
+      'data-page-direction',
+    );
+  });
+
   // The menu's own sheet read the state of a sheet trigger around it: inside a sheet that a
   // SheetTrigger opened it stayed up after a choice, and closing it closed the outer sheet.
   it('in a sheet a trigger opened, its own sheet closes alone', async () => {
