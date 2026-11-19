@@ -29,8 +29,12 @@ interface Place {
 let where: Place = { visible: false, ratio: 0, inside: false };
 const observers = new Set<{ margined: boolean; report: (force: boolean) => void }>();
 const margins: string[] = [];
+// While set, observers start watching without their first report, as a browser that hasn't
+// reported yet; `firstReports` sends it.
+let holdFirstReports = false;
 beforeEach(() => {
   where = { visible: false, ratio: 0, inside: false };
+  holdFirstReports = false;
   observers.clear();
   margins.length = 0;
   vi.stubGlobal(
@@ -67,7 +71,7 @@ beforeEach(() => {
       observe() {
         // Inside the render's own `act`, as React runs effects there: no `act` of its own.
         this.watched = true;
-        this.self.report(true);
+        if (!holdFirstReports) this.self.report(true);
       }
       disconnect() {
         this.watched = false;
@@ -89,6 +93,11 @@ const place = (next: Partial<Place>) =>
   act(() => {
     where = { ...where, ...next };
     for (const observer of [...observers]) observer.report(false);
+  });
+/** Each observer's first report, held back by `holdFirstReports`. */
+const firstReports = () =>
+  act(() => {
+    for (const observer of [...observers]) observer.report(true);
   });
 const inView = (ratio: number) => place({ visible: ratio > 0, ratio, inside: false });
 
@@ -283,6 +292,38 @@ describe('useEntrance', () => {
       window.removeEventListener('afterprint', closePrintView);
       act(() => root.unmount());
       section.remove();
+    }
+  });
+
+  it('starts the next entrance waiting after a print whose entrances all went before afterprint', async () => {
+    const { unmount } = render(<Chart />);
+    outsideAct(() => window.dispatchEvent(new Event('beforeprint')));
+    // The print view closes before the print ends: the last entrance goes, and the shared pair
+    // with it once the dispatch is over, so this page's `afterprint` never reaches it.
+    unmount();
+    await new Promise((resolve) => setTimeout(resolve));
+    act(() => window.dispatchEvent(new Event('afterprint')));
+    // A chart the browser mounts afterwards, out of view: it waits to enter.
+    const { container } = render(<Chart />);
+    expect(box(container)).toHaveAttribute('data-entered', 'false');
+  });
+
+  it('keeps a hydrated entrance printed before its first report entered', async () => {
+    holdFirstReports = true;
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(<Chart />);
+    document.body.append(container);
+    const root = await act(async () => hydrateRoot(container, <Chart />));
+    try {
+      outsideAct(() => window.dispatchEvent(new Event('beforeprint')));
+      act(() => window.dispatchEvent(new Event('afterprint')));
+      // The first report, out of view: the print showed its final picture, so it stays entered
+      // rather than going back to a start state it would never leave.
+      firstReports();
+      expect(box(container)).toHaveAttribute('data-entered', 'true');
+    } finally {
+      act(() => root.unmount());
+      container.remove();
     }
   });
 
