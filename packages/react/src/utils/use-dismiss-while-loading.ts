@@ -4,28 +4,20 @@ import { useLayoutEffect, useRef, type RefObject } from 'react';
 
 /** What else counts as moving on from an overlay that's still loading. */
 export interface DismissWhileLoadingOptions {
-  /**
-   * ↓ or ↑ (with Alt too) at the trigger: kept from toggling it shut, it asks for the first or
-   * the last item, focused once it opens.
-   */
+  /** ↓ or ↑ at the trigger: kept from toggling it shut, it picks the item to focus. */
   onArrow?: (focus: 'first' | 'last') => void;
-  /** A primary press anywhere closes it, the trigger's included (a context menu's region). */
+  /** A primary press anywhere closes it (a context menu's region). */
   anyPress?: boolean;
-  /**
-   * ↓ or ↑ at the trigger closes it, keeping the key's own use (a context menu's region, whose
-   * content takes its arrows).
-   */
+  /** ↓ or ↑ at the trigger closes it, keeping the key's own use (a context menu's region). */
   closeOnArrow?: boolean;
-  /** Typing in the trigger closes it (a field's text box, under a modal picker). */
+  /** Typing in the trigger closes it (a field under a modal picker). */
   closeOnInput?: boolean;
 }
 
 /**
- * While `waiting` (open, its code still loading, nothing in the page yet), Escape, a press
- * outside the trigger and focus moving on from it (to another element, or by Tab out of the
- * page; a window or tab switch isn't moving on) close the overlay, so the code coming in opens
- * nothing (library-internal). A layout effect: its listeners go before the arrived overlay
- * takes focus.
+ * While `waiting` (open, its code still loading), Escape, a press outside the trigger and focus
+ * moving on from it (to another element, or by Tab out of the page, not a window switch) close
+ * the overlay, so its code coming in opens nothing (library-internal).
  */
 export function useDismissWhileLoading(
   triggerRef: RefObject<HTMLElement | null>,
@@ -63,16 +55,14 @@ export function useDismissWhileLoading(
       const primary = event.button === 0 && latest.current.options.anyPress;
       if (primary || !inside(event.target)) dismiss();
     };
-    // A Tab moves focus between its keydown and keyup: one that moved nothing (prevented, or
-    // from elsewhere) ends with its keyup.
+    // A Tab moves focus between its keydown and keyup.
     const onKeyUp = (event: KeyboardEvent) => {
       if (event.key === 'Tab') tabbing = false;
     };
     const onFocusIn = (event: Event) => {
       if (!inside(event.target)) dismiss();
     };
-    // Focus leaving for nothing closes it only after a Tab: a window or tab switch, or a
-    // screen reader moving its cursor, blurs with nothing to go to too.
+    // A blur to nothing closes it only after a Tab (not a window switch).
     const onFocusOut = (event: FocusEvent) => {
       if (tabbing && !inside(event.relatedTarget)) dismiss();
       tabbing = false;

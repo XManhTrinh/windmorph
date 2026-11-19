@@ -9,16 +9,11 @@ export const LOAD_RETRY_MOST = 30_000;
 const nothing = () => undefined;
 
 /**
- * `part`'s component once its module is in, else `undefined`, re-rendering the caller as it
- * arrives, whichever call loaded it (library-internal: for components that open with a part
- * loaded on demand). While `enabled` it starts the load. Without `onError` a failed load is
- * tried again only the next time `enabled` turns on (or on `preload`). With it, a failed load
- * calls `onError` (once, until `enabled` turns off): the caller usually closes, which ends the
- * wait, and the next open tries again; while it stays enabled (an app holding a menu open that
- * its close can't change), it's tried again after a pause, `LOAD_RETRY_DELAY` doubling up to
- * `LOAD_RETRY_MOST`, so it shows once the network is back. Apart from `load-on-demand.tsx`,
- * so a component that only renders a part on demand (a tooltip, an indicator) doesn't carry
- * it.
+ * `part`'s component once its module is in, re-rendering the caller as it arrives; while
+ * `enabled` it starts the load. A failed load calls `onError` once; while still enabled (a
+ * menu its app holds open) it's tried again after a pause, 1s doubling to 30s. Without
+ * `onError` it's tried once. Apart from the loader, so only the components that open with a
+ * part on demand carry it (library-internal).
  */
 export function useLoaded<P extends object>(
   part: OnDemandComponent<P>,
@@ -37,7 +32,6 @@ export function useLoaded<P extends object>(
     const attempt = (pause: number) => {
       part.preload().catch((error: unknown) => {
         const onError = report.current;
-        // A caller with nothing to report to tries once.
         if (!current || !onError) return;
         if (pause === LOAD_RETRY_DELAY) onError(error);
         retry = setTimeout(() => attempt(Math.min(pause * 2, LOAD_RETRY_MOST)), pause);
