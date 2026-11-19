@@ -1,4 +1,12 @@
-import { fireEvent, render, renderHook, screen, waitFor, within } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  renderHook,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { RouterProvider, UNSAFE_PortalProvider } from 'react-aria';
@@ -37,6 +45,36 @@ beforeAll(() => preloadMenuInPlace());
 async function openMenu(name: string) {
   screen.getByRole('button', { name }).focus();
   await userEvent.keyboard('{Enter}');
+}
+
+/**
+ * Hovers a submenu item whose `SubmenuTrigger` has `openDelay={0}` and lets the timer the hover
+ * starts run (it's queued before this one), so a test sees what a hover opens without waiting
+ * out a delay.
+ */
+async function hoverPastOpenDelay(element: Element) {
+  await userEvent.hover(element);
+  await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
+}
+
+/**
+ * jsdom lays nothing out: gives the pages of a menu shown in place a height that grows with each
+ * page open (100px, then 40px a page), so the surface's measured height can change.
+ */
+function measurePages() {
+  const real = window.getComputedStyle.bind(window);
+  return vi.spyOn(window, 'getComputedStyle').mockImplementation((element, pseudo) => {
+    const style = real(element, pseudo);
+    if (!element.hasAttribute('data-page-transition')) return style;
+    const height = `${100 + 40 * element.querySelectorAll('[data-submenu-panel]').length}px`;
+    return new Proxy(style, {
+      get(target, key) {
+        if (key === 'height') return height;
+        const value: unknown = Reflect.get(target, key, target);
+        return typeof value === 'function' ? value.bind(target) : value;
+      },
+    });
+  });
 }
 
 const closed = () =>
@@ -949,7 +987,7 @@ describe('Menu', () => {
           labels={{ back: 'Go back' }}
         >
           <MenuItem key="open">Open</MenuItem>
-          <SubmenuTrigger>
+          <SubmenuTrigger openDelay={0}>
             <MenuItem key="share">Share</MenuItem>
             <Menu aria-label="Share" onAction={onAction}>
               <MenuItem key="email">Email</MenuItem>
@@ -967,8 +1005,7 @@ describe('Menu', () => {
     const pages = within(sheet).getByRole('menu', { name: 'File' }).parentElement!;
     expect(pages).not.toHaveAttribute('data-page-direction');
     // Hovering doesn't open it: it would replace the menu under the pointer.
-    await userEvent.hover(share);
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await hoverPastOpenDelay(share);
     expect(screen.queryByRole('menu', { name: 'Share' })).not.toBeInTheDocument();
 
     share.focus();
@@ -1188,7 +1225,7 @@ function PlayerSettings({
     <MenuTrigger>
       <IconButton icon={<svg />} aria-label="Settings" />
       <Menu aria-label="Settings" submenuPresentation="replace" onAction={onAction} {...props}>
-        <SubmenuTrigger>
+        <SubmenuTrigger openDelay={0}>
           <MenuItem key="quality" description={qualityLabel}>
             Quality
           </MenuItem>
@@ -1210,13 +1247,13 @@ function PlayerSettings({
             </MenuGroup>
           </Menu>
         </SubmenuTrigger>
-        <SubmenuTrigger>
+        <SubmenuTrigger openDelay={0}>
           <MenuItem key="subtitles">Subtitles</MenuItem>
           <Menu onAction={onAction}>
             <MenuItem key="off">Off</MenuItem>
             <MenuItem key="english">English</MenuItem>
             <MenuItem key="french">French</MenuItem>
-            <SubmenuTrigger>
+            <SubmenuTrigger openDelay={0}>
               <MenuItem key="size">Font size</MenuItem>
               <Menu onAction={onAction}>
                 <MenuItem key="small">Small</MenuItem>
@@ -1258,8 +1295,7 @@ describe('Menu submenus in place (submenuPresentation="replace")', () => {
     expect(root).toHaveClass('bg-transparent', 'shadow-none');
     // Hovering doesn't open it: it would replace the content under the pointer.
     const quality = screen.getByRole('menuitem', { name: /^Quality/ });
-    await userEvent.hover(quality);
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await hoverPastOpenDelay(quality);
     expect(screen.queryByRole('menu', { name: /^Quality/ })).not.toBeInTheDocument();
 
     await userEvent.click(quality);
@@ -1490,10 +1526,25 @@ describe('Menu submenus in place (submenuPresentation="replace")', () => {
   });
 
   it('changes pages with no motion when instant', async () => {
-    render(<PlayerSettings instant />);
-    const quality = await openPage('Quality');
-    expect(quality.closest('[data-submenu-panel]')).toHaveClass('[transition-property:none]');
-    expect(quality.closest('[data-level]')).not.toHaveAttribute('data-paging');
+    const heights = measurePages();
+    try {
+      // Measured, a page change springs to the new page's height...
+      const { unmount } = render(<PlayerSettings />);
+      const springs = await openPage('Quality');
+      await waitFor(() =>
+        expect(springs.closest('[data-level]')).toHaveAttribute('data-paging', 'true'),
+      );
+      unmount();
+      // ...and an instant menu takes it at once.
+      render(<PlayerSettings instant />);
+      const quality = await openPage('Quality');
+      const surface = quality.closest('[data-level]');
+      expect(quality.closest('[data-submenu-panel]')).toHaveClass('[transition-property:none]');
+      await waitFor(() => expect(surface).toHaveStyle({ height: '140px' }));
+      expect(surface).not.toHaveAttribute('data-paging');
+    } finally {
+      heights.mockRestore();
+    }
     await userEvent.keyboard('{Escape}');
     expect(screen.getByRole('menu', { name: 'Settings' })).toHaveClass(
       '[transition-property:none]',
