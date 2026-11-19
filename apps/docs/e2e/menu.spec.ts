@@ -14,7 +14,28 @@ import { MODES, THEMES } from './shots';
 import { openStory, type StoryGlobals } from './story';
 
 const box = async (locator: Locator) => (await locator.boundingBox())!;
-const settle = (page: Page) => page.waitForTimeout(600);
+/** Waits for the page's motion to end: no animation or transition still running. */
+async function settle(page: Page) {
+  // A change made by the last action starts its transitions on the next frame.
+  await frames(page, 2);
+  await page.waitForFunction(
+    () => document.getAnimations().every((animation) => animation.playState !== 'running'),
+    undefined,
+    { polling: 'raf' },
+  );
+}
+
+/** Waits for `count` frames. */
+const frames = (page: Page, count: number) =>
+  page.evaluate(
+    (n) =>
+      new Promise<void>((resolve) => {
+        let left = n;
+        const tick = () => (--left <= 0 ? resolve() : requestAnimationFrame(tick));
+        requestAnimationFrame(tick);
+      }),
+    count,
+  );
 
 async function openGrouped(page: Page, globals = {}, args = {}) {
   await openStory(page, 'components-menu--grouped', globals, args);
@@ -1076,7 +1097,8 @@ test.describe('Menu in place: behaviour', () => {
     await expect(page.getByRole('menuitemcheckbox', { name: 'Loop' })).toBeFocused();
     await page.keyboard.press('Home');
     await expect(page.getByRole('menuitem', { name: /^Quality/ })).toBeFocused();
-    await page.waitForTimeout(300);
+    // A smooth scroll of the pane would have moved it within these frames.
+    await frames(page, 6);
     expect(await page.getByTestId('pane').evaluate((el) => el.scrollTop)).toBe(0);
   });
 
@@ -1298,8 +1320,10 @@ test.describe('Menu in place: loaded on demand', () => {
     await page.getByRole('button', { name: 'File' }).click();
     await page.getByRole('menuitem', { name: 'Share' }).hover();
     await expect(page.getByRole('menu', { name: 'Share' })).toBeVisible();
-    // Past the browser's idle period, when a menu that may need it preloads it.
-    await page.waitForTimeout(1500);
+    // Past the browser's idle period, when a menu that may need it preloads it (idle callbacks
+    // run in order, so the page's run before this one).
+    await page.evaluate(() => new Promise((resolve) => requestIdleCallback(resolve)));
+    await frames(page, 2);
     expect(loads).toEqual([]);
     // A menu with pages in place preloads it once the page is idle.
     await openStory(page, PLAYER);
@@ -1358,13 +1382,20 @@ test.describe('Menu in place: loaded on demand', () => {
   }) => {
     let release = () => {};
     const held = new Promise<void>((resolve) => (release = resolve));
+    let asked = () => {};
+    const requested = new Promise<void>((resolve) => (asked = resolve));
     await page.route(CHUNK, async (route) => {
+      asked();
       await held;
       await route.continue();
     });
     await openStory(page, PLAYER);
     await page.getByRole('button', { name: 'Settings' }).click();
-    await page.waitForTimeout(300);
+    await requested;
+    await expect(page.getByRole('button', { name: 'Settings' })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
     // Nothing shows meanwhile, and focus stays on the open trigger, never on the page.
     await expect(page.locator('[data-level]')).toHaveCount(0);
     expect(
@@ -1391,6 +1422,35 @@ test.describe('Menu in place: loaded on demand', () => {
     }
     await expect(page.getByRole('menuitem', { name: /^Quality/ })).toBeFocused();
   });
+});
+
+test.describe('Menu in place: layout safety of the placed box', () => {
+  // A layout class on the menu (`className`, on the box React Aria places) leaves the in-place
+  // surface visible, sized, on its trigger and keyboard-usable, page and back.
+  for (const boxOverride of OVERRIDES) {
+    test(`placed box · ${boxOverride}`, async ({ page }) => {
+      await openPlayer(page, {}, { boxOverride });
+      const surface = page.locator('[data-level]');
+      const trigger = page.getByRole('button', { name: 'Settings', includeHidden: true });
+      const layout = await panelLayout(surface);
+      expect(layout).toMatchObject({ radius: '16px', inWindow: true, onTop: true });
+      expect(layout.width).toBeGreaterThanOrEqual(112);
+      expect(layout.width).toBeLessThanOrEqual(280);
+      if (!POSITIONING_OVERRIDES.includes(boxOverride)) {
+        await expectAnchored(surface, trigger, 8);
+      }
+      await page.getByRole('menuitem', { name: /^Quality/ }).focus();
+      await page.keyboard.press('ArrowRight');
+      await expect(page.getByRole('menuitemradio', { name: 'Auto' })).toBeFocused();
+      await settle(page);
+      expect((await panelLayout(surface)).onTop).toBe(true);
+      await page.keyboard.press('Escape');
+      await expect(page.getByRole('menuitem', { name: /^Quality/ })).toBeFocused();
+      await page.keyboard.press('Escape');
+      await expect(page.getByRole('menu')).toHaveCount(0);
+      await expect(trigger).toBeFocused();
+    });
+  }
 });
 
 test.describe('Menu in place under reduced motion', () => {

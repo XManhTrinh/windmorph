@@ -338,7 +338,8 @@ const keep = (set: (keys: Set<string>) => void) => (keys: unknown) =>
  * (with a Font size page of its own) replace the content on the same surface, below a back
  * button, and a choice goes back to the first page (`afterSelect="back"`), which shows it.
  * `corner` puts the controls at the top, so the menu opens below its trigger; `flip` asks for
- * the side with no room in the player; `override` puts a consumer class on the player;
+ * the side with no room in the player; `override` puts a consumer class on the player and
+ * `boxOverride` one on the menu's placed box (its `className`);
  * `triggerOutside` puts the button below the player; `inPlayer` off opens it in `body`.
  */
 export const PlayerSettings: StoryObj<{
@@ -349,6 +350,7 @@ export const PlayerSettings: StoryObj<{
   inPlayer: boolean;
   corner: 'bottom' | 'top';
   override: keyof typeof PLAYER_OVERRIDES;
+  boxOverride: LayoutOverrideName;
   triggerOutside: boolean;
   flip: boolean;
   instant: boolean;
@@ -361,6 +363,7 @@ export const PlayerSettings: StoryObj<{
     inPlayer: true,
     corner: 'bottom',
     override: 'none',
+    boxOverride: 'none',
     triggerOutside: false,
     flip: false,
     instant: false,
@@ -372,6 +375,7 @@ export const PlayerSettings: StoryObj<{
     afterSelect: { control: 'inline-radio', options: ['close', 'back'] },
     corner: { control: 'inline-radio', options: ['bottom', 'top'] },
     override: { control: 'select', options: Object.keys(PLAYER_OVERRIDES) },
+    boxOverride: { control: 'select', options: LAYOUT_OVERRIDE_NAMES },
   },
   render: function PlayerSettingsStory({
     variant,
@@ -381,6 +385,7 @@ export const PlayerSettings: StoryObj<{
     inPlayer,
     corner,
     override,
+    boxOverride,
     triggerOutside,
     flip,
     instant,
@@ -402,6 +407,7 @@ export const PlayerSettings: StoryObj<{
           submenuPresentation={submenuPresentation}
           submenuTransition={submenuTransition}
           portalContainer={inPlayer ? player : null}
+          className={LAYOUT_OVERRIDES[boxOverride]}
           // Away from the trigger's edge of the player, unless `flip` asks for the side
           // without room, which the menu then flips from.
           placement={(corner === 'bottom' || triggerOutside) !== flip ? 'top-end' : 'bottom-end'}
