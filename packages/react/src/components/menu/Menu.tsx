@@ -706,6 +706,32 @@ export interface MenuPopoverPlacing {
 }
 
 /**
+ * The trigger's laid-out direction, and the locale to give its menu: React Aria takes the arrow
+ * keys (a submenu's ← and →, the back button's) and `start` / `end` from its locale, not the
+ * DOM's `dir`, so a menu in a right-to-left region of a left-to-right app gets the same locale
+ * with the region's direction (library-internal: the popovers' and the sheet's in
+ * `menu-in-place.tsx`, which used the app's and opened a page with →, 2026-11-19).
+ */
+export function useMenuLocale(trigger: MenuTriggerContextValue): {
+  direction: string;
+  menuLocale: string;
+} {
+  // The DOM is the source of truth for direction; read it like an external store.
+  const direction = useSyncExternalStore(
+    subscribeToNothing,
+    () =>
+      trigger.triggerRef.current ? getComputedStyle(trigger.triggerRef.current).direction : 'ltr',
+    () => 'ltr',
+  );
+  const { locale, direction: localeDirection } = useLocale();
+  const menuLocale =
+    direction === localeDirection
+      ? locale
+      : localeWithDirection(locale, direction === 'rtl' ? 'rtl' : 'ltr');
+  return { direction, menuLocale };
+}
+
+/**
  * Places a menu's popover against its trigger (React Aria `usePopover`), in the trigger's
  * laid-out direction, and gives the menu a locale with that direction (library-internal:
  * shared by the popover below and the one in `menu-in-place.tsx`).
@@ -720,19 +746,8 @@ export function useMenuPopover(
   }: Pick<MenuProps, 'placement' | 'offset' | 'containerPadding'>,
   { heldSide, boundaryElement, shouldUpdatePosition }: MenuPopoverPlacing = {},
 ): PopoverAria & { menuLocale: string } {
-  // The DOM is the source of truth for direction; read it like an external store.
-  const direction = useSyncExternalStore(
-    subscribeToNothing,
-    () =>
-      trigger.triggerRef.current ? getComputedStyle(trigger.triggerRef.current).direction : 'ltr',
-    () => 'ltr',
-  );
   // Submenus' arrow keys and placement follow the locale's direction: give it the DOM's.
-  const { locale, direction: localeDirection } = useLocale();
-  const menuLocale =
-    direction === localeDirection
-      ? locale
-      : localeWithDirection(locale, direction === 'rtl' ? 'rtl' : 'ltr');
+  const { direction, menuLocale } = useMenuLocale(trigger);
   const requested = toPhysicalPlacement(placement, direction);
   const popover = usePopover(
     {

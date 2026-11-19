@@ -16,7 +16,7 @@ import {
   type ReactElement,
   type ReactNode,
 } from 'react';
-import { mergeProps, useButton, useLocale } from 'react-aria';
+import { I18nProvider, mergeProps, useButton, useLocale } from 'react-aria';
 import { DRAWS_NO_CHILDREN, Overlay } from '../../primitives/Overlay';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { cn } from '../../utils/cn';
@@ -30,6 +30,7 @@ import {
   MenuList,
   MenuPopoverFrame,
   MenuTreeContext,
+  useMenuLocale,
   useMenuPopover,
   type ExitProps,
   type MenuShownProps,
@@ -114,6 +115,8 @@ export function MenuSheet({
   const level = useHeldWhileLeaving(trigger.state.expandedKeysStack.length, trigger.state.isOpen);
   const pageDirection = usePageDirection(level, trigger.state.isOpen);
   const menuProps = mergeProps(triggerMenuProps(trigger, props), props);
+  // The arrow keys follow the direction around the trigger, as in a popover.
+  const { menuLocale } = useMenuLocale(trigger);
   // The sheet takes the menu's name: its `aria-labelledby` when it has one, which names the
   // menu over an `aria-label` (its own, or the trigger's), else its `aria-label`.
   const labelledBy = menuProps['aria-labelledby'];
@@ -141,34 +144,36 @@ export function MenuSheet({
         data-page-transition={transition}
         className={cn(menuStyles().sheetContent(), menuPageStyles().sheetPages())}
       >
-        <MenuTreeContext
-          value={{
-            rootState: trigger.state,
-            container,
-            activeLevel,
-            setActiveLevel,
-            layout: 'divider',
-            variant,
-            density: props.density,
-            instant: false,
-            page: SubmenuPage,
-            labels,
-            classNames: props.classNames,
-            backIcon,
-            boundary: null,
-          }}
-        >
-          <MenuList
-            {...menuProps}
-            layout="divider"
-            variant={variant}
-            level={0}
-            embedded
-            pageClassName={menuPageStyles().page()}
-            onClose={trigger.state.close}
-            autoFocus={trigger.state.focusStrategy ?? 'first'}
-          />
-        </MenuTreeContext>
+        <I18nProvider locale={menuLocale}>
+          <MenuTreeContext
+            value={{
+              rootState: trigger.state,
+              container,
+              activeLevel,
+              setActiveLevel,
+              layout: 'divider',
+              variant,
+              density: props.density,
+              instant: false,
+              page: SubmenuPage,
+              labels,
+              classNames: props.classNames,
+              backIcon,
+              boundary: null,
+            }}
+          >
+            <MenuList
+              {...menuProps}
+              layout="divider"
+              variant={variant}
+              level={0}
+              embedded
+              pageClassName={menuPageStyles().page()}
+              onClose={trigger.state.close}
+              autoFocus={trigger.state.focusStrategy ?? 'first'}
+            />
+          </MenuTreeContext>
+        </I18nProvider>
       </div>
     </LazyBottomSheet>
   );

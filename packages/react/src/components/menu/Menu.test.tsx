@@ -1071,6 +1071,36 @@ describe('Menu', () => {
     );
   });
 
+  it('takes its arrow keys from the direction of the page around it, in right to left', async () => {
+    render(
+      <div dir="rtl">
+        <PlayerSettings presentation="sheet" />
+      </div>,
+    );
+    await openMenu('Settings');
+    const sheet = await screen.findByRole('dialog', { name: 'Settings' });
+    const subtitles = within(sheet).getByRole('menuitem', { name: /^Subtitles/ });
+    // → is back in right to left: it opens nothing.
+    subtitles.focus();
+    await userEvent.keyboard('{ArrowRight}');
+    expect(within(sheet).queryByRole('menu', { name: /^Subtitles/ })).not.toBeInTheDocument();
+    // ← opens the page, and → on its items or its back button goes back.
+    await userEvent.keyboard('{ArrowLeft}');
+    const page = await within(sheet).findByRole('menu', { name: /^Subtitles/ });
+    await waitFor(() => expect(page).toContainElement(document.activeElement as HTMLElement));
+    await userEvent.keyboard('{ArrowRight}');
+    await waitFor(() => expect(page).not.toBeInTheDocument());
+    await waitFor(() => expect(subtitles).toHaveFocus());
+    await userEvent.keyboard('{ArrowLeft}');
+    await within(sheet).findByRole('menu', { name: /^Subtitles/ });
+    within(sheet).getByRole('button', { name: 'Back' }).focus();
+    await userEvent.keyboard('{ArrowRight}');
+    await waitFor(() =>
+      expect(within(sheet).queryByRole('menu', { name: /^Subtitles/ })).not.toBeInTheDocument(),
+    );
+    await waitFor(() => expect(subtitles).toHaveFocus());
+  });
+
   it('opens its sheet again with the first page still, after a page went back', async () => {
     render(
       <MenuTrigger>
