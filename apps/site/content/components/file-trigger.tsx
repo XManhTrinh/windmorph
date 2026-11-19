@@ -111,7 +111,10 @@ export async function FileTriggerBody(): Promise<ComponentDoc> {
               <InlineCode>multiple</InlineCode> allows several files,{' '}
               <InlineCode>capture</InlineCode> opens the front (<InlineCode>user</InlineCode>) or
               back (<InlineCode>environment</InlineCode>) camera on phones, and{' '}
-              <InlineCode>directory</InlineCode> chooses a folder where the browser supports it.
+              <InlineCode>directory</InlineCode> chooses a folder where the browser supports it,
+              leaving out the files the system keeps there for itself (
+              <InlineCode>.DS_Store</InlineCode>, <InlineCode>Thumbs.db</InlineCode>, dot files),
+              neither taken nor reported.
             </li>
             <li>
               <InlineCode>useFileTrigger(options)</InlineCode> returns{' '}

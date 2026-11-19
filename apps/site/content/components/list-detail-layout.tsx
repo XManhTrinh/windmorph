@@ -82,7 +82,8 @@ export async function ListDetailLayoutBody(): Promise<ComponentDoc> {
               M3&apos;s window size classes, measured on the width the layout&apos;s wrapper gives
               it (a CSS container query), not the window&apos;s. In a side panel, a dialog or a page
               column narrower than 840px it shows one pane on any screen, and the server still
-              renders the right layout.
+              renders the right layout. In a parent that sizes to its content (an inline block, a
+              dialog&apos;s panel) it takes the list&apos;s width rather than collapsing.
             </li>
             <li>
               <strong className="text-on-surface">Compact and medium</strong> (below 840px): one
