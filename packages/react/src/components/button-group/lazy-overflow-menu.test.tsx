@@ -6,18 +6,20 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
  * The overflow menu's module, loaded slowly: each load is counted and waits until the test
  * lets it finish, so the moment between folding and the menu being ready can be checked.
  */
-const menuModule = { loads: 0, finish: () => {}, ready: Promise.resolve() };
+const menuModule = { loads: 0, finish: () => {}, ready: Promise.resolve(), fail: false };
 
 /** Fresh modules per test, so each starts with the menu not yet loaded. */
 async function load() {
   vi.resetModules();
   menuModule.loads = 0;
+  menuModule.fail = false;
   menuModule.ready = new Promise<void>((resolve) => {
     menuModule.finish = resolve;
   });
   vi.doMock('./overflow-menu-list', async (importOriginal) => {
     menuModule.loads += 1;
     await menuModule.ready;
+    if (menuModule.fail) throw new Error('The network is down');
     return importOriginal();
   });
   const [{ Button }, { ButtonGroup }, { preloadOverflowMenu }] = await Promise.all([
@@ -29,11 +31,14 @@ async function load() {
   function Actions({ overflow, count }: { overflow: boolean; count: number }) {
     const labels = ['Reply', 'Forward', 'Archive', 'Delete'].slice(0, count);
     return (
-      <ButtonGroup aria-label="Actions" overflow={overflow}>
-        {labels.map((label) => (
-          <Button key={label}>{label}</Button>
-        ))}
-      </ButtonGroup>
+      <>
+        <ButtonGroup aria-label="Actions" overflow={overflow}>
+          {labels.map((label) => (
+            <Button key={label}>{label}</Button>
+          ))}
+        </ButtonGroup>
+        <button type="button">Elsewhere</button>
+      </>
     );
   }
   return { Actions, preloadOverflowMenu };
@@ -112,5 +117,54 @@ describe('ButtonGroup lazy overflow menu', () => {
       'Archive',
       'Delete',
     ]);
+  });
+
+  it('closes on Escape, a press outside or focus moving on while the menu loads, and never opens after', async () => {
+    const { Actions, preloadOverflowMenu } = await load();
+    render(<Actions overflow count={4} />);
+    const elsewhere = screen.getByRole('button', { name: 'Elsewhere' });
+    const open = async () => {
+      more().focus();
+      await userEvent.keyboard('{Enter}');
+      expect(more()).toHaveAttribute('aria-expanded', 'true');
+      // Nothing to point at yet: no menu is in the page.
+      expect(more()).not.toHaveAttribute('aria-controls');
+    };
+    await open();
+    await userEvent.keyboard('{Escape}');
+    expect(more()).toHaveAttribute('aria-expanded', 'false');
+    await open();
+    await userEvent.click(document.body);
+    expect(more()).toHaveAttribute('aria-expanded', 'false');
+    await open();
+    // ↓ asks for the first item without closing it.
+    await userEvent.keyboard('{ArrowDown}');
+    expect(more()).toHaveAttribute('aria-expanded', 'true');
+    act(() => elsewhere.focus());
+    expect(more()).toHaveAttribute('aria-expanded', 'false');
+    // The code coming in (the load itself, awaited) opens nothing and leaves focus where it went.
+    await act(async () => {
+      menuModule.finish();
+      await preloadOverflowMenu();
+    });
+    expect(more()).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    expect(elsewhere).toHaveFocus();
+  });
+
+  it('closes when the menu fails to load, and loads it again on the next open', async () => {
+    const { Actions } = await load();
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    menuModule.fail = true;
+    menuModule.finish();
+    render(<Actions overflow count={4} />);
+    more().focus();
+    await userEvent.keyboard('{Enter}');
+    await waitFor(() => expect(more()).toHaveAttribute('aria-expanded', 'false'));
+    expect(error).toHaveBeenCalledWith(expect.stringContaining("couldn't load"), expect.any(Error));
+    menuModule.fail = false;
+    await userEvent.keyboard('{Enter}');
+    expect(await screen.findByRole('menu')).toBeInTheDocument();
+    error.mockRestore();
   });
 });
