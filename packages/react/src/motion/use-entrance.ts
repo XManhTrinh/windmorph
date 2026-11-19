@@ -20,7 +20,8 @@ export interface EntranceResult {
    * Whether the element shows its final state. `false` only while an entrance is waiting to
    * play: show the start state (bars at their baseline, a number at its start). It turns `true`
    * once, as the element first comes into view or the page is printed; under reduced motion it is
-   * always `true`, so nothing waits at its start to jump in.
+   * always `true`, so nothing waits at its start to jump in (a fade-in waiting for it doesn't
+   * play either).
    */
   entered: boolean;
   /**
@@ -36,14 +37,21 @@ const subscribeNothing = () => () => undefined;
 type PrintListener = (printing: boolean) => void;
 const printListeners = new Set<PrintListener>();
 // Between `beforeprint` and `afterprint`: an entrance mounted then (a print-only section an app
-// renders from its own `beforeprint` handler) starts entered. One the page's first entrance can't
-// know, since the shared listeners are added after that event has passed.
+// renders from its own `beforeprint` handler) starts entered.
 let printing = false;
+// Inside the page's `beforeprint` dispatch: an app's handler may mount the first entrance there,
+// whose listener, added during the dispatch, the browser doesn't call for it.
+const inBeforePrint = () => typeof window !== 'undefined' && window.event?.type === 'beforeprint';
+const isPrinting = () => printing || inBeforePrint();
 
 // One pair of window listeners for every entrance on the page, added with the first and removed
-// with the last: a print commits them all in one `flushSync`, so the browser lays it out after a
+// after the last: a print commits them all in one `flushSync`, so the browser lays it out after a
 // single synchronous render, and a print begun inside React's own work warns once, not once for
-// each entrance (twelve tiles, twelve warnings).
+// each entrance (twelve tiles, twelve warnings). The pair goes only once the event being
+// dispatched is over, since a listener removed during a dispatch isn't called: an app's handler
+// that swaps the screen's charts for a print view's would otherwise take it away mid-print.
+let attached = false;
+let removal: ReturnType<typeof setTimeout> | undefined;
 const beforePrint = () => {
   printing = true;
   flushSync(() => {
@@ -57,18 +65,26 @@ const afterPrint = () => {
 
 /** Calls `listener` as the page is printed and after; returns the unsubscribe. */
 function subscribeToPrint(listener: PrintListener) {
-  if (printListeners.size === 0) {
+  clearTimeout(removal);
+  if (!attached) {
+    attached = true;
     window.addEventListener('beforeprint', beforePrint);
     window.addEventListener('afterprint', afterPrint);
   }
   printListeners.add(listener);
-  // Mounted during a print: it prints entered too.
-  if (printing) listener(true);
+  // The first entrance, mounted in the page's `beforeprint` (it started entered): the print is
+  // under way until `afterprint`, so any mounted later in it starts entered too.
+  if (inBeforePrint()) printing = true;
   return () => {
     printListeners.delete(listener);
     if (printListeners.size > 0) return;
-    window.removeEventListener('beforeprint', beforePrint);
-    window.removeEventListener('afterprint', afterPrint);
+    removal = setTimeout(() => {
+      if (printListeners.size > 0) return;
+      attached = false;
+      printing = false;
+      window.removeEventListener('beforeprint', beforePrint);
+      window.removeEventListener('afterprint', afterPrint);
+    });
   };
 }
 
@@ -107,7 +123,7 @@ export function useEntrance(
   );
   const [mountedInBrowser] = useState(inBrowser);
   // Mounted during a print (`printing`): its final state at once, so its first render prints it.
-  const [entered, setEntered] = useState(() => !mountedInBrowser || printing);
+  const [entered, setEntered] = useState(() => !mountedInBrowser || isPrinting());
   const [inView, setInView] = useState(false);
   // Entered once, for good: watching again (a new `amount`, an `Activity` shown again) never
   // sends it back to its start state.

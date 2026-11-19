@@ -1,4 +1,4 @@
-import { act, render } from '@testing-library/react';
+import { act, cleanup, render } from '@testing-library/react';
 import { Profiler, StrictMode, useEffect, useRef } from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot, hydrateRoot } from 'react-dom/client';
@@ -76,9 +76,13 @@ beforeEach(() => {
     },
   );
 });
-afterEach(() => {
+afterEach(async () => {
   vi.unstubAllGlobals();
   reducedMotion.value = false;
+  // Every entrance gone, and the shared print listeners' deferred removal run (a zero-delay
+  // timeout, queued before this one), so each test starts with none on the window.
+  cleanup();
+  await new Promise((resolve) => setTimeout(resolve));
 });
 /** Moves the element: every observer reports the crossings it sees. */
 const place = (next: Partial<Place>) =>
@@ -185,32 +189,32 @@ describe('useEntrance', () => {
     for (const chart of container.children) expect(chart).toHaveAttribute('data-in-view', 'true');
   });
 
-  it('listens for a print only while an entrance is mounted, under StrictMode too', () => {
-    const add = vi.spyOn(window, 'addEventListener');
+  it('listens for a print while an entrance is mounted, StrictMode too, and lets go after the last', async () => {
     const remove = vi.spyOn(window, 'removeEventListener');
     try {
-      const prints = (spy: typeof add) =>
-        spy.mock.calls.filter(([type]) => type === 'beforeprint' || type === 'afterprint').length;
+      const removed = () =>
+        remove.mock.calls.filter(([type]) => type === 'beforeprint' || type === 'afterprint')
+          .length;
       const { container, unmount } = render(<StrictMode>{charts(3)}</StrictMode>);
-      // StrictMode mounts, unmounts and mounts again: the pair is there once, after it.
-      expect(prints(add) - prints(remove)).toBe(2);
+      // StrictMode's unmount and mount again keep the pair: a print reaches every entrance.
+      expect(removed()).toBe(0);
       outsideAct(() => window.dispatchEvent(new Event('beforeprint')));
       for (const chart of container.children) {
         expect(chart).toHaveAttribute('data-entered', 'true');
       }
-      outsideAct(() => window.dispatchEvent(new Event('afterprint')));
+      act(() => window.dispatchEvent(new Event('afterprint')));
       unmount();
-      // The last entrance gone, so is the pair.
-      expect(prints(add) - prints(remove)).toBe(0);
+      // Kept until any event being dispatched is over, then let go.
+      expect(removed()).toBe(0);
+      await vi.waitFor(() => expect(removed()).toBe(2));
     } finally {
-      add.mockRestore();
       remove.mockRestore();
     }
   });
-
   it('prints an entrance an app mounts from its own beforeprint handler entered', () => {
     // One already on the page, so the shared listeners run before the app's.
     render(<Chart />);
+    place({ visible: true, ratio: 1, inside: true });
     const section = document.createElement('div');
     document.body.append(section);
     const root = createRoot(section);
@@ -219,9 +223,64 @@ describe('useEntrance', () => {
     try {
       outsideAct(() => window.dispatchEvent(new Event('beforeprint')));
       expect(box(section)).toHaveAttribute('data-entered', 'true');
-      outsideAct(() => window.dispatchEvent(new Event('afterprint')));
+      act(() => window.dispatchEvent(new Event('afterprint')));
+      // After the print it follows the window, on screen here.
+      expect(box(section)).toHaveAttribute('data-in-view', 'true');
     } finally {
       window.removeEventListener('beforeprint', printView);
+      act(() => root.unmount());
+      section.remove();
+    }
+  });
+
+  it.each([
+    ['the page’s only entrances', false],
+    ['the screen’s chart swapped for the print’s, the app listening first', true],
+  ])('prints entered a print view’s charts mounted in its beforeprint: %s', (_, screenFirst) => {
+    const section = document.createElement('div');
+    document.body.append(section);
+    const root = createRoot(section);
+    const printView = () => flushSync(() => root.render(<Chart key="print" />));
+    window.addEventListener('beforeprint', printView);
+    // The app listened before any entrance was on the page: its handler runs first.
+    if (screenFirst) act(() => root.render(<Chart key="screen" />));
+    const later = document.createElement('div');
+    document.body.append(later);
+    const laterRoot = createRoot(later);
+    try {
+      outsideAct(() => window.dispatchEvent(new Event('beforeprint')));
+      expect(box(section)).toHaveAttribute('data-entered', 'true');
+      // Mounted later in the same print, before afterprint: entered too.
+      act(() => laterRoot.render(<Chart />));
+      expect(box(later)).toHaveAttribute('data-entered', 'true');
+      act(() => window.dispatchEvent(new Event('afterprint')));
+    } finally {
+      window.removeEventListener('beforeprint', printView);
+      act(() => root.unmount());
+      act(() => laterRoot.unmount());
+      section.remove();
+      later.remove();
+    }
+  });
+
+  it('plays again after a print whose afterprint unmounted the last entrance', () => {
+    const section = document.createElement('div');
+    document.body.append(section);
+    const root = createRoot(section);
+    // A print dialog closing: the app's own afterprint, listening first, takes the charts away.
+    const closePrintView = () => flushSync(() => root.render(null));
+    window.addEventListener('afterprint', closePrintView);
+    act(() => root.render(<Chart />));
+    try {
+      outsideAct(() => window.dispatchEvent(new Event('beforeprint')));
+      act(() => window.dispatchEvent(new Event('afterprint')));
+      // A chart mounted afterwards waits to enter, and follows the window again.
+      act(() => root.render(<Chart key="later" />));
+      expect(box(section)).toHaveAttribute('data-entered', 'false');
+      inView(1);
+      expect(box(section)).toHaveAttribute('data-in-view', 'true');
+    } finally {
+      window.removeEventListener('afterprint', closePrintView);
       act(() => root.unmount());
       section.remove();
     }
