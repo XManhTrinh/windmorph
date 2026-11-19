@@ -38,7 +38,7 @@ async function freshMenu() {
       </menu.MenuTrigger>
     );
   }
-  return Settings;
+  return { Settings, preload: menu.preloadMenuInPlace };
 }
 
 /** Holds the next load back until the returned function is called. */
@@ -58,7 +58,7 @@ beforeEach(() => {
 
 describe('Menu code loaded on demand', () => {
   it('never loads the pages, the sheet or the container code for a menu with submenus beside it', async () => {
-    const Settings = await freshMenu();
+    const { Settings } = await freshMenu();
     render(<Settings />);
     // Neither the idle period nor the pointer or focus on its trigger preloads it.
     runIdleCallbacks();
@@ -73,7 +73,7 @@ describe('Menu code loaded on demand', () => {
   });
 
   it('loads it when a menu with pages in place first opens, focus on the trigger meanwhile', async () => {
-    const Settings = await freshMenu();
+    const { Settings } = await freshMenu();
     const release = holdLoad();
     render(<Settings submenuPresentation="replace" />);
     trigger().focus();
@@ -95,7 +95,7 @@ describe('Menu code loaded on demand', () => {
   });
 
   it('never shows a menu closed before its code came in', async () => {
-    const Settings = await freshMenu();
+    const { Settings, preload } = await freshMenu();
     const release = holdLoad();
     const onAction = vi.fn();
     const { rerender } = render(
@@ -103,11 +103,11 @@ describe('Menu code loaded on demand', () => {
     );
     trigger().focus();
     rerender(<Settings open={false} submenuPresentation="replace" onAction={onAction} />);
+    // The load in flight resolves once the module is in and every waiting menu has heard.
     await act(async () => {
       release();
-      await loads.gate;
+      await preload();
     });
-    await act(() => new Promise((resolve) => setTimeout(resolve, 50)));
     // Closed, it stays closed: no menu exiting out of sight takes focus or runs keys.
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
     expect(trigger()).toHaveFocus();
@@ -116,7 +116,7 @@ describe('Menu code loaded on demand', () => {
   });
 
   it('closes its trigger when its code fails to load, and loads it again on the next open', async () => {
-    const Settings = await freshMenu();
+    const { Settings } = await freshMenu();
     const error = vi.spyOn(console, 'error').mockImplementation(() => {});
     loads.fail = true;
     render(<Settings submenuPresentation="replace" />);
@@ -133,7 +133,7 @@ describe('Menu code loaded on demand', () => {
   });
 
   it('loads a sheet menu’s code when the browser is idle, not as the page mounts', async () => {
-    const Settings = await freshMenu();
+    const { Settings } = await freshMenu();
     render(<Settings presentation="sheet" />);
     await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
     expect(loads.count).toBe(0);
