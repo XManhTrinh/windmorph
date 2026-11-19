@@ -114,9 +114,9 @@ export async function LineChartBody(): Promise<ComponentDoc> {
             <li>
               The side labels run from nought, or from the least value below it, to a round number
               in about four steps: in full under 10,000 and compact above, with the decimals the
-              step needs. Under 224px of plot every other one shows. The bottom labels thin out by
-              container queries, every few counted back from the newest, which always shows, so the
-              server&apos;s HTML is right at any width.
+              step needs. Under 224px of plot plus place labels every other one shows. The bottom
+              labels thin out by container queries, every few counted back from the newest, which
+              always shows, so the server&apos;s HTML is right at any width.
             </li>
             <li>
               <InlineCode>formatValue</InlineCode> writes the figures in the readout, the table and
@@ -125,8 +125,12 @@ export async function LineChartBody(): Promise<ComponentDoc> {
               page&apos;s locale.
             </li>
             <li>
-              <InlineCode>minHeight</InlineCode> (240px) is the plot&apos;s least height; the chart
-              grows to the height its container gives it.
+              <InlineCode>minHeight</InlineCode> (240px at the default text size, growing with
+              larger text) is the least height of the plot plus its place labels; the legend sits
+              above them, and the chart grows to the height its container gives it. Inside a{' '}
+              <InlineCode>ChartFrame</InlineCode>, a chart with no{' '}
+              <InlineCode>minHeight</InlineCode> of its own fills the frame&apos;s, its legend
+              included, and the plot takes the rest, at least half of it.
             </li>
           </ul>
         </section>

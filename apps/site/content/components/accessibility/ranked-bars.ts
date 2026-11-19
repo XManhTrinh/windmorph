@@ -29,7 +29,7 @@ export const rankedBars: ComponentAccessibility = {
     'Mark the remainder with `rest` ("Everywhere else"), so it stays last and is read last.',
     "Keep a funnel's steps in the order people take them; it never sorts them.",
     'Labels are text, never HTML; a long one wraps rather than being cut, so it can say all it needs.',
-    'Translate `labels.ofPrevious` and `labels.noValue`, or set them once for the app with a {@link LabelsProvider} (its `Chart` words).',
-    'In forced-colours mode every bar is `CanvasText` and the rest row’s bar `GrayText`, while names, amounts and a funnel’s shares take the system text colour; the rest row is told apart by its name and its place, last, too. Keep `classNames` overrides from removing them.',
+    'Translate `labels.ofPrevious`, `labels.noValue` and `labels.listSeparator` (what screen readers hear between a row’s name and its figures, ", " by default), or set them once for the app with a {@link LabelsProvider} (its `Chart` words).',
+    'In forced-colours mode every bar is `CanvasText` and the rest row’s bar `Canvas` with `CanvasText` dots and a 1px `CanvasText` outline, while names, amounts and a funnel’s shares take the system text colour; the rest row is told apart by its name and its place, last, too. Keep `classNames` overrides from removing them.',
   ],
 };

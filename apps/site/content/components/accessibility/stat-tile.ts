@@ -25,7 +25,7 @@ export const statTile: ComponentAccessibility = {
   consumer: [
     'Give each tile a `label` that says what the number is ("Orders", "Time on page"): it names the tile.',
     'Write `change.value` and `change.context` as words that read well after "Up" or "Down" ("12%", "on last week"), and set `change.tone` by what the change means for the reader: a rise in returns is `bad`.',
-    'Translate `labels` (`up`, `down`, `flat`, `good`, `bad`, `change`, which orders the sentence, and `noValue`), or set them once for the app with a {@link LabelsProvider}.',
+    'Translate `labels` (`up`, `down`, `flat`, `good`, `bad`, `separator`, the " · " shown before good or bad news, `change`, which orders the sentence, and `noValue`), or set them once for the app with a {@link LabelsProvider}.',
     'Name a sparkline that stands on its own, and leave the one inside a tile unnamed.',
     "In forced-colours mode the tile has no container by design: its label, number and words carry it. The tone's colour gives way to the system text colour; the change still says whether it is good news in words on screen (`labels.good`, `labels.bad`), as it does in every mode. A sparkline's line is drawn in `CanvasText`, and its end dot in `CanvasText` with a `Canvas` ring.",
   ],

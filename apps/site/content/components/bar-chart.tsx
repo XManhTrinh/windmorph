@@ -102,14 +102,19 @@ export async function BarChartBody(): Promise<ComponentDoc> {
             </li>
             <li>
               The side labels run from nought, or from the lowest stack below it, to a round number
-              in about four steps, in full under 10,000 and compact above. Under 224px of plot every
-              other one shows. <InlineCode>formatValue</InlineCode> writes the figures in the
-              readout, the table and what screen readers hear; <InlineCode>formatAxis</InlineCode>{' '}
-              writes the side labels. Both default to the page&apos;s locale.
+              in about four steps, in full under 10,000 and compact above. Under 224px of plot plus
+              place labels every other one shows. <InlineCode>formatValue</InlineCode> writes the
+              figures in the readout, the table and what screen readers hear;{' '}
+              <InlineCode>formatAxis</InlineCode> writes the side labels. Both default to the
+              page&apos;s locale.
             </li>
             <li>
-              <InlineCode>minHeight</InlineCode> (240px) is the plot&apos;s least height; the chart
-              grows to the height its container gives it.
+              <InlineCode>minHeight</InlineCode> (240px at the default text size, growing with
+              larger text) is the least height of the plot plus its place labels; the legend sits
+              above them, and the chart grows to the height its container gives it. Inside a{' '}
+              <InlineCode>ChartFrame</InlineCode>, a chart with no{' '}
+              <InlineCode>minHeight</InlineCode> of its own fills the frame&apos;s, its legend
+              included, and the plot takes the rest, at least half of it.
             </li>
           </ul>
         </section>

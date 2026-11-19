@@ -122,11 +122,13 @@ export async function SegmentedBarBody(): Promise<ComponentDoc> {
           </h2>
           <ul className={LIST}>
             <li>
-              Each part of a bar but &quot;Other&quot; prints its share where it is at least 2.75rem
-              wide (44px at the default text size, so larger text needs a wider part rather than
-              clipping it), in white or black, whichever reads at 4.5:1 on its colour. A narrower
-              part leaves it to the readout, the slider&apos;s value text and a frame&apos;s table
-              view. <InlineCode>formatShare</InlineCode> writes shares and{' '}
+              Each part of a bar but &quot;Other&quot; prints its share, in white or black,
+              whichever reads at 4.5:1 on its colour, where the part is wide enough for it: 2.75rem
+              at least (44px at the default text size), and wider for a longer share
+              (&quot;33.33%&quot; from your <InlineCode>formatShare</InlineCode>), so larger text or
+              a longer share needs a wider part rather than being clipped. A narrower part leaves it
+              to the readout, the slider&apos;s value text and a frame&apos;s table view.{' '}
+              <InlineCode>formatShare</InlineCode> writes shares and{' '}
               <InlineCode>formatValue</InlineCode> amounts, in the page&apos;s locale by default. A
               share is a whole percentage by default, but one above nought never reads
               &quot;0%&quot; (under 0.5% it keeps one significant digit, &quot;0.3%&quot;), nor one

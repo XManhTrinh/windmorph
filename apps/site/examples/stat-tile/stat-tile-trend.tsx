@@ -1,8 +1,8 @@
 'use client';
 
-import { Button, Card } from '@windmorph/react';
+import { Button, Card, useLocale } from '@windmorph/react';
 import { Sparkline, StatTile } from '@windmorph/react-pro/charts';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 /** Two periods of twelve weeks, oldest week first. */
 const PERIODS = {
@@ -16,10 +16,10 @@ const PERIODS = {
   },
 };
 
-/** The change from the week before to the last week, as a whole percentage. */
+/** The change from the week before to the last week, as a share of the week before. */
 const change = (weeks: number[]) => {
   const [before, last] = weeks.slice(-2) as [number, number];
-  return Math.round((Math.abs(last - before) / before) * 100);
+  return Math.abs(last - before) / before;
 };
 
 /**
@@ -30,6 +30,12 @@ const change = (weeks: number[]) => {
  */
 export function StatTileTrend() {
   const [period, setPeriod] = useState<keyof typeof PERIODS>('recent');
+  // A whole percentage in the page's locale ("5%", "5 %", "%5").
+  const { locale } = useLocale();
+  const percent = useMemo(
+    () => new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 0 }),
+    [locale],
+  );
   const { orders, visits } = PERIODS[period];
   const rising = orders.at(-1)! >= orders.at(-2)!;
   const visitsWay = visits.at(-1)! >= visits[0]! ? 'rising' : 'falling';
@@ -42,7 +48,7 @@ export function StatTileTrend() {
           change={{
             direction: rising ? 'up' : 'down',
             tone: rising ? 'good' : 'bad',
-            value: `${change(orders)}%`,
+            value: percent.format(change(orders)),
             context: 'on the week before',
           }}
           trend={orders}

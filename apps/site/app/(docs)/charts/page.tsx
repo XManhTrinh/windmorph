@@ -149,8 +149,8 @@ export default async function ChartsPage() {
         </h2>
         <ul className={LIST}>
           <li>
-            The charts come with <InlineCode>@windmorph/react-pro</InlineCode> 0.2.11 or later and
-            need <InlineCode>@windmorph/react</InlineCode> 0.2.11 and{' '}
+            The charts arrived in <InlineCode>@windmorph/react-pro</InlineCode> 0.2.10; this page
+            describes 0.2.11, which needs <InlineCode>@windmorph/react</InlineCode> 0.2.11 and{' '}
             <InlineCode>motion</InlineCode> 14.12 or later. Only an app that imports{' '}
             <InlineCode>/charts</InlineCode> loads them.
           </li>
@@ -168,9 +168,9 @@ export default async function ChartsPage() {
         <ul className={LIST}>
           <li>
             Eight series slots, made for every built-in theme, mode and contrast level. Slot 1 is
-            the theme&apos;s primary; the others are picked so that neighbours stay apart for people
-            with the common colour-vision deficiencies, and every mark reaches 3:1 against the
-            surface it&apos;s drawn on.
+            built from the theme&apos;s primary, keeping its hue; the others are picked so that
+            neighbours stay apart for people with the common colour-vision deficiencies, and every
+            mark reaches 3:1 against the surface it&apos;s drawn on.
           </li>
           <li>
             Series take the free slots in the order they come, and keep theirs when others are
