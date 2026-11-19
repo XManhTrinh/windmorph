@@ -3,13 +3,10 @@
 import { useLayoutEffect, useRef, type RefObject } from 'react';
 
 /**
- * Closes an overlay that's open while its code loads (`onDemand`), before any of it is in the
- * page to take Escape, a press outside or focus (library-internal: a menu's sheet, pages in
- * place and container, and a select's sheet). While `waiting`, Escape, a press outside the
- * trigger and focus moving on from it close it, so the code coming in later opens nothing: a
- * menu opened as its code loaded couldn't be dismissed, and took focus from wherever it had
- * gone as the code came (2026-11-19). A layout effect, so its listeners are gone before the
- * arrived overlay takes focus in its own effects.
+ * While `waiting` (open, its code still loading, nothing in the page yet), Escape, a press
+ * outside the trigger and focus leaving it close the overlay, so the code coming in opens
+ * nothing (library-internal). A layout effect: its listeners go before the arrived overlay
+ * takes focus.
  */
 export function useDismissWhileLoading(
   triggerRef: RefObject<HTMLElement | null>,
@@ -34,7 +31,7 @@ export function useDismissWhileLoading(
     const onLeave = (event: Event) => {
       if (outside(event.target)) latest.current();
     };
-    // Focus leaving the trigger for nothing (Tab past the page's last control) too.
+    // Focus leaving for nothing, too (Tab past the page's last control).
     const onBlur = (event: FocusEvent) => {
       if (outside(event.relatedTarget)) latest.current();
     };
