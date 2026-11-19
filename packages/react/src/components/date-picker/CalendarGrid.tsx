@@ -18,7 +18,7 @@ import {
   useLocale,
 } from 'react-aria';
 import type { CalendarState, RangeCalendarState } from 'react-stately';
-import { usePageDateFormatter } from '../../primitives/use-page-formatters';
+import { usePageDateFormatter } from '../../primitives/use-page-date-formatter';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import type { datePickerStyles } from './date-picker-styles';
 

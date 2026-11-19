@@ -5,7 +5,7 @@ import { useMemo, useRef, type ComponentPropsWithRef, type CSSProperties } from 
 import { mergeProps, useProgressBar } from 'react-aria';
 import type { MorphShape } from '../../primitives/morph-path';
 import type { RoundedPolygon } from '../../shapes/rounded-polygon';
-import { usePageNumberFormatter } from '../../primitives/use-page-formatters';
+import { usePageNumberFormatter } from '../../primitives/use-page-number-formatter';
 import { cn } from '../../utils/cn';
 import {
   CONTAINER_SIZE,

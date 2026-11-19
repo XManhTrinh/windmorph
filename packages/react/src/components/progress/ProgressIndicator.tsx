@@ -10,7 +10,7 @@ import {
   type RefObject,
 } from 'react';
 import { mergeProps, useObjectRef, useProgressBar } from 'react-aria';
-import { usePageNumberFormatter } from '../../primitives/use-page-formatters';
+import { usePageNumberFormatter } from '../../primitives/use-page-number-formatter';
 import { cn } from '../../utils/cn';
 import {
   AMPLITUDE_DURATION_MS,

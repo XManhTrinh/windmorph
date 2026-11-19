@@ -21,7 +21,7 @@ import { useCalendarState, useOverlayTriggerState } from 'react-stately';
 import { useControlledState } from 'react-stately/useControlledState';
 import { NO_DEFAULT_LABELS, useLabels } from '../labels/use-labels';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
-import { usePageDateFormatter } from '../../primitives/use-page-formatters';
+import { usePageDateFormatter } from '../../primitives/use-page-date-formatter';
 import { cn } from '../../utils/cn';
 import {
   ariaFlag,

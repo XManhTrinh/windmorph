@@ -21,7 +21,7 @@ import {
 import { useSliderState, type SliderState } from 'react-stately';
 import { useLabels } from '../labels/use-labels';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
-import { usePageNumberFormatter } from '../../primitives/use-page-formatters';
+import { usePageNumberFormatter } from '../../primitives/use-page-number-formatter';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 import { splitRootProps, type RootDOMProps } from '../../utils/root-props';

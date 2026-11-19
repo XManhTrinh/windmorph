@@ -23,7 +23,7 @@ import {
   useM3Interaction,
   type M3InteractionDataAttributes,
 } from '../../primitives/use-m3-interaction';
-import { usePageNumberFormatter } from '../../primitives/use-page-formatters';
+import { usePageNumberFormatter } from '../../primitives/use-page-number-formatter';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 import { isModifierAlone } from '../../utils/modifier-keys';

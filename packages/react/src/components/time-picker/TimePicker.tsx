@@ -30,7 +30,7 @@ import { useControlledState } from 'react-stately/useControlledState';
 import { NO_DEFAULT_LABELS, useLabels } from '../labels/use-labels';
 import { useM3Spring } from '../../motion/use-m3-spring';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
-import { usePageNumberFormatter } from '../../primitives/use-page-formatters';
+import { usePageNumberFormatter } from '../../primitives/use-page-number-formatter';
 import { usePageLocale } from '../../primitives/use-page-locale';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';

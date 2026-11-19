@@ -4,7 +4,7 @@ import { useNumberFieldState } from 'react-stately';
 import { describe, expect, it } from 'vitest';
 import { DomDirectionLocale } from './DomDirectionLocale';
 import { localeWithDirection } from './locale-with-direction';
-import { usePageNumberFormatter } from './use-page-formatters';
+import { usePageNumberFormatter } from './use-page-number-formatter';
 
 /**
  * A locale's hour cycle and calendar. Not its digits, which the tag leaves to the new script so

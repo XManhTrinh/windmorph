@@ -3,7 +3,7 @@
 import type { ComponentPropsWithRef, ReactElement, ReactNode } from 'react';
 import { VisuallyHidden } from 'react-aria';
 import { useLabels } from '../labels/use-labels';
-import { usePageNumberFormatter } from '../../primitives/use-page-formatters';
+import { usePageNumberFormatter } from '../../primitives/use-page-number-formatter';
 import { cn } from '../../utils/cn';
 import { badgedBoxStyles, badgeStyles } from './badge-styles';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
