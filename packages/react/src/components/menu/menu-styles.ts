@@ -153,7 +153,9 @@ export const menuStyles = tv({
     // A menu's place in a bottom sheet. An open submenu's panel follows the menu that opened
     // it (portalled in after it) and hides it, and any panel before it, while it's open.
     sheetContent: ['flex min-h-0 flex-1 flex-col px-[8px] pb-[16px]', ...menuPageStack],
-    // A submenu in a sheet: a back button and its item's label above its list, fading in.
+    // A submenu in a sheet: a back button and its item's label above its list, fading in. Kept
+    // for apps that build on `menuStyles` (it's public): Menu's pages, in a sheet and in place,
+    // now take `menuPageStyles().panel`, which follows `submenuTransition`.
     sheetPanel: [
       'flex min-h-0 flex-1 flex-col opacity-100 starting:opacity-0',
       '[transition-property:opacity]',

@@ -8,6 +8,7 @@ import {
   useEffect,
   useId,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
@@ -470,7 +471,10 @@ export type MenuPresentation = 'popover' | 'sheet' | 'auto';
 /** Where a {@link Menu}'s submenus show in a popover: beside their item, or in its place. */
 export type MenuSubmenuPresentation = 'beside' | 'replace';
 
-/** How a {@link Menu}'s pages change when its submenus show in place: a fade, or a slide as it fades. */
+/**
+ * How a {@link Menu}'s pages change when its submenus show in place: a fade, or a slide as it
+ * fades.
+ */
 export type MenuSubmenuTransition = 'fade' | 'slide';
 
 /** What follows a choice on a submenu: the whole menu closes, or only the submenu, going back. */
@@ -688,7 +692,10 @@ function toPhysicalPlacement(placement: MenuPlacement, direction: string): Place
   return toAriaPlacement(placement, direction === 'rtl');
 }
 
-/** A placement on `side` of the trigger, keeping its alignment (`bottom left` on `top`: `top left`). */
+/**
+ * A placement on `side` of the trigger, keeping its alignment (`bottom left` on `top`:
+ * `top left`).
+ */
 function onSide(placement: Placement, side: string): Placement {
   const [, align] = placement.split(' ');
   return (align ? `${side} ${align}` : side) as Placement;
@@ -976,7 +983,10 @@ export type MenuListProps = Omit<
     /** 0 for the root menu, then one more per submenu. */
     level: number;
     listRef?: RefObject<HTMLDivElement | null>;
-    /** Shown in place of other pages: the list spans their container, with no surface of its own. */
+    /**
+     * Shown in place of other pages: the list spans their container, with no surface of its
+     * own.
+     */
     embedded?: boolean;
     /** The first page shown in place: its motion as it shows again (`menuStyles().page()`). */
     pageClassName?: string;
@@ -1225,7 +1235,10 @@ function groupItemKeys(section: Node<object>, menu: SelectionManager) {
   return keys;
 }
 
-/** What a group's items call on its manager (React Aria's `useMenuItem` and `useSelectableItem`). */
+/**
+ * What a group's items call on its manager (React Aria's `useMenuItem` and
+ * `useSelectableItem`).
+ */
 const GROUP_MANAGER_METHODS = [
   'isSelected',
   'select',
@@ -1394,13 +1407,20 @@ function SubmenuItemView(props: MenuItemViewProps) {
   const Page = tree.page;
   // A choice on a submenu that goes back after one (`afterSelect="back"`) closes only it.
   const wentBack = useRef(false);
-  const page: MenuPageContextValue = {
-    afterSelect: submenu!.props.afterSelect ?? 'close',
-    back: () => {
-      wentBack.current = true;
-      submenuState.close();
-    },
-  };
+  const afterSelect = submenu!.props.afterSelect ?? 'close';
+  const closeSubmenu = submenuState.close;
+  // One value while neither changes, so the submenu's items don't re-render with each render
+  // of its item.
+  const page = useMemo<MenuPageContextValue>(
+    () => ({
+      afterSelect,
+      back: () => {
+        wentBack.current = true;
+        closeSubmenu();
+      },
+    }),
+    [afterSelect, closeSubmenu],
+  );
   // In place, a submenu hides the item that opened it, so React Aria's focus on the item when
   // the submenu closes (← or Escape) finds it hidden. Once the menu shows again, the item
   // takes focus back from the closed submenu (or the back button), unless every menu closed.

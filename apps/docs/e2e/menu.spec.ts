@@ -765,7 +765,8 @@ test.describe('Menu layout safety', () => {
 
 /*
  * Submenus in place and a menu inside an element (`submenuPresentation="replace"`,
- * `submenuTransition`, `afterSelect`, `portalContainer`; docs/plans/menu-in-place-and-container.md):
+ * `submenuTransition`, `afterSelect`, `portalContainer`;
+ * docs/plans/menu-in-place-and-container.md):
  * a video player's settings menu, opened from its settings button inside the player.
  */
 const PLAYER = 'components-menu--player-settings';
@@ -848,7 +849,8 @@ test.describe('Menu in place: behaviour', () => {
         page,
       }) => {
         await openPlayer(page, { dir }, { corner });
-        // The corner nearest the trigger: above it, the bottom; below it, the top; and the end edge.
+        // The corner nearest the trigger: above it, the bottom; below it, the top; and the end
+        // edge.
         const held = (f: SurfaceFrame) => [
           corner === 'bottom' ? f.bottom : f.top,
           dir === 'ltr' ? f.right : f.left,

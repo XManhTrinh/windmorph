@@ -100,7 +100,10 @@ export function componentEntries(distDir: string): Map<string, string[]> {
   return entries;
 }
 
-/** Dynamic imports (`import("./x.js")`): modules loaded only when the code that imports them runs. */
+/**
+ * Dynamic imports (`import("./x.js")`): modules loaded only when the code that imports them
+ * runs.
+ */
 const DYNAMIC_IMPORT = /\bimport\(\s*["'](\.{1,2}\/[^"']+)["']\s*\)/g;
 
 /**

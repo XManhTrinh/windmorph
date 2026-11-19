@@ -7,11 +7,11 @@
  * - components that open a bottom sheet only in some presentations load it lazily: the sheet
  *   is not among their static imports. ButtonGroup loads its overflow menu the same way, so
  *   Menu is not among its static imports either, and Menu (and what's built on it) loads its
- *   pages in place and its `portalContainer` code the same way. Components that show a tooltip of their own
- *   (icon buttons, FABs, the toolbar's FAB, the pickers) load the tooltip on hover or focus,
- *   option lists load their loading indicator only while loading, and buttons only while
- *   pending. DateField loads the
- *   modal date picker it opens on compact windows only there,
+ *   pages in place and its `portalContainer` code the same way. Components that show a
+ *   tooltip of their own (icon buttons, FABs, the toolbar's FAB, the pickers) load the
+ *   tooltip on hover or focus, option lists load their loading indicator only while loading,
+ *   and buttons only while pending. DateField loads the modal date picker it opens on compact
+ *   windows only there,
  * - `List` draws its checkboxes, radio buttons and switches from the small modules it shares
  *   with those controls, not from the controls' own modules,
  * - the static shape outlines (`materialShapeMask` and the precomputed `<name>Shape`
