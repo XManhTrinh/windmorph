@@ -12,11 +12,12 @@ import {
   useEffect,
   useRef,
   useState,
+  type KeyboardEvent,
   type ReactElement,
   type ReactNode,
 } from 'react';
 import { flushSync } from 'react-dom';
-import { mergeProps, useButton } from 'react-aria';
+import { mergeProps, useButton, useLocale } from 'react-aria';
 import { DRAWS_NO_CHILDREN, Overlay } from '../../primitives/Overlay';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { cn } from '../../utils/cn';
@@ -451,7 +452,11 @@ function SubmenuPage({ state, submenuRef, menuProps, submenu, title }: SubmenuPa
   );
 }
 
-/** The back button above a submenu shown in place: 48px, with an outline focus ring. */
+/**
+ * The back button above a submenu shown in place: 48px, with an outline focus ring. Escape and
+ * the back arrow on it go back one page, as they do on the page's items: Escape reached the
+ * menu's and closed it whole (2026-11-19).
+ */
 function MenuBackButton({
   label,
   icon,
@@ -466,9 +471,16 @@ function MenuBackButton({
   const ref = useRef<HTMLButtonElement>(null);
   const { buttonProps, isPressed } = useButton({ onPress, 'aria-label': label }, ref);
   const { interactionProps, dataAttributes } = useM3Interaction({ isPressed }, ref);
+  const backArrow = useLocale().direction === 'rtl' ? 'ArrowRight' : 'ArrowLeft';
+  const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    if (event.key !== 'Escape' && event.key !== backArrow) return;
+    event.preventDefault();
+    event.stopPropagation();
+    onPress();
+  };
   return (
     <button
-      {...mergeProps(buttonProps, interactionProps)}
+      {...mergeProps(buttonProps, interactionProps, { onKeyDown })}
       {...dataAttributes}
       ref={ref}
       className={className}

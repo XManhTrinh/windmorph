@@ -1016,6 +1016,24 @@ describe('Menu', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'File' })).toHaveFocus());
   });
 
+  it('goes back one page with Escape on the back button of its sheet', async () => {
+    render(<PlayerSettings presentation="sheet" />);
+    await openMenu('Settings');
+    const sheet = await screen.findByRole('dialog', { name: 'Settings' });
+    within(sheet)
+      .getByRole('menuitem', { name: /^Subtitles/ })
+      .focus();
+    await userEvent.keyboard('{ArrowRight}');
+    const subtitles = await within(sheet).findByRole('menu', { name: /^Subtitles/ });
+    within(sheet).getByRole('button', { name: 'Back' }).focus();
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(subtitles).not.toBeInTheDocument());
+    expect(sheet).toBeInTheDocument();
+    await waitFor(() =>
+      expect(within(sheet).getByRole('menuitem', { name: /^Subtitles/ })).toHaveFocus(),
+    );
+  });
+
   it('opens its sheet again with the first page still, after a page went back', async () => {
     render(
       <MenuTrigger>
@@ -1400,6 +1418,27 @@ describe('Menu submenus in place (submenuPresentation="replace")', () => {
     expect(item).toHaveTextContent('1080p');
     await waitFor(() => expect(quality).not.toBeInTheDocument(), { timeout: 1500 });
     expectOpen('Settings');
+  });
+
+  it('goes back one page with Escape or the back arrow on the back button', async () => {
+    render(<PlayerSettings />);
+    await openMenu('Settings');
+    for (const key of ['{Escape}', '{ArrowLeft}']) {
+      screen.getByRole('menuitem', { name: /^Subtitles/ }).focus();
+      await userEvent.keyboard('{ArrowRight}');
+      const subtitles = await screen.findByRole('menu', { name: /^Subtitles/ });
+      const back = within(subtitles.closest<HTMLElement>('[data-submenu-panel]')!).getByRole(
+        'button',
+        { name: 'Back' },
+      );
+      back.focus();
+      await userEvent.keyboard(key);
+      await waitFor(() => expect(subtitles).not.toBeInTheDocument());
+      expectOpen('Settings');
+      await waitFor(() =>
+        expect(screen.getByRole('menuitem', { name: /^Subtitles/ })).toHaveFocus(),
+      );
+    }
   });
 
   it('keeps the page, and focus in it, while the menu leaves after an action on it', async () => {
