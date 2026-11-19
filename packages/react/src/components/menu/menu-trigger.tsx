@@ -32,6 +32,8 @@ export interface MenuTriggerContextValue {
    * `aria-controls` then, since the menu it names isn't in the page yet.
    */
   setPending?: (pending: boolean) => void;
+  /** A context menu: its trigger is a region, where a press dismisses a menu still loading. */
+  contextMenu?: boolean;
 }
 
 /** The trigger's props without `aria-controls` while its menu isn't in the page yet. */
@@ -156,7 +158,13 @@ export function ContextMenuTrigger({
   // `Menu`'s own `aria-label` instead.
   return (
     <MenuTriggerContext
-      value={{ state, triggerRef, menuProps: omitLabelledBy(menuProps), setPending }}
+      value={{
+        state,
+        triggerRef,
+        menuProps: omitLabelledBy(menuProps),
+        setPending,
+        contextMenu: true,
+      }}
     >
       <div
         {...(withoutMissingControls(menuTriggerProps, pending) as TriggerContextValue)}

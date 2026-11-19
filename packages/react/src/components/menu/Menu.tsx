@@ -566,7 +566,10 @@ export function Menu({
   // and the trigger names no menu (`aria-controls`) until one is there.
   const waiting =
     open && (asSheet ? !(sheetIn && bottomSheetIn) : (replace || contained) && !inPlaceIn);
-  useDismissWhileLoading(trigger.triggerRef, waiting, trigger.state.close);
+  useDismissWhileLoading(trigger.triggerRef, waiting, trigger.state.close, {
+    onArrow: (focus) => trigger.state.open(focus),
+    anyPress: trigger.contextMenu,
+  });
   const { setPending } = trigger;
   useLayoutEffect(() => {
     setPending?.(waiting);

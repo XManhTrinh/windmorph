@@ -455,7 +455,9 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
   // and focus moving on close it, and the field names no list (`aria-controls`) until one is.
   const sheetIn = useBottomSheetLoaded();
   const waitingForSheet = asSheet && state.isOpen && !sheetIn;
-  useDismissWhileLoading(triggerRef, waitingForSheet, state.close);
+  useDismissWhileLoading(triggerRef, waitingForSheet, state.close, {
+    onArrow: (focus) => state.open(focus),
+  });
   const fieldTriggerProps = waitingForSheet
     ? { ...triggerProps, 'aria-controls': undefined }
     : triggerProps;

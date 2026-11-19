@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { StrictMode, type ComponentProps } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -57,8 +57,19 @@ async function freshMenu() {
       </menu.MenuTrigger>
     );
   }
+  function Region(props: MenuProps) {
+    return (
+      <menu.ContextMenuTrigger>
+        <p tabIndex={0}>Selected text</p>
+        <menu.Menu aria-label="Text" submenuPresentation="replace" {...props}>
+          <menu.MenuItem key="copy">Copy</menu.MenuItem>
+        </menu.Menu>
+      </menu.ContextMenuTrigger>
+    );
+  }
   return {
     Settings,
+    Region,
     preload: menu.preloadMenuInPlace,
     preloadAll: () => Promise.all([menu.preloadMenuInPlace(), sheet.preloadBottomSheet()]),
   };
@@ -301,4 +312,49 @@ describe('Menu opened while its code loads', () => {
       expect(elsewhere).toHaveFocus();
     });
   }
+
+  it('keeps the menu open on an arrow key at the trigger, and focuses the item it asked for once it comes', async () => {
+    const { Settings, preloadAll } = await freshMenu();
+    const release = holdLoad();
+    render(<Settings submenuPresentation="replace" />);
+    trigger().focus();
+    await userEvent.keyboard('{Enter}');
+    // ↑ asks for the last item, as on a trigger whose menu is in, without closing it.
+    await userEvent.keyboard('{ArrowUp}');
+    expect(trigger()).toHaveAttribute('aria-expanded', 'true');
+    await userEvent.keyboard('{ArrowDown}{Alt>}{ArrowUp}{/Alt}');
+    expect(trigger()).toHaveAttribute('aria-expanded', 'true');
+    await act(async () => {
+      release();
+      await preloadAll();
+    });
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Loop' })).toHaveFocus());
+  });
+
+  it('stays open as the window loses focus, and closes on a Tab past the page’s last control', async () => {
+    const { Settings } = await freshMenu();
+    holdLoad();
+    render(<Settings submenuPresentation="replace" />);
+    trigger().focus();
+    await userEvent.keyboard('{Enter}');
+    // Another window or tab took focus: nothing left the menu.
+    fireEvent.focusOut(trigger(), { relatedTarget: null });
+    expect(trigger()).toHaveAttribute('aria-expanded', 'true');
+    await userEvent.tab();
+    expect(trigger()).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('closes a context menu on a press in its region while its code loads', async () => {
+    const { Region, preloadAll } = await freshMenu();
+    const release = holdLoad();
+    render(<Region />);
+    const text = screen.getByText('Selected text');
+    fireEvent.contextMenu(text, { clientX: 40, clientY: 60 });
+    await userEvent.pointer({ keys: '[MouseLeft]', target: text });
+    await act(async () => {
+      release();
+      await preloadAll();
+    });
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+  });
 });
