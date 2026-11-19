@@ -90,6 +90,22 @@ test.describe('IconButton interaction states', () => {
     expect(overshoots(releaseCurve), JSON.stringify(releaseCurve)).toBe(false);
   });
 
+  test('an icon in a wrapper of its own fills the slot, at every size', async ({ page }) => {
+    await openStory(page, 'components-iconbutton--wrapped-icon');
+    const buttons = page.getByTestId('wrapped').getByRole('button');
+    await expect(buttons).toHaveCount(5);
+    for (const button of await buttons.all()) {
+      const sizes = await button.evaluate((element) => {
+        const slot = element.querySelector('[aria-hidden="true"]:has(> span > svg)')!;
+        const star = slot.querySelector('svg')!.getBoundingClientRect();
+        const box = slot.getBoundingClientRect();
+        return { star: [star.width, star.height], slot: [box.width, box.height] };
+      });
+      expect(sizes.slot[0]).toBeGreaterThan(0);
+      expect(sizes.star).toEqual(sizes.slot);
+    }
+  });
+
   test('toggle swaps icon and shape', async ({ page }) => {
     await openStory(page, 'components-iconbutton--toggle');
     const toggle = page.getByRole('button', { name: 'Favourite' });

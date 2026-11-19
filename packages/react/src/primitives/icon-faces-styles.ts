@@ -20,7 +20,7 @@ import { tv } from '../utils/tv';
 export const iconFacesStyles = tv({
   slots: {
     cell: 'inline-grid place-items-center',
-    face: 'col-start-1 row-start-1 inline-flex size-full items-center justify-center [&>svg]:size-full',
+    face: 'col-start-1 row-start-1 inline-flex size-full items-center justify-center [&>svg]:size-full [&>:only-child]:size-full',
   },
   variants: {
     transition: {

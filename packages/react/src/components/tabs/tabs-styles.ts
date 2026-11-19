@@ -77,7 +77,7 @@ export const tabsStyles = tv({
       'data-selected:[--m3-transition-duration:var(--md-sys-motion-spring-effects-default-duration)] data-selected:[--m3-transition-easing:var(--md-sys-motion-spring-effects-default-easing)]',
     ],
     icon: [
-      'inline-flex size-[24px] shrink-0 items-center justify-center text-[color:var(--m3-tab-icon-color)] [&>svg]:size-full',
+      'inline-flex size-[24px] shrink-0 items-center justify-center text-[color:var(--m3-tab-icon-color)] [&>svg]:size-full [&>:only-child]:size-full',
       // Recolours with its tab's label.
       '[transition-property:var(--m3-transition-property,none)] [transition-duration:var(--m3-transition-duration,0s)] [transition-timing-function:var(--m3-transition-easing,linear)]',
     ],

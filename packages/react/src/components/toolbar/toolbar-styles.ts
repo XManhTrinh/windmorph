@@ -279,7 +279,7 @@ export const toolbarFabStyles = tv({
       'state-layer focus-ring container-motion',
       'forced-colors:border forced-colors:border-solid forced-colors:border-[CanvasText]',
     ],
-    icon: 'inline-flex size-[24px] shrink-0 items-center justify-center [&>svg]:size-full',
+    icon: 'inline-flex size-[24px] shrink-0 items-center justify-center [&>svg]:size-full [&>:only-child]:size-full',
   },
   variants: {
     // The colours come from the FAB's tokens (`toolbarFabTokenSet`), picked by `data-color`.

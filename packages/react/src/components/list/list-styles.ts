@@ -100,7 +100,7 @@ export const listStyles = tv({
     ],
     // The check a selected item shows besides its colour (M3: two cues for selection).
     selectionIndicator: [
-      'inline-flex size-[20px] shrink-0 items-center justify-center opacity-0 [&>svg]:size-full',
+      'inline-flex size-[20px] shrink-0 items-center justify-center opacity-0 [&>svg]:size-full [&>:only-child]:size-full',
       'group-data-selected/list-item:opacity-100 group-data-selected/list-item:text-[color:var(--_md-comp-list-list-item-selected-trailing-icon-color)]',
       'transition-opacity duration-(--md-sys-motion-spring-effects-fast-duration) ease-(--md-sys-motion-spring-effects-fast-easing)',
     ],

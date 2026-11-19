@@ -144,6 +144,31 @@ export const SizesAndWidths: Story = {
   ),
 };
 
+/**
+ * An icon in a wrapper of its own (a star with a mark on its corner): the slot sizes its single
+ * child whatever element it is, and an `svg` with only a `viewBox` fills that wrapper.
+ */
+export const WrappedIcon: Story = {
+  render: () => (
+    <div className="flex items-center gap-4" data-testid="wrapped">
+      {SIZES.map((size) => (
+        <IconButton
+          key={size}
+          variant="tonal"
+          size={size}
+          aria-label={`Starred, ${size}`}
+          icon={
+            <span className="relative">
+              <StarIcon />
+              <span className="absolute end-0 top-0 size-[30%] rounded-full bg-error" />
+            </span>
+          }
+        />
+      ))}
+    </div>
+  ),
+};
+
 /** A favourite toggle that swaps to the filled star when selected. */
 export const Toggle: Story = {
   render: function ToggleStory() {

@@ -135,7 +135,7 @@ export const menuStyles = tv({
       'group-data-selected/item:grid-cols-[1fr] group-data-selected/item:opacity-100',
     ],
     selectedIconInner: 'overflow-hidden',
-    icon: 'me-[12px] inline-flex size-[20px] shrink-0 items-center justify-center text-[color:var(--_md-comp-menus-menu-item-leading-icon-color)] [&>svg]:size-full',
+    icon: 'me-[12px] inline-flex size-[20px] shrink-0 items-center justify-center text-[color:var(--_md-comp-menus-menu-item-leading-icon-color)] [&>svg]:size-full [&>:only-child]:size-full',
     text: 'flex min-w-0 flex-1 flex-col',
     description: 'text-body-medium',
     trailing:
