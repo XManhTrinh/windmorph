@@ -21,6 +21,7 @@ import { cn } from '../../utils/cn';
 import { closeOnLoadError } from '../../utils/close-on-load-error';
 import { useDismissWhileLoading } from '../../utils/use-dismiss-while-loading';
 import { onDemand, usePreloadOnIntent } from '../../utils/load-on-demand';
+import { useLoaded } from '../../utils/use-loaded';
 import {
   ariaFlag,
   pickDescriptionAria,
@@ -290,8 +291,9 @@ function TimeFieldInner({
   // A failed load closes the picker, rather than leaving it open over nothing; its next open
   // tries again.
   const reportLoadError = closeOnLoadError('TimeField', overlay.close);
-  const dialogIn = pickerDialog.useLoaded(overlay.isOpen && !docked, reportLoadError) !== undefined;
-  const listIn = dockedList.useLoaded(overlay.isOpen && docked, reportLoadError) !== undefined;
+  const dialogIn =
+    useLoaded(pickerDialog, overlay.isOpen && !docked, reportLoadError) !== undefined;
+  const listIn = useLoaded(dockedList, overlay.isOpen && docked, reportLoadError) !== undefined;
   // Open with nothing in the page yet: Escape, a press outside the field and focus leaving it
   // close the picker, so its code coming in opens nothing, and the button names no list.
   const waiting = overlay.isOpen && !(docked ? listIn : dialogIn);

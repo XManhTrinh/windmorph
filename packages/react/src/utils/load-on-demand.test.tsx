@@ -2,13 +2,8 @@ import { act, render } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { runIdleCallbacks } from '../../test/setup';
-import {
-  IDLE_FALLBACK_DELAY,
-  LOAD_RETRY_DELAY,
-  LOAD_RETRY_MOST,
-  onDemand,
-  usePreloadWhenIdle,
-} from './load-on-demand';
+import { IDLE_FALLBACK_DELAY, onDemand, usePreloadWhenIdle } from './load-on-demand';
+import { LOAD_RETRY_DELAY, LOAD_RETRY_MOST, useLoaded } from './use-loaded';
 
 function Part({ preload, enabled = true }: { preload: () => Promise<unknown>; enabled?: boolean }) {
   usePreloadWhenIdle(preload, enabled);
@@ -110,7 +105,7 @@ describe('usePreloadWhenIdle', () => {
   });
 });
 
-describe('onDemand useLoaded', () => {
+describe('useLoaded', () => {
   it('tries a failed load again while it is wanted, pausing longer each time, and stops when it is not', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     try {
@@ -118,7 +113,7 @@ describe('onDemand useLoaded', () => {
       const part = onDemand<object>(load);
       const onError = vi.fn();
       function Wanting({ enabled }: { enabled: boolean }) {
-        part.useLoaded(enabled, onError);
+        useLoaded(part, enabled, onError);
         return null;
       }
       const { rerender } = render(<Wanting enabled />);
@@ -152,7 +147,7 @@ describe('onDemand useLoaded', () => {
       const load = vi.fn(() => Promise.reject(new Error('The network is down')));
       const part = onDemand<object>(load);
       function Quiet() {
-        part.useLoaded(true);
+        useLoaded(part, true);
         return null;
       }
       // A tooltip, a field's dialog: rendered while wanted, with nothing to report to.

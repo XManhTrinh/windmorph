@@ -1,4 +1,4 @@
-import { useEffect, useRef, useSyncExternalStore, type ComponentType, type RefObject } from 'react';
+import { useEffect, useState, type ComponentType, type RefObject } from 'react';
 
 /** A component whose module loads the first time it renders, or ahead of that. */
 export interface OnDemandComponent<P extends object> {
@@ -13,28 +13,11 @@ export interface OnDemandComponent<P extends object> {
    * `preload`; a load that ends later, by any of them, renders it then.
    */
   Component: ComponentType<P>;
-  /**
-   * The component once its module is in, else `undefined`, re-rendering the caller as it
-   * arrives, whichever call loaded it. While `enabled` it starts the load. Without `onError`
-   * a failed load is tried again only the next time `enabled` turns on (or on `preload`). With
-   * it, a failed load calls `onError` (once, until `enabled` turns off): the caller usually
-   * closes, which ends the wait, and the next open tries again; while it stays enabled (an app
-   * holding a menu open that its close can't change), it's tried again after a pause,
-   * `LOAD_RETRY_DELAY` and doubling up to `LOAD_RETRY_MOST`, so it shows once the network is
-   * back.
-   */
-  useLoaded: (
-    enabled?: boolean,
-    onError?: (error: unknown) => void,
-  ) => ComponentType<P> | undefined;
+  /** The component once its module is in, else `undefined` (for `useLoaded`). */
+  loaded: () => ComponentType<P> | undefined;
+  /** Calls `listener` as the module arrives; returns the unsubscribe (for `useLoaded`). */
+  subscribe: (listener: () => void) => () => void;
 }
-
-const loadedNothing = () => undefined;
-
-/** The first pause before a still-wanted failed load is tried again; it doubles each time. */
-export const LOAD_RETRY_DELAY = 1000;
-/** The longest of those pauses. */
-export const LOAD_RETRY_MOST = 30_000;
 
 /**
  * Loads a component on demand, for parts a component shows only sometimes (a tooltip on
@@ -43,7 +26,9 @@ export const LOAD_RETRY_MOST = 30_000;
  * Unlike `React.lazy` it never suspends: once the module is in, the component renders in the
  * same pass, and on first use it renders as soon as the module arrives. A `Suspense` boundary
  * would hold back content that resolves after its fallback showed (React throttles those
- * reveals by up to 300ms), so a part preloaded on hover would still show late.
+ * reveals by up to 300ms), so a part preloaded on hover would still show late. A component
+ * that opens with such a part, and must know when it's in or failed, reads it with
+ * `useLoaded` (`use-loaded.ts`), which only those components carry.
  */
 export function onDemand<P extends object>(
   load: () => Promise<ComponentType<P>>,
@@ -67,49 +52,33 @@ export function onDemand<P extends object>(
     return pending;
   };
 
-  const subscribe = (listener: () => void) => {
-    listeners.add(listener);
-    return () => {
-      listeners.delete(listener);
-    };
-  };
-  const getLoaded = () => loaded;
-
-  function useLoaded(enabled = true, onError?: (error: unknown) => void) {
-    const component = useSyncExternalStore(subscribe, getLoaded, loadedNothing);
-    const report = useRef(onError);
-    useEffect(() => {
-      report.current = onError;
-    });
-    useEffect(() => {
-      if (!enabled || loaded) return;
-      let current = true;
-      let retry: ReturnType<typeof setTimeout> | undefined;
-      const attempt = (pause: number) => {
-        preload().catch((error: unknown) => {
-          const onError = report.current;
-          // A caller with nothing to report to (a mounted `Component`, a tooltip) tries once.
-          if (!current || !onError) return;
-          if (pause === LOAD_RETRY_DELAY) onError(error);
-          retry = setTimeout(() => attempt(Math.min(pause * 2, LOAD_RETRY_MOST)), pause);
-        });
-      };
-      attempt(LOAD_RETRY_DELAY);
-      return () => {
-        current = false;
-        clearTimeout(retry);
-      };
-    }, [enabled]);
-    return component;
-  }
-
   function Component(props: P) {
-    const arrived = useLoaded() !== undefined;
+    // Re-renders once the module arrives, whichever call loaded it; `loaded` holds it.
+    const [, setArrived] = useState(false);
+    useEffect(() => {
+      if (loaded) return;
+      let mounted = true;
+      preload().then(
+        () => mounted && setArrived(true),
+        () => undefined,
+      );
+      return () => {
+        mounted = false;
+      };
+    }, []);
     const Loaded = loaded;
-    return arrived && Loaded ? <Loaded {...props} /> : null;
+    return Loaded ? <Loaded {...props} /> : null;
   }
 
-  return { preload, Component, useLoaded };
+  return {
+    preload,
+    Component,
+    loaded: () => loaded,
+    subscribe: (listener) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+  };
 }
 
 /** How long after mounting a browser without `requestIdleCallback` waits before preloading. */

@@ -76,6 +76,7 @@ import {
 import { useDismissWhileLoading } from '../../utils/use-dismiss-while-loading';
 import { closeOnLoadError } from '../../utils/close-on-load-error';
 import { onDemand, usePreloadOnIntent } from '../../utils/load-on-demand';
+import { useLoaded } from '../../utils/use-loaded';
 import type { MenuPopoverInPlaceProps, MenuSheetProps } from './menu-in-place';
 import { useRevealEntering } from './use-reveal-entering';
 import { menuOwnWidth, menuStyles, type MenuLayout, type MenuVariant } from './menu-styles';
@@ -552,9 +553,9 @@ export function Menu({
   // Opening loads the code if it isn't in yet (a sheet's alone, for a sheet); a failed load
   // closes the menu.
   const reportLoadError = closeOnLoadError('Menu', trigger.state.close);
-  const sheetIn = menuSheet.useLoaded(asSheet && open, reportLoadError) !== undefined;
+  const sheetIn = useLoaded(menuSheet, asSheet && open, reportLoadError) !== undefined;
   const inPlaceIn =
-    menuInPlace.useLoaded((replace || contained) && !asSheet && open, reportLoadError) !==
+    useLoaded(menuInPlace, (replace || contained) && !asSheet && open, reportLoadError) !==
     undefined;
   // A sheet's first open loads the sheet's code with the menu's, not once the menu's is in.
   useEffect(() => {

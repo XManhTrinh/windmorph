@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { StrictMode, type ComponentProps } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { runIdleCallbacks } from '../../../test/setup';
-import { LOAD_RETRY_DELAY } from '../../utils/load-on-demand';
+import { LOAD_RETRY_DELAY } from '../../utils/use-loaded';
 import type * as LoadOnDemand from '../../utils/load-on-demand';
 
 /**

@@ -2,6 +2,7 @@
 
 import { useState, type RefObject } from 'react';
 import { onDemand, usePreloadOnIntent } from '../../utils/load-on-demand';
+import { useLoaded } from '../../utils/use-loaded';
 import type { BottomSheetProps } from './BottomSheet';
 
 const sheet = onDemand<BottomSheetProps>(() =>
@@ -38,13 +39,13 @@ export function LazyBottomSheet({
   const [opened, setOpened] = useState(props.open === true);
   // Set during render, so the first open renders the sheet in the same pass.
   if (props.open === true && !opened) setOpened(true);
-  const arrived = sheet.useLoaded(props.open === true, onLoadError) !== undefined;
+  const arrived = useLoaded(sheet, props.open === true, onLoadError) !== undefined;
   if (!opened || !arrived) return null;
   return <sheet.Component {...props} />;
 }
 
 /** Whether the sheet's code is in, re-rendering the caller as it arrives (it loads nothing). */
-export const useBottomSheetLoaded = () => sheet.useLoaded(false) !== undefined;
+export const useBottomSheetLoaded = () => useLoaded(sheet, false) !== undefined;
 
 /**
  * Preloads the sheet when the pointer moves over `ref`'s element or focus enters it, while

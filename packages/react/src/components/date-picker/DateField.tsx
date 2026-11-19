@@ -37,6 +37,7 @@ import { LazyTooltip } from '../tooltip/lazy-tooltip';
 import { closeOnLoadError } from '../../utils/close-on-load-error';
 import { useDismissWhileLoading } from '../../utils/use-dismiss-while-loading';
 import { onDemand, usePreloadOnIntent } from '../../utils/load-on-demand';
+import { useLoaded } from '../../utils/use-loaded';
 import { TooltipTrigger } from '../tooltip/tooltip-trigger';
 import { CalendarGrid } from './CalendarGrid';
 import { ChoiceButton, ShortcutIconButton, useMonthSwipe, usePickerKeys } from './calendar-parts';
@@ -292,7 +293,8 @@ function DateFieldInner({
   // A failed load closes the dialog, rather than leaving it open over nothing; its next open
   // tries again.
   const compactIn =
-    compactDialog.useLoaded(
+    useLoaded(
+      compactDialog,
       compact && overlay.isOpen,
       closeOnLoadError('DateField', overlay.close),
     ) !== undefined;
