@@ -224,6 +224,30 @@ describe('TimeField, docked', () => {
     expect(optionTexts(await list())).toEqual(['12:00 am', '1:00 am', '2:00 am']);
   });
 
+  // A region laid out the other way gives React Aria the locale in another script
+  // (`fr-Arab-CA`), which writes `fr`'s 15:00 for `fr-CA`'s 15 h 00.
+  it('writes the times in the page’s locale inside a region of the other direction', async () => {
+    render(
+      <I18nProvider locale="fr-CA">
+        <div dir="rtl" style={{ direction: 'rtl' }}>
+          <TimeField
+            label="Opens at"
+            presentation="docked"
+            step={60}
+            min={new Time(14)}
+            max={new Time(16)}
+          />
+        </div>
+      </I18nProvider>,
+    );
+    await userEvent.click(clock());
+    expect(optionTexts(await list()).map((text) => text?.replace(/\s/g, ' '))).toEqual([
+      '14 h 00',
+      '15 h 00',
+      '16 h 00',
+    ]);
+  });
+
   it('lists the field’s time selected, also between two steps, and focuses it', async () => {
     render(<Sample presentation="docked" defaultValue={new Time(9, 40)} min={new Time(9)} />);
     await userEvent.click(clock());

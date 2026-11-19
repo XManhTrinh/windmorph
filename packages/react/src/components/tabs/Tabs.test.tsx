@@ -4,6 +4,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { ThemeScope } from '../../theme/ThemeScope';
 import { Badge } from '../badge/Badge';
+import { CalendarDate } from '@internationalized/date';
+import { I18nProvider } from 'react-aria';
+import { DatePicker } from '../date-picker/DatePicker';
 import { Tab, Tabs, type TabsProps } from './Tabs';
 
 const Icon = ({ id }: { id: string }) => <svg data-testid={id} viewBox="0 0 24 24" />;
@@ -460,6 +463,25 @@ describe('Tabs', () => {
     expect(root).toHaveClass('w-80', 'flex-col');
     expect(root).toHaveStyle({ marginTop: '4px' });
     expect(root).toContainElement(screen.getByRole('tablist'));
+  });
+});
+
+describe('Tabs in a region of the other direction', () => {
+  // Tabs give React Aria the locale in another script for their arrow keys (`en-Arab-GB` here,
+  // which writes dates as plain `en`); what their panels hold keeps the page's locale.
+  it('keeps the page’s locale for what their panels hold', () => {
+    render(
+      <I18nProvider locale="en-GB">
+        <div dir="rtl" style={{ direction: 'rtl' }}>
+          <Tabs aria-label="Trip">
+            <Tab key="dates" title="Dates">
+              <DatePicker defaultValue={new CalendarDate(2030, 9, 4)} />
+            </Tab>
+          </Tabs>
+        </div>
+      </I18nProvider>,
+    );
+    expect(screen.getByText('4 Sept 2030')).toBeInTheDocument();
   });
 });
 

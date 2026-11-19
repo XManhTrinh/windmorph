@@ -228,6 +228,24 @@ describe('DateField (docked date picker)', () => {
     expect(within(calendar).getByRole('grid')).toHaveAccessibleName(/July 2026/);
   });
 
+  // A region laid out the other way gives React Aria the locale in another script
+  // (`sr-Arab-RS`), which falls back to Serbian's Cyrillic month names on a Latin-script page.
+  it('names its months in the page’s script inside a region of the other direction', async () => {
+    render(
+      <LocaleProvider locale="sr-Latn-RS">
+        <div dir="rtl" style={{ direction: 'rtl' }}>
+          <DateField label="Date" defaultValue={march} defaultOpen />
+        </div>
+      </LocaleProvider>,
+    );
+    const calendar = screen.getByRole('dialog');
+    const month = within(calendar).getByRole('button', { name: /^mart/ });
+    await userEvent.click(month);
+    const months = within(calendar).getByRole('radiogroup');
+    expect(within(months).getAllByRole('radio')).toHaveLength(12);
+    expect(calendar.textContent).not.toMatch(/[\u0400-\u04FF]/);
+  });
+
   it('moves to the month and year menus with Shift+M and Shift+Y', async () => {
     render(<DateField label="Date" defaultValue={march} defaultOpen />);
     await waitFor(() =>
