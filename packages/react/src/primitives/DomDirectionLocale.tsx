@@ -39,14 +39,11 @@ export function DirectionLocale({
 }
 
 /**
- * React Aria takes keyboard direction (arrow keys, `start` / `end`) from its locale, not
- * the DOM `dir`, so a component inside an RTL region without an `I18nProvider` would move
- * the wrong way. This reads the element's computed direction and, when it differs from
- * the page locale's, gives React Aria the same locale with the matching direction
- * ({@link localeWithDirection}). The components' own dates, times and numbers inside (the
- * date and time fields' text, a slider's value, `AnimatedNumber`, the date in a calendar
- * day's name, and `useLocale` for an app's) keep the page's locale; React Aria's own words and
- * formats there (the wording around a day's date, the grid's month name) follow the directed one.
+ * React Aria takes keyboard direction from its locale, not the DOM `dir`. This reads the
+ * element's computed direction and, when it differs from the locale's, gives React Aria the same
+ * locale in that direction ({@link localeWithDirection}). The components' own dates, times and
+ * numbers inside, and `useLocale`, keep the page's locale; only React Aria's own words follow
+ * the directed one.
  */
 export function DomDirectionLocale({ children }: DomDirectionLocaleProps) {
   const { direction: localeDirection } = useLocale();
