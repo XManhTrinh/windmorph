@@ -27,7 +27,7 @@ import {
 } from 'react-stately/useSelectState';
 import { useControlledState } from 'react-stately/useControlledState';
 import type { Key } from 'react-stately';
-import { usePageCollator } from '../../primitives/use-page-collator';
+import { TYPEAHEAD_COLLATION, usePageCollator } from '../../primitives/use-page-collator';
 import { useLabels } from '../labels/use-labels';
 import { matchesSearch } from '../../utils/search';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
@@ -40,7 +40,7 @@ import {
   splitRootProps,
   type WrapperRootDOMProps,
 } from '../../utils/root-props';
-import { TYPEAHEAD_COLLATION, useTypeaheadDelegate } from '../../utils/typeahead';
+import { useTypeaheadDelegate } from '../../utils/typeahead';
 import { usePreloadLoadingIndicator } from '../loading-indicator/lazy-loading-indicator';
 import { LazyBottomSheet, usePreloadBottomSheet } from '../sheet/lazy-bottom-sheet';
 import type { TextFieldVariant } from '../text-field/text-field-styles';

@@ -24,6 +24,14 @@ import {
   type RefObject,
 } from 'react';
 import {
+  type AriaButtonProps,
+  type AriaCheckboxProps,
+  type AriaGridListProps,
+  type AriaListBoxOptions,
+  type AriaRadioGroupProps,
+  type AriaTreeOptions,
+  type Key,
+  ListKeyboardDelegate,
   mergeProps,
   mergeRefs,
   useButton,
@@ -43,19 +51,14 @@ import {
   useTree,
   useTreeItem,
   VisuallyHidden,
-  type AriaButtonProps,
-  type AriaCheckboxProps,
-  type AriaGridListProps,
-  type AriaListBoxOptions,
-  type AriaRadioGroupProps,
-  type AriaTreeOptions,
-  type Key,
 } from 'react-aria';
 import {
   useListState,
   useRadioGroupState,
   useToggleState,
   useTreeState,
+  type Collection,
+  type DisabledBehavior,
   type ListState,
   type Node,
   type RadioGroupState,
@@ -65,6 +68,7 @@ import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { preventHiddenInputScroll } from '../../primitives/hidden-input-focus';
 import { TouchTarget } from '../../primitives/TouchTarget';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
+import { TYPEAHEAD_COLLATION, usePageCollator } from '../../primitives/use-page-collator';
 import { CheckboxBox } from '../checkbox/checkbox-box';
 import { RadioRing } from '../radio/radio-ring';
 import { CheckIcon, CloseIcon, SwitchThumb, thumbGeometry } from '../switch/switch-thumb';
@@ -1084,6 +1088,28 @@ interface CollectionRootProps {
   classNames?: ListClassNames | undefined;
 }
 
+/**
+ * React Aria's own list keyboard delegate, comparing typed letters in the page's language: the
+ * list's content sits in a `DomDirectionLocale`, whose tag in a region laid out the other way is
+ * the language in another script (Serbian in Latin script takes č for c in Arabic script).
+ */
+function usePageListDelegate(
+  state: {
+    collection: Collection<Node<object>>;
+    disabledKeys: Set<Key>;
+    selectionManager: { disabledBehavior: DisabledBehavior };
+  },
+  ref: RefObject<HTMLElement | null>,
+) {
+  const collator = usePageCollator(TYPEAHEAD_COLLATION);
+  const { collection, disabledKeys } = state;
+  const { disabledBehavior } = state.selectionManager;
+  return useMemo(
+    () => new ListKeyboardDelegate({ collection, disabledKeys, disabledBehavior, ref, collator }),
+    [collection, disabledKeys, disabledBehavior, ref, collator],
+  );
+}
+
 function GridList({
   options,
   listRef,
@@ -1096,7 +1122,8 @@ function GridList({
 }: CollectionRootProps) {
   const rootRef = useObjectRef(listRef as Ref<HTMLDivElement>);
   const state = useListState(options);
-  const { gridProps } = useGridList(options, state, rootRef);
+  const keyboardDelegate = usePageListDelegate(state, rootRef);
+  const { gridProps } = useGridList({ ...options, keyboardDelegate }, state, rootRef);
   // Arrow keys reveal a row at the nearest position, never centring the page on the list.
   useNearestReveal(rootRef);
   return (
@@ -1305,7 +1332,8 @@ function ListBoxList({
   const rootRef = useObjectRef(listRef as Ref<HTMLDivElement>);
   const listBoxOptions = options as unknown as AriaListBoxOptions<object>;
   const state = useListState(listBoxOptions);
-  const { listBoxProps } = useListBox(listBoxOptions, state, rootRef);
+  const keyboardDelegate = usePageListDelegate(state, rootRef);
+  const { listBoxProps } = useListBox({ ...listBoxOptions, keyboardDelegate }, state, rootRef);
   useNearestReveal(rootRef);
   return (
     <div
@@ -1466,7 +1494,8 @@ function TreeList({
   const treeOptions = options as unknown as AriaTreeOptions<object> &
     Pick<ListProps, 'expandedKeys' | 'defaultExpandedKeys' | 'onExpandedChange'>;
   const state = useTreeState(treeOptions);
-  const { gridProps } = useTree(treeOptions, state, rootRef);
+  const keyboardDelegate = usePageListDelegate(state, rootRef);
+  const { gridProps } = useTree({ ...treeOptions, keyboardDelegate }, state, rootRef);
   const rows = [...state.collection.getKeys()]
     .map((key) => state.collection.getItem(key))
     .filter((node): node is Node<object> => node?.type === 'item');

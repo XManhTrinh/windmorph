@@ -57,13 +57,6 @@ interface TypeaheadState<T> {
  * options even when its list lets them take focus); `currentKey` is where a search starts
  * when nothing has focus.
  */
-/**
- * How typeahead compares: by letters, ignoring case and accents where the language does. Give
- * it the page's collator (`usePageCollator(TYPEAHEAD_COLLATION)`), so it matches in the page's
- * language (č is not c in Serbian) even in a region laid out the other way.
- */
-export const TYPEAHEAD_COLLATION: Intl.CollatorOptions = { usage: 'search', sensitivity: 'base' };
-
 export function useTypeaheadDelegate<T>(
   state: TypeaheadState<T>,
   ref: RefObject<HTMLElement | null>,
