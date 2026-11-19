@@ -181,15 +181,19 @@ test.describe('Motion values', () => {
     // risen as far, however slow the machine.
     const heights = await page.evaluate(
       () =>
-        new Promise<number[]>((resolve) => {
+        new Promise<number[]>((resolve, reject) => {
           const read = () =>
             [...document.querySelectorAll('[data-testid="row-bar"]')].map(
               (bar) => bar.getBoundingClientRect().height,
             );
+          // A bar that never rises fails here, with a reason, not at the test's timeout.
+          const deadline = performance.now() + 10_000;
           const frame = () => {
             const now = read();
             if (now[0]! > 0) resolve(now);
-            else requestAnimationFrame(frame);
+            else if (performance.now() > deadline) {
+              reject(new Error(`the first bar never rose within 10s: ${now.join(', ')}`));
+            } else requestAnimationFrame(frame);
           };
           requestAnimationFrame(frame);
         }),
