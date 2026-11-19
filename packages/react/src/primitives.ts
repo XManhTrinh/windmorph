@@ -62,6 +62,13 @@ export {
   type TriggerContextValue,
 } from './primitives/TriggerContext';
 export { formatClock, formatDurationWords } from './primitives/format-duration';
+export {
+  useReorder,
+  type ReorderMove,
+  type ReorderOptions,
+  type ReorderResult,
+  type ReorderWhere,
+} from './primitives/use-reorder';
 export { usePresence } from './primitives/use-presence';
 export { useRevealEntering } from './components/menu/use-reveal-entering';
 export { toAriaPlacement } from './utils/placement';
