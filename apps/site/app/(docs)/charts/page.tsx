@@ -149,9 +149,10 @@ export default async function ChartsPage() {
         </h2>
         <ul className={LIST}>
           <li>
-            The charts come with <InlineCode>@windmorph/react-pro</InlineCode> 0.2.10 and need{' '}
-            <InlineCode>@windmorph/react</InlineCode> 0.2.10 and <InlineCode>motion</InlineCode>{' '}
-            14.12 or later. Only an app that imports <InlineCode>/charts</InlineCode> loads them.
+            The charts come with <InlineCode>@windmorph/react-pro</InlineCode> 0.2.11 or later and
+            need <InlineCode>@windmorph/react</InlineCode> 0.2.11 and{' '}
+            <InlineCode>motion</InlineCode> 14.12 or later. Only an app that imports{' '}
+            <InlineCode>/charts</InlineCode> loads them.
           </li>
           <li>
             Nothing else to import: each chart puts its palette in the page as a style that loads
@@ -188,8 +189,9 @@ export default async function ChartsPage() {
           <li>
             Colour is never the only key. Every series is named in its legend, readout and table,
             and with two or more series or parts each has a pattern of its own (hatches on bars and
-            parts, dashes on lines; <InlineCode>texture={'{false}'}</InlineCode> turns them off),
-            always drawn in forced colours. &quot;Other&quot; is always dotted.
+            parts, dashes on lines; the first slot stays solid;{' '}
+            <InlineCode>texture={'{false}'}</InlineCode> turns them off), always drawn in forced
+            colours. &quot;Other&quot; is always dotted.
           </li>
           <li>
             A theme made with <InlineCode>createTheme</InlineCode> gets its own palette through{' '}
@@ -207,8 +209,9 @@ export default async function ChartsPage() {
           </InlineCode>
           ), for marks of your own beside a chart, such as a key in a sentence. The table below
           holds the charts&apos; sizes and timing too: the line width and points, the bars&apos;
-          thickness and corners, the legend&apos;s gap, and the fades as a place is read or new
-          numbers load.
+          thickness and corners, the legend&apos;s gap, and the fade as a place is read (a
+          frame&apos;s fade while new numbers load is <InlineCode>ChartFrame</InlineCode>&apos;s,{' '}
+          <InlineCode>--wm-chart-frame-pending-*</InlineCode>).
         </p>
         <CodeBlock code={TOKEN_SNIPPET} html={tokenHtml} lang="css" title="chart-colours.css" />
         <TokenTable set={chartTokenSet} caption="Chart tokens" />
@@ -221,7 +224,9 @@ export default async function ChartsPage() {
         <ul className={LIST}>
           <li>
             Every chart has a name: <InlineCode>aria-label</InlineCode>, or a{' '}
-            <InlineCode>ChartFrame</InlineCode>&apos;s title.
+            <InlineCode>ChartFrame</InlineCode>&apos;s title. A <InlineCode>StatTile</InlineCode>{' '}
+            and a <InlineCode>Meter</InlineCode> are named by their <InlineCode>label</InlineCode>,
+            and a <InlineCode>Sparkline</InlineCode> is decorative unless you name it.
           </li>
           <li>
             A line or bar chart is one tab stop: a slider over its places, whose arrow keys step

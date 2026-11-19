@@ -106,12 +106,11 @@ export async function MediaTimeSliderBody(): Promise<ComponentDoc> {
               the slider&apos;s box, so leave about 40px above it.
             </li>
             <li>
-              Under a fine pointer (a mouse or a trackpad), the stretch from the played part to the
-              pointer fills, where a press would land: its own token,{' '}
+              Under a mouse, a trackpad or a pen (never a touch), the stretch from the played part
+              to the pointer fills, where a press would land: its own token,{' '}
               <InlineCode>--wm-media-time-slider-hover-color</InlineCode>,{' '}
               <InlineCode>primary</InlineCode> at 38% by default (
-              <InlineCode>transparent</InlineCode> turns it off). A touch or a coarse pointer never
-              shows it, and forced colours hide it.{' '}
+              <InlineCode>transparent</InlineCode> turns it off). Forced colours hide it.{' '}
               <InlineCode>--wm-media-time-slider-thumb-size-rest</InlineCode> keeps a dot at rest
               (none by default), so a paused player shows where it is.
             </li>

@@ -36,7 +36,7 @@ export const barChart: ComponentAccessibility = {
     states:
       'Its `aria-valuetext` is the place’s `name`, each series on show with its value, then with two or more their total ("Week of 1 June: Web 312, Phone 146, In store 88. Total 546"), from `labels.describePlace` and `labels.total`. A value that is missing says "No value" (`labels.noValue`), and so does a total where no series has one. Each legend chip is pressed while its series shows.',
     notes: [
-      'The axes, the bars and the readout are hidden from assistive technology (`aria-hidden`); the value text says the same, and a `ChartFrame`’s table view holds every value, with a Total column.',
+      'The axes, the bars and the readout are hidden from assistive technology (`aria-hidden`); the value text says the same, and a `ChartFrame`’s table view holds every value, with a Total column once there are two or more series.',
       'A hidden series leaves the value text and the total. It needs no live region: the value is read as the slider moves.',
       'Being a native range input, it can be stepped by a phone’s screen reader, which sends no key events (a swipe up or down).',
       'With no places it stays in the page and focusable, `aria-disabled` rather than disabled, so focus on it never drops to the page, and says "No value" rather than a bare 0.',

@@ -61,9 +61,9 @@ export const lineChart: ComponentAccessibility = {
   consumer: [
     'Name every chart: put it in a `ChartFrame`, whose title names it, or give it `aria-label` or `aria-labelledby`.',
     'Give each place a full `name` ("Week of 1 June"): it is what screen readers, the readout and the table say. The `tick` is only for the axis.',
-    'Put units in `formatValue`, so the value text says them ("−4.8 °C", not "−4.8").',
+    'Put units in `formatValue`, so the value text says them ("-4.8°C", not "-4.8").',
     'Show every value another way too: a `ChartFrame` gives the table view, since the readout enhances and is hidden from assistive technology.',
-    'Refer to series by name, never by colour alone. Keep `texture` on (it is, for two or more series) unless every series is told apart some other way, such as a label on each line.',
+    'Refer to series by name, never by colour alone. Keep `texture` on (it is, for two or more series) unless every series is told apart some other way, such as a label of your own beside each line.',
     'A chart that updates by itself needs a way to pause it (WCAG 2.2.2), as the live example has.',
     'Translate `labels` (`describePlace`, `noValue`, `legend`, `lastSeries`, `place`), or set them once for the app with a `LabelsProvider` under `Chart`.',
     'For a theme of your own, add its chart palette with `withChartColors`, so the slots are made for it as the built-in themes’ are.',

@@ -8,7 +8,7 @@ export const meter: ComponentAccessibility = {
     role: '`meter`, from React Aria. A `MeterList` is a `list` whose every row holds one.',
     name: "A meter's `label` names it (`aria-labelledby`), as each row's `label` does in a list. A `MeterList` is named by `aria-label` or `aria-labelledby`, or by the title of the Chart frame it sits in.",
     states:
-      '`aria-valuenow`, `aria-valuemin` and `aria-valuemax`, with the words in `aria-valuetext` from `labels.valueText`: "75.6 GB of 100 GB", then the state\'s words past `warningAt` or `max` ("18 of 20, Close to the limit"). Past the limit `aria-valuenow` stays at `max` and the words give the real amount ("22 of 20, Over the limit"). An amount or a limit that isn\'t a number still gives numbers within the range, and the words say "No value".',
+      '`aria-valuenow`, `aria-valuemin` and `aria-valuemax`, with the words in `aria-valuetext` from `labels.valueText`: "75.6 GB of 100 GB", then the state\'s words from `warningAt` or past `max` ("18 of 20, Close to the limit"). Past the limit `aria-valuenow` stays at `max` and the words give the real amount ("22 of 20, Over the limit"). An amount or a limit that isn\'t a number still gives numbers within the range, and the words say "No value".',
     notes: [
       "The figure, the track and the state's mark and words beside it are hidden from assistive tech (`aria-hidden`), since the value text says them. The `note` is read as it is, after the meter.",
       "It isn't a live region: a new amount is read when someone reaches the meter, not announced. Announce a change that matters in a live region of your own.",

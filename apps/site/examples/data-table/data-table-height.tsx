@@ -50,7 +50,7 @@ const COLUMNS: ColumnDef<Reading>[] = [
 
 /**
  * `maxHeight`: past 320px the rows scroll under the header. A plain table's scroller takes a tab
- * stop while it cuts rows off, so the keyboard can scroll it; in a narrow window the list shows
+ * stop while it cuts rows off, so the keyboard can scroll it; where the table itself is narrow the list shows
  * every reading with its column's name.
  */
 export function DataTableHeight() {

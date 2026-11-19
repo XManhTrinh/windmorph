@@ -1,17 +1,10 @@
 'use client';
 
-import { Button, Card } from '@windmorph/react';
+import { Button, Card, useLocale } from '@windmorph/react';
 import { Meter } from '@windmorph/react-pro/charts';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 const LIMIT = 100;
-
-const gigabytes = new Intl.NumberFormat('en', {
-  style: 'unit',
-  unit: 'gigabyte',
-  maximumFractionDigits: 1,
-});
-const gb = (value: number) => gigabytes.format(value);
 
 /**
  * A new amount moves the fill and springs the number from the one showing. Past `warningAt`
@@ -20,6 +13,16 @@ const gb = (value: number) => gigabytes.format(value);
  */
 export function MeterChanging() {
   const [used, setUsed] = useState(62);
+  // Gigabytes in the page's locale.
+  const { locale } = useLocale();
+  const gb = useMemo(() => {
+    const gigabytes = new Intl.NumberFormat(locale, {
+      style: 'unit',
+      unit: 'gigabyte',
+      maximumFractionDigits: 1,
+    });
+    return (value: number) => gigabytes.format(value);
+  }, [locale]);
   return (
     <div className="flex w-full max-w-sm flex-col items-start gap-4">
       <Card variant="outlined" className="w-full p-4">

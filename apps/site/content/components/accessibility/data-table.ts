@@ -9,7 +9,7 @@ export const dataTable: ComponentAccessibility = {
     {
       keys: ['Arrow keys', 'Page Up', 'Page Down'],
       action: 'Scroll the rows and columns it cuts off.',
-      where: 'On a plain table that cuts content off',
+      where: 'On a plain table, or a compact list with nothing to press, that cuts content off',
     },
     { keys: ['Arrow keys'], action: 'Move between cells and headers.', where: 'In the grid' },
     {
@@ -33,7 +33,7 @@ export const dataTable: ComponentAccessibility = {
   keyboardNotes: [
     'Dragging a header needs a pointer: column settings moves, shows, hides and pins columns from the keyboard.',
     'A cut-off value shows whole in its cell while the cell has keyboard focus.',
-    'A grid brings each cell into view as it takes focus, as far as it needs, so the page never jumps to centre the table. A `plain` table that cuts rows or columns off (`maxHeight`, a narrow window) takes a tab stop of its own, so the keyboard can scroll it; when nothing is cut off it takes none.',
+    'A grid brings each cell into view as it takes focus, as far as it needs, so the page never jumps to centre the table. A `plain` table that cuts rows or columns off (`maxHeight`, a narrow window) takes a tab stop of its own, so the keyboard can scroll it, as does the compact list kept to `maxHeight` when its rows have nothing to press; when nothing is cut off it takes none.',
   ],
   screenReader: {
     role: 'A `grid`, with `columnheader`, `rowheader` and `gridcell`. A `plain` table with nothing to press is a native `table`. Below `compactBelow` it is a list.',
@@ -44,7 +44,7 @@ export const dataTable: ComponentAccessibility = {
       'Each sort change is announced in a polite live region, every level of it, and so is a column fitted to its content (`labels.columnFitted`).',
       'The resize handle is described by `labels.resizeColumnHint`: the arrow keys resize, and Enter fits the content.',
       'The checkboxes are named after their rows through `labels.selectRow`.',
-      'A `plain` table that cuts content off is a `region` named after the table, so the stop it takes says what it scrolls.',
+      'A `plain` table, or a compact list with nothing to press, that cuts content off is a `region` named after the table, so the stop it takes says what it scrolls.',
       'The compact list of a table of figures, with no text column beside the row header, names every value with its column’s header, so nothing is read without its meaning.',
     ],
   },

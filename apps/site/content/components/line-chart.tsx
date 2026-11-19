@@ -297,8 +297,9 @@ export async function LineChartBody(): Promise<ComponentDoc> {
           <InlineCode>point-radius</InlineCode>, <InlineCode>point-ring</InlineCode>,{' '}
           <InlineCode>wash-opacity</InlineCode>, <InlineCode>grid</InlineCode>,{' '}
           <InlineCode>axis</InlineCode>, <InlineCode>axis-text</InlineCode>,{' '}
-          <InlineCode>legend-gap</InlineCode> and the state timing; the ramp, the warning and
-          critical colours and the bar tokens are other charts&apos;.
+          <InlineCode>legend-gap</InlineCode>, <InlineCode>legend-key-corner</InlineCode> and the
+          state timing; the ramp, the warning and critical colours and the bar tokens are other
+          charts&apos;.
         </p>
         <p className={TEXT}>
           The slots default to a palette made for each built-in theme, mode and contrast level. For

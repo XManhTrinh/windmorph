@@ -276,9 +276,9 @@ export async function BarChartBody(): Promise<ComponentDoc> {
           <InlineCode>bar-corner</InlineCode>, <InlineCode>mark-gap</InlineCode>,{' '}
           <InlineCode>surface</InlineCode>, <InlineCode>read-dim-opacity</InlineCode>,{' '}
           <InlineCode>grid</InlineCode>, <InlineCode>axis</InlineCode>,{' '}
-          <InlineCode>axis-text</InlineCode>, <InlineCode>legend-gap</InlineCode> and the state
-          timing; the ramp, the warning and critical colours and the line and point tokens are other
-          charts&apos;.
+          <InlineCode>axis-text</InlineCode>, <InlineCode>legend-gap</InlineCode>,{' '}
+          <InlineCode>legend-key-corner</InlineCode> and the state timing; the ramp, the warning and
+          critical colours and the line and point tokens are other charts&apos;.
         </p>
         <p className={TEXT}>
           The slots default to a palette made for each built-in theme, mode and contrast level. For

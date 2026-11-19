@@ -27,29 +27,42 @@ const SLOTS = [
   'header',
   'headerRow',
   'headerCell',
+  'headerContent',
+  'headerLabel',
   'sortIcon',
   'sortLevel',
   'resizer',
+  'resizerLine',
   'body',
   'row',
   'cell',
   'rowLink',
   'selectionCell',
+  'selectionCheckbox',
   'actionsCell',
+  'actionButton',
   'pagination',
   'pageSize',
   'range',
   'pageButtons',
+  'pageButton',
+  'pageIcon',
   'compactList',
   'compactRow',
   'compactFigure',
   'loading',
   'skeletonRow',
+  'skeletonRows',
+  'skeletonCell',
   'progress',
   'empty',
   'error',
   'columnSettings',
+  'settingsRow',
+  'settingsName',
   'filterDialog',
+  'filterFields',
+  'filterRange',
 ];
 
 /** DataTable page body: examples, when to use it, behaviour, parts and tokens. */
@@ -143,7 +156,9 @@ export async function DataTableBody(): Promise<ComponentDoc> {
               keyboard reaches what&apos;s cut off: a grid&apos;s focus moves to every cell and
               brings it into view, and a <InlineCode>plain</InlineCode> table that cuts rows or
               columns off becomes a tab stop itself, a region named after the table, which the arrow
-              and page keys scroll. When nothing is cut off it is neither.
+              and page keys scroll. The compact list kept to <InlineCode>maxHeight</InlineCode> does
+              the same whenever its rows have nothing to press. When nothing is cut off it is
+              neither.
             </li>
             <li>
               The arrow keys bring a cell into view only as far as it needs, so the page never jumps

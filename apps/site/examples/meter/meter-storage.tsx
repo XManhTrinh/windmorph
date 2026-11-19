@@ -1,16 +1,21 @@
 'use client';
 
-import { Card } from '@windmorph/react';
+import { Card, useLocale } from '@windmorph/react';
 import { Meter } from '@windmorph/react-pro/charts';
+import { useMemo } from 'react';
 
-const gigabytes = new Intl.NumberFormat('en', {
-  style: 'unit',
-  unit: 'gigabyte',
-  maximumFractionDigits: 1,
-});
-
-/** "42.5 GB": the amount, the limit and what screen readers hear. */
-const gb = (value: number) => gigabytes.format(value);
+/** "42.5 GB" in the page's locale: the amount, the limit and what screen readers hear. */
+function useGigabytes() {
+  const { locale } = useLocale();
+  return useMemo(() => {
+    const gigabytes = new Intl.NumberFormat(locale, {
+      style: 'unit',
+      unit: 'gigabyte',
+      maximumFractionDigits: 1,
+    });
+    return (value: number) => gigabytes.format(value);
+  }, [locale]);
+}
 
 /**
  * Storage against a 100 GB limit. From `warningAt` the line under the track says "Close to the
@@ -20,6 +25,7 @@ const gb = (value: number) => gigabytes.format(value);
  * own words: what is left, or what to do.
  */
 export function MeterStorage() {
+  const gb = useGigabytes();
   return (
     <div className="grid w-full grid-cols-[repeat(auto-fit,minmax(14rem,1fr))] gap-4">
       <Card variant="outlined" className="p-4">

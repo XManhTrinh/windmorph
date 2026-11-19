@@ -1,13 +1,8 @@
 'use client';
 
-import { Card } from '@windmorph/react';
+import { Card, useLocale } from '@windmorph/react';
 import { StatTile } from '@windmorph/react-pro/charts';
-
-/** Minutes with one decimal, so 8 reads "8.0" beside 8.2. */
-const minutes = new Intl.NumberFormat('en', {
-  minimumFractionDigits: 1,
-  maximumFractionDigits: 1,
-});
+import { useMemo } from 'react';
 
 /**
  * `size="lg"` for the one figure a page is about; `md`, the default, for a row of them. A unit
@@ -16,6 +11,12 @@ const minutes = new Intl.NumberFormat('en', {
  * "NaN". A tile needs neither a change nor a trend.
  */
 export function StatTileSizes() {
+  // Minutes with one decimal in the page's locale, so 8 reads "8.0" beside 8.2.
+  const { locale } = useLocale();
+  const minutes = useMemo(
+    () => new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
+    [locale],
+  );
   return (
     <div className="flex w-full flex-wrap items-start gap-4">
       <Card variant="outlined" className="w-full max-w-xs p-4">
