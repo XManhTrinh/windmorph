@@ -102,6 +102,11 @@ function shownRect(boundary: Element) {
  * - something around it scrolls (a pane): the popover moves with the container and keeps its
  *   place, so only the stand-in moves, for React Aria's next placement (a page opened after the
  *   pane scrolled went 79px above the pane's visible top, 2026-11-19).
+ *
+ * Each costs a walk up the container's ancestors, so a resize renders again only when the
+ * stand-in's box changed, scrolls inside the popover (its list) are skipped, and the others
+ * place it once a frame, as the frame starts (2026-11-19: every scroll, the list's included,
+ * measured seven boxes, and every resize event rendered twice).
  */
 export function useBoundaryInContainer(
   boundary: Element | null,
@@ -109,31 +114,44 @@ export function useBoundaryInContainer(
 ): { boundaryElement: Element | null; placing: boolean } {
   const standIn = useStandIn();
   const [placing, setPlacing] = useState(true);
-  const place = useCallback(() => {
+  /** Places the stand-in; whether its box changed. */
+  const place = useCallback((): boolean => {
     const popover = popoverRef.current;
-    if (!standIn) return;
+    if (!standIn) return false;
     if (!boundary || !popover) {
       standIn.remove();
-      return;
+      return false;
     }
-    placeStandIn(standIn, boundary, containingBlock(popover));
+    return placeStandIn(standIn, boundary, containingBlock(popover));
   }, [boundary, popoverRef, standIn]);
   // On each layout pass in which `placing` changes, and when the boundary does.
-  useLayoutEffect(place, [place, placing]);
+  useLayoutEffect(() => {
+    place();
+  }, [place, placing]);
   useLayoutEffect(() => {
     const view = boundary?.ownerDocument.defaultView;
     if (!boundary || !view) return;
     const placeAgain = () => {
-      place();
       flushSync(() => setPlacing(false));
       flushSync(() => setPlacing(true));
     };
+    const onResize = () => {
+      if (place()) placeAgain();
+    };
+    let frame = 0;
+    const onScroll = (event: Event) => {
+      if (event.target instanceof Node && popoverRef.current?.contains(event.target)) return;
+      frame ||= view.requestAnimationFrame(() => {
+        frame = 0;
+        place();
+      });
+    };
     const viewport = view.visualViewport;
-    view.addEventListener('resize', placeAgain);
-    viewport?.addEventListener('resize', placeAgain);
+    view.addEventListener('resize', onResize);
+    viewport?.addEventListener('resize', onResize);
     // Scroll events don't bubble: a pane's reach the document only on the capture phase.
-    view.document.addEventListener('scroll', place, { capture: true, passive: true });
-    viewport?.addEventListener('scroll', place, { passive: true });
+    view.document.addEventListener('scroll', onScroll, { capture: true, passive: true });
+    viewport?.addEventListener('scroll', onScroll, { passive: true });
     let observer: ResizeObserver | undefined;
     if (typeof ResizeObserver !== 'undefined') {
       let observed = false;
@@ -143,18 +161,21 @@ export function useBoundaryInContainer(
           observed = true;
           return;
         }
+        // React Aria doesn't place the popover again for it, whether or not the box changed.
+        place();
         placeAgain();
       });
       observer.observe(boundary);
     }
     return () => {
-      view.removeEventListener('resize', placeAgain);
-      viewport?.removeEventListener('resize', placeAgain);
-      view.document.removeEventListener('scroll', place, { capture: true });
-      viewport?.removeEventListener('scroll', place);
+      view.removeEventListener('resize', onResize);
+      viewport?.removeEventListener('resize', onResize);
+      view.document.removeEventListener('scroll', onScroll, { capture: true });
+      viewport?.removeEventListener('scroll', onScroll);
+      view.cancelAnimationFrame(frame);
       observer?.disconnect();
     };
-  }, [boundary, place]);
+  }, [boundary, place, popoverRef]);
   return { boundaryElement: boundary ? standIn : null, placing };
 }
 
@@ -190,20 +211,30 @@ function useStandIn() {
   return standIn;
 }
 
-/** Puts `standIn` in the page where what shows of `boundary` sits in `block`, at its size. */
-function placeStandIn(standIn: HTMLElement, boundary: Element, block: Element) {
+/**
+ * Puts `standIn` in the page where what shows of `boundary` sits in `block`, at its size;
+ * whether its box changed (or it went into the page).
+ */
+function placeStandIn(standIn: HTMLElement, boundary: Element, block: Element): boolean {
   const shown = shownRect(boundary);
   const origin = paddingBox(block);
-  standIn.setAttribute('aria-hidden', 'true');
-  standIn.setAttribute('data-menu-boundary', '');
-  Object.assign(standIn.style, {
-    position: 'absolute',
+  const box = {
     top: `${shown.top - origin.top}px`,
     left: `${shown.left - origin.left}px`,
     width: `${Math.max(0, shown.right - shown.left)}px`,
     height: `${Math.max(0, shown.bottom - shown.top)}px`,
-    visibility: 'hidden',
-    pointerEvents: 'none',
-  });
+  };
+  const { style } = standIn;
+  const changed =
+    !standIn.isConnected ||
+    style.top !== box.top ||
+    style.left !== box.left ||
+    style.width !== box.width ||
+    style.height !== box.height;
+  if (!changed) return false;
+  standIn.setAttribute('aria-hidden', 'true');
+  standIn.setAttribute('data-menu-boundary', '');
+  Object.assign(style, box, { position: 'absolute', visibility: 'hidden', pointerEvents: 'none' });
   if (!standIn.isConnected) block.ownerDocument.documentElement.append(standIn);
+  return true;
 }
