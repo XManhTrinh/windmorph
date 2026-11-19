@@ -1306,6 +1306,53 @@ test.describe('Menu in place: loaded on demand', () => {
     await expect.poll(() => loads.length).toBeGreaterThan(0);
   });
 
+  test('closed before its code is in, it never shows, takes focus or runs keys once it comes', async ({
+    page,
+  }) => {
+    let release = () => {};
+    const held = new Promise<void>((resolve) => (release = resolve));
+    let asked = () => {};
+    const requested = new Promise<void>((resolve) => (asked = resolve));
+    await page.route(CHUNK, async (route) => {
+      asked();
+      await held;
+      await route.continue();
+    });
+    await openStory(page, PLAYER);
+    const trigger = page.getByRole('button', { name: 'Settings' });
+    await trigger.click();
+    await requested;
+    // Enter on the trigger, which keeps focus while the menu loads, closes it again.
+    await page.keyboard.press('Enter');
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    release();
+    await page.waitForResponse(CHUNK);
+    await page.evaluate(
+      () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+    );
+    await expect(page.locator('[data-level]')).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+    await page.keyboard.press('End');
+    await page.keyboard.press('Enter');
+    // Enter on the trigger opens it now, placed and focused.
+    await expect(page.getByRole('menuitem', { name: /^Quality/ })).toBeFocused();
+    await expect(page.getByText('Loop: off')).toBeVisible();
+  });
+
+  test('a menu whose code fails to load closes, and loads it on the next open', async ({
+    page,
+  }) => {
+    let online = false;
+    await page.route(CHUNK, (route) => (online ? route.continue() : route.abort()));
+    await openStory(page, PLAYER);
+    const trigger = page.getByRole('button', { name: 'Settings' });
+    await trigger.click();
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    online = true;
+    await trigger.click();
+    await expect(page.getByRole('menuitem', { name: /^Quality/ })).toBeFocused();
+  });
+
   test('opened before its code is in, it waits on its trigger, then opens placed and focused', async ({
     page,
   }) => {

@@ -1,4 +1,4 @@
-import { useEffect, useState, type ComponentType, type RefObject } from 'react';
+import { useEffect, useRef, useSyncExternalStore, type ComponentType, type RefObject } from 'react';
 
 /** A component whose module loads the first time it renders, or ahead of that. */
 export interface OnDemandComponent<P extends object> {
@@ -10,10 +10,21 @@ export interface OnDemandComponent<P extends object> {
   /**
    * Renders the component once its module has loaded, and nothing until then; mounting it
    * starts the load. A failed load renders nothing and is tried again on the next mount or
-   * `preload`.
+   * `preload`; a load that ends later, by any of them, renders it then.
    */
   Component: ComponentType<P>;
+  /**
+   * The component once its module is in, else `undefined`, re-rendering the caller as it
+   * arrives, whichever call loaded it. While `enabled` it starts the load, and a failed load
+   * calls `onError`; it's tried again the next time `enabled` turns on, or on `preload`.
+   */
+  useLoaded: (
+    enabled?: boolean,
+    onError?: (error: unknown) => void,
+  ) => ComponentType<P> | undefined;
 }
+
+const loadedNothing = () => undefined;
 
 /**
  * Loads a component on demand, for parts a component shows only sometimes (a tooltip on
@@ -29,10 +40,15 @@ export function onDemand<P extends object>(
 ): OnDemandComponent<P> {
   let loaded: ComponentType<P> | undefined;
   let pending: Promise<ComponentType<P>> | undefined;
+  const listeners = new Set<() => void>();
 
   const preload = () => {
     pending ??= load().then(
-      (component) => (loaded = component),
+      (component) => {
+        loaded = component;
+        for (const listener of listeners) listener();
+        return component;
+      },
       (error: unknown) => {
         pending = undefined;
         throw error;
@@ -41,25 +57,40 @@ export function onDemand<P extends object>(
     return pending;
   };
 
-  function Component(props: P) {
-    // Re-renders once the module arrives; `loaded` holds the component.
-    const [, setArrived] = useState(false);
+  const subscribe = (listener: () => void) => {
+    listeners.add(listener);
+    return () => {
+      listeners.delete(listener);
+    };
+  };
+  const getLoaded = () => loaded;
+
+  function useLoaded(enabled = true, onError?: (error: unknown) => void) {
+    const component = useSyncExternalStore(subscribe, getLoaded, loadedNothing);
+    const report = useRef(onError);
     useEffect(() => {
-      if (loaded) return;
-      let mounted = true;
-      preload().then(
-        () => mounted && setArrived(true),
-        () => undefined,
-      );
+      report.current = onError;
+    });
+    useEffect(() => {
+      if (!enabled || loaded) return;
+      let current = true;
+      preload().catch((error: unknown) => {
+        if (current) report.current?.(error);
+      });
       return () => {
-        mounted = false;
+        current = false;
       };
-    }, []);
-    const Loaded = loaded;
-    return Loaded ? <Loaded {...props} /> : null;
+    }, [enabled]);
+    return component;
   }
 
-  return { preload, Component };
+  function Component(props: P) {
+    const arrived = useLoaded() !== undefined;
+    const Loaded = loaded;
+    return arrived && Loaded ? <Loaded {...props} /> : null;
+  }
+
+  return { preload, Component, useLoaded };
 }
 
 /** How long after mounting a browser without `requestIdleCallback` waits before preloading. */

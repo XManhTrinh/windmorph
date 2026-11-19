@@ -524,14 +524,31 @@ export function Menu({
   // browser's first idle period after mount, or as the pointer moves over the trigger or focus
   // enters it, before the menu opens.
   usePreloadOnIntent(trigger.triggerRef, preloadMenuInPlace, asSheet || replace || contained);
+  const open = trigger.state.isOpen;
+  // Opening loads the code if it isn't in yet; a failed load closes the menu.
+  const reportLoadError = closeOnLoadError(trigger);
+  const sheetIn = menuSheet.useLoaded(asSheet && open, reportLoadError) !== undefined;
+  const inPlaceIn =
+    menuInPlace.useLoaded((replace || contained) && open, reportLoadError) !== undefined;
+  // A sheet renders from its first open on, and stays to play its exits; before that nothing.
+  const [sheetOpened, setSheetOpened] = useState(false);
+  if (asSheet && open && !sheetOpened) setSheetOpened(true);
+  // A popover on demand leaves only if it showed open: one closed while its code was loading
+  // showed nothing, so there's nothing to leave, and its code coming in later must not open
+  // it out of sight, where it took focus and ran keys (2026-11-19).
+  const [shownOpen, setShownOpen] = useState(false);
+  if (inPlaceIn && open && !shownOpen) setShownOpen(true);
+  // An instant menu leaves at once, without waiting for an exit transition.
+  const isPresent = instant ? open : presence.isPresent;
+  const isExiting = !instant && presence.isExiting;
+  if (!isPresent && shownOpen) setShownOpen(false);
   if (asSheet) {
+    if (!sheetIn || !sheetOpened) return null;
     return <menuSheet.Component {...props} trigger={trigger} transition={submenuTransition} />;
   }
-  // An instant menu leaves at once, without waiting for an exit transition.
-  const isPresent = instant ? trigger.state.isOpen : presence.isPresent;
-  const isExiting = !instant && presence.isExiting;
   if (!isPresent) return null;
   if (replace || contained) {
+    if (!inPlaceIn || !(open || shownOpen)) return null;
     return (
       <menuInPlace.Component
         {...props}
@@ -571,6 +588,23 @@ const menuInPlace = onDemand<MenuPopoverInPlaceProps>(() =>
 const menuSheet = onDemand<MenuSheetProps>(() =>
   import('./menu-in-place').then((module) => module.MenuSheet),
 );
+
+/**
+ * What a menu does when the code it opens with (its sheet, its pages in place, its container)
+ * fails to load: it closes, so its trigger isn't left open over nothing, and tries again on the
+ * next open (library-internal).
+ */
+export function closeOnLoadError(trigger: MenuTriggerContextValue) {
+  return (error: unknown) => {
+    if (process.env.NODE_ENV !== 'production') {
+      console.error(
+        "[@windmorph/react] A Menu couldn't load the code it opens with, so it closed; it tries again when it next opens.",
+        error,
+      );
+    }
+    trigger.state.close();
+  };
+}
 
 /** Starts loading the sheet's, the pages' and the container's code, once (library-internal). */
 export const preloadMenuInPlace = () => Promise.all([menuInPlace.preload(), menuSheet.preload()]);

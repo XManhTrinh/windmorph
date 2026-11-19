@@ -60,7 +60,7 @@ async function load() {
     );
   }
 
-  return { EditMenu, Sort, preloadBottomSheet };
+  return { EditMenu, Sort, preloadBottomSheet, preloadMenuInPlace: menu.preloadMenuInPlace };
 }
 
 const finishLoading = () => act(async () => sheetModule.finish());
@@ -133,9 +133,10 @@ describe('lazy bottom sheet', () => {
   });
 
   it('once preloaded, opens in the same pass as the open, with no Suspense delay', async () => {
-    const { EditMenu, preloadBottomSheet } = await load();
+    const { EditMenu, preloadBottomSheet, preloadMenuInPlace } = await load();
     const { rerender } = render(<EditMenu presentation="sheet" open={false} />);
-    const preloaded = preloadBottomSheet();
+    // As the browser's first idle period does: the sheet, and the menu's code for it.
+    const preloaded = Promise.all([preloadBottomSheet(), preloadMenuInPlace()]);
     await finishLoading();
     await act(() => preloaded);
     rerender(<EditMenu presentation="sheet" open />);

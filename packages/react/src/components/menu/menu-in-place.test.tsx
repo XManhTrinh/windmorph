@@ -1,45 +1,69 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import type { ComponentProps } from 'react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { runIdleCallbacks } from '../../../test/setup';
-import { Button } from '../button/Button';
-import { Menu, MenuItem, MenuTrigger, SubmenuTrigger } from './Menu';
 
-// Counts the loads of the module a menu loads on demand, and holds one back when a test asks.
-const loads = vi.hoisted(() => ({ count: 0, gate: Promise.resolve() }));
-vi.mock('./menu-in-place', async (importOriginal) => {
-  loads.count += 1;
-  await loads.gate;
-  return importOriginal();
-});
+// Counts the loads of the module a menu loads on demand; a test can hold one back, or fail it.
+const loads = { count: 0, gate: Promise.resolve(), fail: false };
 
-function Settings(props: Partial<React.ComponentProps<typeof Menu>>) {
-  return (
-    <MenuTrigger>
-      <Button>Settings</Button>
-      <Menu aria-label="Settings" {...props}>
-        <SubmenuTrigger>
-          <MenuItem key="quality">Quality</MenuItem>
-          <Menu>
-            <MenuItem key="auto">Auto</MenuItem>
-            <MenuItem key="hd">1080p</MenuItem>
-          </Menu>
-        </SubmenuTrigger>
-        <MenuItem key="loop">Loop</MenuItem>
-      </Menu>
-    </MenuTrigger>
-  );
+/**
+ * The menu's modules, imported afresh for each test, so each starts with nothing loaded,
+ * whichever ran before it, and each load of the module on demand runs the counting mock again.
+ */
+async function freshMenu() {
+  vi.resetModules();
+  vi.doMock('./menu-in-place', async (importOriginal) => {
+    loads.count += 1;
+    await loads.gate;
+    if (loads.fail) throw new Error('The network is down');
+    return importOriginal();
+  });
+  const [menu, button] = await Promise.all([import('./Menu'), import('../button/Button')]);
+  type MenuProps = Partial<ComponentProps<typeof menu.Menu>>;
+  function Settings({ open, ...props }: MenuProps & { open?: boolean }) {
+    return (
+      <menu.MenuTrigger {...(open !== undefined && { open })}>
+        <button.Button>Settings</button.Button>
+        <menu.Menu aria-label="Settings" {...props}>
+          <menu.SubmenuTrigger>
+            <menu.MenuItem key="quality">Quality</menu.MenuItem>
+            <menu.Menu>
+              <menu.MenuItem key="auto">Auto</menu.MenuItem>
+              <menu.MenuItem key="hd">1080p</menu.MenuItem>
+            </menu.Menu>
+          </menu.SubmenuTrigger>
+          <menu.MenuItem key="loop">Loop</menu.MenuItem>
+        </menu.Menu>
+      </menu.MenuTrigger>
+    );
+  }
+  return Settings;
 }
 
-// Runs in order: the module is loaded once per file.
+/** Holds the next load back until the returned function is called. */
+function holdLoad() {
+  let release = () => {};
+  loads.gate = new Promise<void>((resolve) => (release = resolve));
+  return () => release();
+}
+
+const trigger = () => screen.getByRole('button', { name: 'Settings', hidden: true });
+
+beforeEach(() => {
+  loads.count = 0;
+  loads.gate = Promise.resolve();
+  loads.fail = false;
+});
+
 describe('Menu code loaded on demand', () => {
   it('never loads the pages, the sheet or the container code for a menu with submenus beside it', async () => {
+    const Settings = await freshMenu();
     render(<Settings />);
-    const trigger = screen.getByRole('button', { name: 'Settings' });
     // Neither the idle period nor the pointer or focus on its trigger preloads it.
     runIdleCallbacks();
-    await userEvent.hover(trigger);
-    trigger.focus();
+    await userEvent.hover(trigger());
+    trigger().focus();
     await userEvent.keyboard('{Enter}');
     expect(screen.getByRole('menu', { name: 'Settings' })).toBeInTheDocument();
     await userEvent.keyboard('{ArrowRight}');
@@ -49,21 +73,17 @@ describe('Menu code loaded on demand', () => {
   });
 
   it('loads it when a menu with pages in place first opens, focus on the trigger meanwhile', async () => {
-    let release = () => {};
-    loads.gate = new Promise<void>((resolve) => (release = resolve));
+    const Settings = await freshMenu();
+    const release = holdLoad();
     render(<Settings submenuPresentation="replace" />);
-    const trigger = screen.getByRole('button', { name: 'Settings' });
-    trigger.focus();
+    trigger().focus();
     await userEvent.keyboard('{Enter}');
     // While it loads, nothing shows (never a surface unplaced or of another shape), and focus
     // stays on the open trigger, never on the page.
     expect(loads.count).toBe(1);
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Settings', hidden: true })).toHaveAttribute(
-      'aria-expanded',
-      'true',
-    );
-    expect(trigger).toHaveFocus();
+    expect(trigger()).toHaveAttribute('aria-expanded', 'true');
+    expect(trigger()).toHaveFocus();
     release();
     // Then it opens, its first item focused as on any open.
     await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Quality' })).toHaveFocus());
@@ -72,5 +92,55 @@ describe('Menu code loaded on demand', () => {
       '0',
     );
     expect(loads.count).toBe(1);
+  });
+
+  it('never shows a menu closed before its code came in', async () => {
+    const Settings = await freshMenu();
+    const release = holdLoad();
+    const onAction = vi.fn();
+    const { rerender } = render(
+      <Settings open submenuPresentation="replace" onAction={onAction} />,
+    );
+    trigger().focus();
+    rerender(<Settings open={false} submenuPresentation="replace" onAction={onAction} />);
+    await act(async () => {
+      release();
+      await loads.gate;
+    });
+    await act(() => new Promise((resolve) => setTimeout(resolve, 50)));
+    // Closed, it stays closed: no menu exiting out of sight takes focus or runs keys.
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    expect(trigger()).toHaveFocus();
+    await userEvent.keyboard('{ArrowDown}{Enter}');
+    expect(onAction).not.toHaveBeenCalled();
+  });
+
+  it('closes its trigger when its code fails to load, and loads it again on the next open', async () => {
+    const Settings = await freshMenu();
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    loads.fail = true;
+    render(<Settings submenuPresentation="replace" />);
+    trigger().focus();
+    await userEvent.keyboard('{Enter}');
+    await waitFor(() => expect(trigger()).toHaveAttribute('aria-expanded', 'false'));
+    expect(error).toHaveBeenCalledWith(expect.stringContaining("couldn't load"), expect.any(Error));
+    expect(trigger()).toHaveFocus();
+    // Back online, the next open loads it and shows the menu.
+    loads.fail = false;
+    await userEvent.keyboard('{Enter}');
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Quality' })).toHaveFocus());
+    error.mockRestore();
+  });
+
+  it('loads a sheet menu’s code when the browser is idle, not as the page mounts', async () => {
+    const Settings = await freshMenu();
+    render(<Settings presentation="sheet" />);
+    await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
+    expect(loads.count).toBe(0);
+    runIdleCallbacks();
+    await waitFor(() => expect(loads.count).toBe(1));
+    trigger().focus();
+    await userEvent.keyboard('{Enter}');
+    expect(await screen.findByRole('dialog', { name: 'Settings' })).toBeInTheDocument();
   });
 });
