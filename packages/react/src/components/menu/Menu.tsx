@@ -416,9 +416,12 @@ export interface MenuProps
    * `ThemeScope`, density and direction of where it's declared. Give the element
    * `position: relative`, keep the trigger inside it or along its edge, and pass the element
    * from a callback ref kept in state. It must draw its children (not a `<video>`, `<canvas>`
-   * or `<img>`). Popovers only: a bottom sheet opens over the window (and inside the element
-   * in full screen, as every overlay does). The page's `body` or `<html>` counts as no element:
-   * the menu opens in `body`, kept in the window. Set it on the root menu.
+   * or `<img>`). Submenus beside the menu are kept within it as far as they can shift: in an
+   * element too narrow for one on either side of the menu, a submenu runs past its edge, so
+   * use `submenuPresentation="replace"` for a small element. Popovers only: a bottom sheet
+   * opens over the window (and inside the element in full screen, as every overlay does). The
+   * page's `body` or `<html>` counts as no element: the menu opens in `body`, kept in the
+   * window. Set it on the root menu.
    */
   portalContainer?: Element | null;
   /**

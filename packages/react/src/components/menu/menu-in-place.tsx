@@ -93,8 +93,8 @@ export type MenuSheetProps = MenuShownProps & {
  * The menu in a modal bottom sheet (M3: menus can adapt into bottom sheets on small
  * screens). The sheet is a dialog named like the menu; the menu inside keeps its role,
  * keyboard, typeahead and initial focus, and spans the sheet without a surface of its own.
- * Its submenus show in place of the menu. The sheet's own code loads on first open (or when
- * the trigger is hovered or focused), after this module.
+ * Its submenus show in place of the menu. The bottom sheet's own code loads with this module:
+ * both start as the menu first opens (or when the trigger is hovered or focused).
  */
 export function MenuSheet({
   trigger,
