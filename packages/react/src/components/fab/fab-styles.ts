@@ -68,7 +68,7 @@ export const fabStyles = tv({
       'bg-[var(--_md-comp-fab-container-color)] text-[color:var(--_md-comp-fab-icon-color)]',
       'rounded-[var(--_md-comp-fab-container-shape)]',
     ],
-    icon: 'inline-flex shrink-0 items-center justify-center [&>svg]:size-full [&>:only-child]:size-full',
+    icon: 'inline-flex shrink-0 items-center justify-center [&>svg]:size-full [&>:only-child:has(>svg)]:size-full',
   },
   variants: {
     color: colors,
@@ -96,7 +96,7 @@ export const extendedFabStyles = tv({
     ],
     // Library-owned inner wrapper for the icon and the collapsing label.
     content: 'inline-flex items-center',
-    icon: 'inline-flex shrink-0 items-center justify-center [&>svg]:size-full [&>:only-child]:size-full',
+    icon: 'inline-flex shrink-0 items-center justify-center [&>svg]:size-full [&>:only-child:has(>svg)]:size-full',
     // The label's box animates its width in px between 0 and the label's measured width
     // (2026-10-17, as Compose lerps the width), so the FAB's width follows it with the fast
     // spatial spring's overshoot, which a 0fr ↔ 1fr track couldn't show. Before it is

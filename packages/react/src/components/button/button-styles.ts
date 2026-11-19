@@ -138,7 +138,7 @@ export const buttonStyles = tv({
     // (2026-10-15).
     content: 'relative inline-flex shrink-0 items-center justify-center',
     label: 'min-w-0',
-    icon: 'inline-flex shrink-0 items-center justify-center [&>svg]:size-full [&>:only-child]:size-full',
+    icon: 'inline-flex shrink-0 items-center justify-center [&>svg]:size-full [&>:only-child:has(>svg)]:size-full',
   },
   variants: {
     variant: {

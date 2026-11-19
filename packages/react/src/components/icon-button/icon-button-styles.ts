@@ -170,7 +170,7 @@ export const iconButtonStyles = tv({
     ],
     // Library-owned inner wrapper: holds the icon and the touch target.
     content: 'relative inline-flex items-center justify-center',
-    icon: 'inline-flex shrink-0 items-center justify-center [&>svg]:size-full [&>:only-child]:size-full',
+    icon: 'inline-flex shrink-0 items-center justify-center [&>svg]:size-full [&>:only-child:has(>svg)]:size-full',
   },
   variants: {
     variant: {

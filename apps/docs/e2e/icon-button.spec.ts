@@ -106,6 +106,48 @@ test.describe('IconButton interaction states', () => {
     }
   });
 
+  test("a badged icon keeps its badge on the icon's corner, at every size", async ({ page }) => {
+    await openStory(page, 'components-iconbutton--wrapped-icon');
+    const buttons = page.getByTestId('badged').getByRole('button');
+    await expect(buttons).toHaveCount(3);
+    const offsets = [];
+    for (const button of await buttons.all()) {
+      offsets.push(
+        await button.evaluate((element) => {
+          const icon = element.querySelector('svg')!.getBoundingClientRect();
+          const badge = element
+            .querySelector('[data-tokens~="md-comp-badge"]')!
+            .getBoundingClientRect();
+          // The badge from the icon's top end corner, as in a 24px slot.
+          return { icon: icon.width, end: badge.left - icon.right, top: badge.bottom - icon.top };
+        }),
+      );
+    }
+    for (const offset of offsets) expect(offset).toEqual(offsets[0]);
+    expect(offsets[0]!.icon).toBe(24);
+  });
+
+  test('a single text child keeps its size and stays centred', async ({ page }) => {
+    await openStory(page, 'components-iconbutton--wrapped-icon');
+    const buttons = page.getByTestId('text').getByRole('button');
+    await expect(buttons).toHaveCount(3);
+    for (const button of await buttons.all()) {
+      const centres = await button.evaluate((element) => {
+        const text = element.querySelector('span:not(:has(*))')!;
+        const slot = text.parentElement!.getBoundingClientRect();
+        const box = text.getBoundingClientRect();
+        return {
+          slot: [slot.left + slot.width / 2, slot.top + slot.height / 2],
+          text: [box.left + box.width / 2, box.top + box.height / 2],
+          width: [box.width, slot.width],
+        };
+      });
+      expect(centres.text[0]).toBeCloseTo(centres.slot[0]!, 1);
+      expect(centres.text[1]).toBeCloseTo(centres.slot[1]!, 1);
+      expect(centres.width[0]).toBeLessThan(centres.width[1]!);
+    }
+  });
+
   test('toggle swaps icon and shape', async ({ page }) => {
     await openStory(page, 'components-iconbutton--toggle');
     const toggle = page.getByRole('button', { name: 'Favourite' });
