@@ -61,6 +61,7 @@ export {
   useTriggerProps,
   type TriggerContextValue,
 } from './primitives/TriggerContext';
+export { formatClock, formatDurationWords } from './primitives/format-duration';
 export { usePresence } from './primitives/use-presence';
 export { useRevealEntering } from './components/menu/use-reveal-entering';
 export { toAriaPlacement } from './utils/placement';

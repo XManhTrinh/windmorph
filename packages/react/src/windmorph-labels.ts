@@ -7,6 +7,7 @@ import type { DateFieldLabels } from './components/date-picker/DateField';
 import type { DatePickerLabels } from './components/date-picker/DatePicker';
 import type { PickerDialogLabels } from './components/date-picker/PickerDialog';
 import type { DialogHeaderLabels } from './components/dialog/Dialog';
+import type { ListItemVideoLabels } from './components/list/ListMedia';
 import type { MenuLabels } from './components/menu/Menu';
 import type { PullToRefreshLabels } from './components/pull-to-refresh/PullToRefresh';
 import type { SearchFieldLabels } from './components/search/SearchField';
@@ -66,6 +67,8 @@ export interface WindmorphLabels {
   DatePicker?: Partial<DatePickerLabels>;
   /** `DialogHeader`'s words. @default each word's English default */
   DialogHeader?: Partial<DialogHeaderLabels>;
+  /** `ListItemVideo`'s words. @default each word's English default */
+  ListItemVideo?: Partial<ListItemVideoLabels>;
   /** `Menu`'s words. @default each word's English default */
   Menu?: Partial<MenuLabels>;
   /** `PickerDialog`'s words. @default each word's English default */
