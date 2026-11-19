@@ -55,6 +55,20 @@ describe('DatePicker', () => {
     expect(screen.getByText('4 Sept 2030')).toHaveClass('text-headline-large');
   });
 
+  // The tag React Aria gets there (`ar-Latn-EG`) writes Latin digits, so its day numbers were.
+  it('writes its days in the page’s digits inside a region of the other direction', () => {
+    render(
+      <I18nProvider locale="ar-EG">
+        <div dir="ltr" style={{ direction: 'ltr' }}>
+          <DatePicker defaultValue={new CalendarDate(2030, 9, 4)} />
+        </div>
+      </I18nProvider>,
+    );
+    const days = [...document.querySelectorAll('[data-slot="day"]')].map((day) => day.textContent);
+    expect(days).toContain('٤');
+    expect(days.join('')).not.toMatch(/[0-9]/);
+  });
+
   it('names its weekdays in the page’s script inside a region of the other direction', () => {
     // Serbian in Latin script; the language in another script falls back to Cyrillic.
     render(
@@ -297,6 +311,30 @@ describe('DateRangePicker', () => {
       'data-[range=middle]:bg-[image:var(--_md-comp-date-picker-modal-range-middle)]',
     );
     expect(await axeViolations(container)).toEqual([]);
+  });
+
+  // A region laid out the other way gives React Aria the locale in another script
+  // (`sr-Arab-RS`), which falls back to Serbian's Cyrillic month and weekday names.
+  it('writes its headline and months in the page’s script inside a region of the other direction', () => {
+    const { container } = render(
+      <I18nProvider locale="sr-Latn-RS">
+        <div dir="rtl" style={{ direction: 'rtl' }}>
+          <DateRangePicker
+            defaultValue={{
+              start: new CalendarDate(2030, 9, 4),
+              end: new CalendarDate(2030, 9, 6),
+            }}
+            min={new CalendarDate(2030, 9, 1)}
+            max={new CalendarDate(2030, 10, 31)}
+          />
+        </div>
+      </I18nProvider>,
+    );
+    // The headline (month and day) and the scrolling list's subheads and weekdays.
+    expect(screen.getByText(/^4\. sep/)).toBeInTheDocument();
+    expect(screen.getAllByText(/^septembar 2030/).length).toBeGreaterThan(0);
+    // React Aria's own announcements, outside the picker, follow its locale.
+    expect(container.textContent).not.toMatch(/[\u0400-\u04FF]/);
   });
 
   // Compose: while a new range is picked, the headline shows its start and an open end.

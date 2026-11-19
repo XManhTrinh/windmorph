@@ -20,8 +20,9 @@ const RTL_SNIPPET = `import { DomDirectionLocale, localeWithDirection } from '@w
 // React Aria takes keyboard direction from its locale, not the DOM dir. DomDirectionLocale
 // reads an element's computed direction and, when it differs from the locale, supplies a
 // same-language locale with the matching script (en-US -> en-Arab-US for RTL, ar -> ar-Latn
-// for LTR) that keeps its digits, hour cycle and calendar (ar-EG -> ar-Latn-EG-u-nu-arab).
-// The components inside still write and read dates, times and numbers in the page's locale,
+// for LTR) that keeps its hour cycle and calendar (zh-Hant-TW -> zh-Arab-TW-u-hc-h12). Its
+// digits are the new script's (ar-EG -> ar-Latn-EG), so React Aria inputs there read Latin
+// ones. The components inside still write and read dates, times and numbers in the page's locale,
 // which useLocale() gives your own formatting there.
 <DomDirectionLocale>
   {(directionRef) => <ul ref={directionRef}>{/* list items */}</ul>}

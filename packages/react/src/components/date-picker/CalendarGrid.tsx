@@ -128,8 +128,15 @@ function CalendarCell({
     isDisabled,
     isUnavailable,
     isPressed,
-    formattedDate,
   } = useCalendarCell({ date }, state, ref);
+  // The day in the page's digits, as React Aria writes it (its calendar, the state's time zone):
+  // React Aria's own `formattedDate` is in its locale, which in a region laid out the other way
+  // takes the new script's digits (`ar-Latn-EG` writes an Arabic page's days in Latin ones).
+  const dayFormat = usePageDateFormatter({
+    day: 'numeric',
+    timeZone: state.timeZone,
+    calendar: date.calendar.identifier,
+  });
   // Days of the months around this one (the docked picker shows them) can't be chosen.
   const isOutside = isOutsideVisibleRange || !isSameMonth(date, shownMonth);
   const disabled = isDisabled || isUnavailable;
@@ -168,7 +175,7 @@ function CalendarCell({
         data-outside={isOutside || undefined}
         className={styles.day({ class: className })}
       >
-        {formattedDate}
+        {dayFormat.format(date.toDate(state.timeZone))}
       </div>
     </td>
   );
