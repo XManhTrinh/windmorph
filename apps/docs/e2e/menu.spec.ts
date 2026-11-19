@@ -1490,6 +1490,32 @@ test.describe('Menu in place: loaded on demand', () => {
     });
   }
 
+  test('an arrow key on the trigger while its code loads keeps it open, then focuses the item it asked for', async ({
+    page,
+  }) => {
+    let release = () => {};
+    const waiting = new Promise<void>((resolve) => (release = resolve));
+    let asked = () => {};
+    const requested = new Promise<void>((resolve) => (asked = resolve));
+    await page.route(CHUNK, async (route) => {
+      asked();
+      await waiting;
+      await route.continue();
+    });
+    await openStory(page, PLAYER);
+    const trigger = page.getByRole('button', { name: 'Settings' });
+    await trigger.focus();
+    await page.keyboard.press('Enter');
+    await requested;
+    await page.keyboard.press('ArrowUp');
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    await page.keyboard.press('ArrowDown');
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    release();
+    // ↓ came last: the first item.
+    await expect(page.getByRole('menuitem', { name: /^Quality/ })).toBeFocused();
+  });
+
   test('a menu whose code fails to load closes, and loads it on the next open', async ({
     page,
   }) => {
