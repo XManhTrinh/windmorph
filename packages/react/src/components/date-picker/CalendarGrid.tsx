@@ -159,7 +159,15 @@ function CalendarCell({
   const native = date.toDate(state.timeZone);
   const ariaDate = ariaName.format(native);
   const label = buttonProps['aria-label'];
-  const name = label?.includes(ariaDate) ? label.replace(ariaDate, pageName.format(native)) : label;
+  // The last copy: a range's ends are named "<the range>, <the day>", and the range can hold the
+  // same words.
+  const at = label?.lastIndexOf(ariaDate) ?? -1;
+  const name =
+    label && at >= 0
+      ? label.slice(0, at) + pageName.format(native) + label.slice(at + ariaDate.length)
+      : label;
+  // Only the day part, as React Aria shows it: a whole formatted day is "4日" in Japanese.
+  const day = dayFormat.formatToParts(native).find((part) => part.type === 'day')?.value;
   // Days of the months around this one (the docked picker shows them) can't be chosen.
   const isOutside = isOutsideVisibleRange || !isSameMonth(date, shownMonth);
   const disabled = isDisabled || isUnavailable;
@@ -199,7 +207,7 @@ function CalendarCell({
         data-outside={isOutside || undefined}
         className={styles.day({ class: className })}
       >
-        {dayFormat.format(native)}
+        {day}
       </div>
     </td>
   );

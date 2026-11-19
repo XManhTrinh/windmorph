@@ -69,6 +69,18 @@ describe('DatePicker', () => {
     expect(days.join('')).not.toMatch(/[0-9]/);
   });
 
+  // React Aria shows only the day part of the date: a whole formatted day is "4日" in Japanese.
+  it('shows only the day’s number, in a locale that writes a day with a word', () => {
+    render(
+      <I18nProvider locale="ja-JP">
+        <DatePicker defaultValue={new CalendarDate(2030, 9, 4)} />
+      </I18nProvider>,
+    );
+    const days = [...document.querySelectorAll('[data-slot="day"]')].map((day) => day.textContent);
+    expect(days).toContain('4');
+    expect(days.join('')).not.toContain('日');
+  });
+
   // A day's name came from React Aria's tag (`ar-Latn-EG`) with a Latin 4 while it showed ٤, so
   // the name didn't contain the visible label (WCAG 2.5.3).
   it('names each day with the digits it shows inside a region of the other direction', () => {
@@ -356,6 +368,42 @@ describe('DateRangePicker', () => {
     expect(screen.getAllByText(/^septembar 2030/).length).toBeGreaterThan(0);
     // React Aria's own announcements, outside the picker, follow its locale.
     expect(container.textContent).not.toMatch(/[\u0400-\u04FF]/);
+  });
+
+  // A range's first and last days are named "<the range>, <the day>", the range naming both days,
+  // so the day's own date is the last one in the name, written as the page writes it.
+  it('names a range’s ends with their own date in the page’s locale inside a region of the other direction', () => {
+    render(
+      <I18nProvider locale="en-GB">
+        <div dir="rtl" style={{ direction: 'rtl' }}>
+          <DateRangePicker
+            monthLayout="paged"
+            defaultValue={{
+              start: new CalendarDate(2030, 9, 4),
+              end: new CalendarDate(2030, 9, 6),
+            }}
+          />
+        </div>
+      </I18nProvider>,
+    );
+    const named = new Intl.DateTimeFormat('en-GB', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+    for (const [day, date] of [
+      ['4', new Date(2030, 8, 4)],
+      ['6', new Date(2030, 8, 6)],
+    ] as const) {
+      const cell = [...document.querySelectorAll('[data-slot="day"]:not([data-outside])')].find(
+        (element) => element.textContent === day,
+      )!;
+      // The range's words stay React Aria's; the day's own date, last, is the page's.
+      expect(cell.getAttribute('aria-label')).toMatch(
+        new RegExp(`, ${named.format(date)} selected$`),
+      );
+    }
   });
 
   // Compose: while a new range is picked, the headline shows its start and an open end.
