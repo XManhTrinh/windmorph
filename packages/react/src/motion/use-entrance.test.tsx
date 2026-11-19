@@ -1,5 +1,5 @@
 import { act, cleanup, render } from '@testing-library/react';
-import { Profiler, StrictMode, useEffect, useRef } from 'react';
+import { Activity, Profiler, StrictMode, useEffect, useRef } from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot, hydrateRoot } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
@@ -140,7 +140,7 @@ describe('useEntrance', () => {
     expect(seen).not.toContain(false);
   });
 
-  it('stays entered when reduced motion is turned off', () => {
+  it('stays entered when the reduced-motion value it reads changes, as on a remount', () => {
     reducedMotion.value = true;
     const { container, rerender } = render(<Chart />);
     expect(box(container)).toHaveAttribute('data-entered', 'true');
@@ -359,6 +359,37 @@ describe('useEntrance', () => {
       act(() => window.dispatchEvent(new Event('afterprint')));
       expect(box(section)).toHaveAttribute('data-in-view', 'true');
     } finally {
+      act(() => root.unmount());
+      section.remove();
+    }
+  });
+
+  it('enters a hidden print view an app shows from its beforeprint, its effect starting in the print', async () => {
+    // One already on the page, so the print is under way when the hidden one shows.
+    render(<Chart />);
+    const section = document.createElement('div');
+    document.body.append(section);
+    const root = createRoot(section);
+    // Mounted hidden, before any print: it waits in its start state, its effects not yet run.
+    const view = (mode: 'hidden' | 'visible') => (
+      <Activity mode={mode}>
+        <Chart />
+      </Activity>
+    );
+    act(() => root.render(view('hidden')));
+    const show = () => flushSync(() => root.render(view('visible')));
+    window.addEventListener('beforeprint', show);
+    try {
+      outsideAct(() => window.dispatchEvent(new Event('beforeprint')));
+      // Its effect starts as it shows, after the print's broadcast went out: it enters then.
+      await vi.waitFor(() => expect(box(section)).toHaveAttribute('data-entered', 'true'));
+      expect(box(section)).toHaveAttribute('data-in-view', 'false');
+      act(() => window.dispatchEvent(new Event('afterprint')));
+      // And it isn't left waiting for good: scrolled to after the print, it shows entered.
+      place({ visible: true, ratio: 1, inside: true });
+      expect(box(section)).toHaveAttribute('data-entered', 'true');
+    } finally {
+      window.removeEventListener('beforeprint', show);
       act(() => root.unmount());
       section.remove();
     }

@@ -20,8 +20,10 @@ export interface EntranceResult {
    * Whether the element shows its final state. `false` only while an entrance is waiting to
    * play: show the start state (bars at their baseline, a number at its start). It turns `true`
    * once, as the element first comes into view or the page is printed; under reduced motion it is
-   * always `true`, and stays so when reduced motion is turned off, so nothing waits at its start
-   * to jump in (a fade-in waiting for it doesn't play either).
+   * always `true`, so nothing waits at its start to jump in (a fade-in waiting for it doesn't
+   * play either). The preference is read as the element mounts (Motion's `useReducedMotion`
+   * doesn't follow a change), so a new setting reaches it on a remount; once entered under
+   * reduced motion, it stays entered.
    */
   entered: boolean;
   /**
@@ -138,8 +140,8 @@ export function useEntrance(
   // Hydrated: the first report decides, once, whether it showed its final picture already.
   const hydrating = useRef(!mountedInBrowser);
   // Under reduced motion nothing waits at its start state: an entrance would only jump in. It
-  // enters for good (here, and as done in the effect), so turning reduced motion off never
-  // sends it back.
+  // enters for good (here, and as done in the effect), so a later value of the preference (read
+  // at mount by Motion) never sends it back.
   const reducedMotion = useReducedMotion() === true;
   if (reducedMotion && !entered) setEntered(true);
 
@@ -155,9 +157,8 @@ export function useEntrance(
     let whole = false;
     let inside = false;
     let onScreenNow = false;
-    // Mounted during a print: entered for good, and out of view until it ends.
-    let printingNow = isPrinting();
-    if (printingNow || reducedMotion) {
+    let printingNow = false;
+    if (reducedMotion) {
       done.current = true;
       hydrating.current = false;
     }
@@ -215,6 +216,9 @@ export function useEntrance(
         setInView(onScreenNow);
       }
     };
+    // Started during a print (mounted then, or shown by an app's `beforeprint`, as a hidden
+    // `Activity`): that print's broadcast went out before this listener, so it enters now.
+    if (isPrinting()) print(true);
     onScreen.observe(element);
     pastEdge.observe(element);
     document.addEventListener('visibilitychange', enter);
