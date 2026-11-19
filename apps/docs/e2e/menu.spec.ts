@@ -1303,6 +1303,55 @@ test.describe('Menu in an element partly off screen', () => {
     expect(item!.y).toBeGreaterThanOrEqual(shown);
     expect(surface!.y + surface!.height).toBeLessThanOrEqual(trigger!.y - 8 + 0.5);
   });
+
+  test('the window gets shorter while it is open: the menu shrinks to fit, as it would open', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 900, height: 800 });
+    await openPlayer(page, {}, { corner: 'top' });
+    await page.setViewportSize({ width: 900, height: 300 });
+    await settle(page);
+    const surface = (await page.locator('[data-level]').boundingBox())!;
+    // Kept 12px inside the window, as a menu opened at this size is.
+    expect(surface.y + surface.height).toBeLessThanOrEqual(300 - 12 + 0.5);
+    await page.keyboard.press('End');
+    const last = page.getByRole('menuitemcheckbox', { name: 'Loop' });
+    await expect(last).toBeFocused();
+    await settle(page);
+    const item = (await last.boundingBox())!;
+    expect(item.y + item.height).toBeLessThanOrEqual(300 - 12 + 0.5);
+    // The same height as the menu opened at this size.
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('menu')).toHaveCount(0);
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await settle(page);
+    expect((await page.locator('[data-level]').boundingBox())!.height).toBeCloseTo(
+      surface.height,
+      0,
+    );
+  });
+
+  test('the pane scrolls while it is open: the next page stays within what shows of it', async ({
+    page,
+  }) => {
+    await openPlayer(page);
+    const pane = page.getByTestId('pane');
+    await pane.evaluate((el) => (el.scrollTop = 150));
+    await expect.poll(() => pane.evaluate((el) => el.scrollTop)).toBe(150);
+    await frames(page, 2);
+    await page.getByRole('menuitem', { name: /^Quality/ }).focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(page.getByRole('menuitemradio', { name: 'Auto' })).toBeFocused();
+    await settle(page);
+    const [shown, surface, back] = await Promise.all([
+      pane.boundingBox(),
+      page.locator('[data-level]').boundingBox(),
+      page.getByRole('button', { name: 'Back' }).boundingBox(),
+    ]);
+    // Kept 12px inside the pane's visible box, its back row in sight.
+    expect(surface!.y).toBeGreaterThanOrEqual(shown!.y + 12 - 0.5);
+    expect(back!.y).toBeGreaterThanOrEqual(shown!.y);
+  });
 });
 
 test.describe('Menu in place: loaded on demand', () => {

@@ -16,7 +16,6 @@ import {
   type ReactElement,
   type ReactNode,
 } from 'react';
-import { flushSync } from 'react-dom';
 import { mergeProps, useButton, useLocale } from 'react-aria';
 import { DRAWS_NO_CHILDREN, Overlay } from '../../primitives/Overlay';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
@@ -218,33 +217,6 @@ export function MenuPopoverInPlace(props: MenuPopoverInPlaceProps) {
   );
 }
 
-/**
- * Places a menu again when its `portalContainer` resizes without the window. React Aria places
- * a popover again on a window resize and on its own or its trigger's, but not when a container
- * resizes and moves the trigger without resizing it, and `usePopover` doesn't return
- * `updatePosition`. So as the container resizes, its `shouldUpdatePosition` turns off and on
- * again, each committed at once, before the paint: the change re-runs its positioning effect.
- */
-function usePlaceAgainOnResize(boundary: Element | null) {
-  const [placing, setPlacing] = useState(true);
-  useEffect(() => {
-    if (!boundary || typeof ResizeObserver === 'undefined') return;
-    let observed = false;
-    const observer = new ResizeObserver(() => {
-      // The first call reports the size the container has as it's observed.
-      if (!observed) {
-        observed = true;
-        return;
-      }
-      flushSync(() => setPlacing(false));
-      flushSync(() => setPlacing(true));
-    });
-    observer.observe(boundary);
-    return () => observer.disconnect();
-  }, [boundary]);
-  return placing;
-}
-
 function PopoverInPlace({
   trigger,
   instant,
@@ -273,9 +245,8 @@ function PopoverInPlace({
   // trigger it opened on: a taller page grows away from the trigger (and its list scrolls if it
   // runs out of room) instead of jumping across it mid-change.
   const [heldSide, setHeldSide] = useState<string | null>(null);
-  const placing = usePlaceAgainOnResize(boundary);
   // Placed before React Aria places the popover (declared before `useMenuPopover`).
-  const boundaryElement = useBoundaryInContainer(boundary, popoverRef, placing);
+  const { boundaryElement, placing } = useBoundaryInContainer(boundary, popoverRef);
   const submenuBoundary = useBoundaryForSubmenus(replace ? null : boundary, popoverRef);
   const popover = useMenuPopover(
     trigger,

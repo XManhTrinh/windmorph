@@ -1,6 +1,7 @@
 'use client';
 
-import { useLayoutEffect, useState, type RefObject } from 'react';
+import { useCallback, useLayoutEffect, useState, type RefObject } from 'react';
+import { flushSync } from 'react-dom';
 
 /**
  * The element a popover is placed against, as React Aria finds it: its offset parent, or the
@@ -27,10 +28,10 @@ function paddingBox(element: Element) {
 /**
  * What can show of `boundary`'s padding box, in the window's coordinates: cut by every ancestor
  * that clips its content (a scroll pane, `overflow: hidden`), on the axes it clips, up to the
- * first `fixed` one, and by the visual viewport. React Aria keeps a menu within the window only in the window's coordinates,
- * which a stand-in in a container's coordinates doesn't share, so a menu in a player partly
- * above the window was placed above it, out of reach while the page's scroll is locked
- * (2026-11-19): the stand-in is only what shows.
+ * first `fixed` one, and by the visual viewport. React Aria keeps a menu within the window only
+ * in the window's coordinates, which a stand-in in a container's coordinates doesn't share, so
+ * a menu in a player partly above the window was placed above it, out of reach while the page's
+ * scroll is locked (2026-11-19): the stand-in is only what shows.
  */
 function shownRect(boundary: Element) {
   const page = boundary.ownerDocument;
@@ -74,8 +75,8 @@ function shownRect(boundary: Element) {
 
 /**
  * The element to hand React Aria as a popover's `boundaryElement` to keep it within `boundary`
- * (a menu's `portalContainer`). It's placed before React Aria places the popover, on each layout
- * pass in which `version` changes (the boundary resized), so declare it before `usePopover`.
+ * (a menu's `portalContainer`), and `placing`, its `shouldUpdatePosition`. Declare it before
+ * `usePopover`: the stand-in is placed before React Aria places the popover, in the same pass.
  *
  * React Aria (3.53) measures a custom boundary in the page's coordinates but the popover in its
  * containing block's, and adds the two when the boundary holds that block (as a
@@ -84,17 +85,31 @@ function shownRect(boundary: Element) {
  * its trigger was capped 48px short, and in right to left one sat 552px off its trigger, past
  * the player's edge). So it's handed a stand-in: a hidden box placed in the page where what
  * shows of the boundary's padding box (`shownRect`) sits in the popover's containing block, at
- * that size, which its sums read as the boundary. With the page as the containing block (a static container), that's the boundary's
- * own place. The popover must be `position: absolute` from its first placement (React Aria
- * starts it `fixed`, whose containing block is the page's), so both count from the same block.
+ * that size, which its sums read as the boundary. With the page as the containing block (a
+ * static container), that's the boundary's own place. The popover must be `position: absolute`
+ * from its first placement (React Aria starts it `fixed`, whose containing block is the page's),
+ * so both count from the same block.
+ *
+ * What shows changes without React Aria knowing, so the stand-in follows it:
+ * - the window or the visual viewport resizes: React Aria places the popover again then, so the
+ *   stand-in is placed first (these listeners are registered in a layout effect declared before
+ *   React Aria's own, which come after them) and the popover placed again with it (a window
+ *   getting shorter left a menu its old height, past the window's edge, 2026-11-19);
+ * - the container resizes without the window: React Aria doesn't place the popover again (the
+ *   container moved the trigger without resizing it), and `usePopover` doesn't return
+ *   `updatePosition`, so `placing` turns off and on, each committed at once, before the paint,
+ *   which re-runs its positioning effect;
+ * - something around it scrolls (a pane): the popover moves with the container and keeps its
+ *   place, so only the stand-in moves, for React Aria's next placement (a page opened after the
+ *   pane scrolled went 79px above the pane's visible top, 2026-11-19).
  */
 export function useBoundaryInContainer(
   boundary: Element | null,
   popoverRef: RefObject<HTMLElement | null>,
-  version: unknown,
-): Element | null {
+): { boundaryElement: Element | null; placing: boolean } {
   const standIn = useStandIn();
-  useLayoutEffect(() => {
+  const [placing, setPlacing] = useState(true);
+  const place = useCallback(() => {
     const popover = popoverRef.current;
     if (!standIn) return;
     if (!boundary || !popover) {
@@ -102,8 +117,45 @@ export function useBoundaryInContainer(
       return;
     }
     placeStandIn(standIn, boundary, containingBlock(popover));
-  }, [boundary, popoverRef, standIn, version]);
-  return boundary ? standIn : null;
+  }, [boundary, popoverRef, standIn]);
+  // On each layout pass in which `placing` changes, and when the boundary does.
+  useLayoutEffect(place, [place, placing]);
+  useLayoutEffect(() => {
+    const view = boundary?.ownerDocument.defaultView;
+    if (!boundary || !view) return;
+    const placeAgain = () => {
+      place();
+      flushSync(() => setPlacing(false));
+      flushSync(() => setPlacing(true));
+    };
+    const viewport = view.visualViewport;
+    view.addEventListener('resize', placeAgain);
+    viewport?.addEventListener('resize', placeAgain);
+    // Scroll events don't bubble: a pane's reach the document only on the capture phase.
+    view.document.addEventListener('scroll', place, { capture: true, passive: true });
+    viewport?.addEventListener('scroll', place, { passive: true });
+    let observer: ResizeObserver | undefined;
+    if (typeof ResizeObserver !== 'undefined') {
+      let observed = false;
+      observer = new ResizeObserver(() => {
+        // The first call reports the size the container has as it's observed.
+        if (!observed) {
+          observed = true;
+          return;
+        }
+        placeAgain();
+      });
+      observer.observe(boundary);
+    }
+    return () => {
+      view.removeEventListener('resize', placeAgain);
+      viewport?.removeEventListener('resize', placeAgain);
+      view.document.removeEventListener('scroll', place, { capture: true });
+      viewport?.removeEventListener('scroll', place);
+      observer?.disconnect();
+    };
+  }, [boundary, place]);
+  return { boundaryElement: boundary ? standIn : null, placing };
 }
 
 /**
