@@ -297,7 +297,8 @@ function TimeFieldInner({
   // Open with nothing in the page yet: Escape, a press outside the field and focus leaving it
   // close the picker, so its code coming in opens nothing, and the button names no list.
   const waiting = overlay.isOpen && !(docked ? listIn : dialogIn);
-  useDismissWhileLoading(fieldRef, waiting, overlay.close);
+  // Typing in the text box moves on too, under the modal dialog (the docked list follows it).
+  useDismissWhileLoading(fieldRef, waiting, overlay.close, { closeOnInput: !docked });
 
   const outOfRange = (time: Time) =>
     (min !== undefined && time.compare(min) < 0) || (max !== undefined && time.compare(max) > 0);

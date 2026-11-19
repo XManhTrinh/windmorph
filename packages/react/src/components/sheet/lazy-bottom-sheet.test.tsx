@@ -178,7 +178,7 @@ describe('lazy bottom sheet', () => {
   });
 
   it('closes a sheet select opened while its sheet loads on Escape, a press outside or focus moving on', async () => {
-    const { Sort } = await load();
+    const { Sort, preloadBottomSheet } = await load();
     render(
       <>
         <Sort presentation="sheet" />
@@ -204,8 +204,13 @@ describe('lazy bottom sheet', () => {
     await userEvent.tab();
     expect(elsewhere).toHaveFocus();
     expect(sortField()).toHaveAttribute('aria-expanded', 'false');
-    // The sheet coming in later opens nothing and leaves focus where it went.
-    await finishLoading();
+    // The sheet coming in later (the load itself, awaited) opens nothing and leaves focus where
+    // it went.
+    await act(async () => {
+      sheetModule.finish();
+      await preloadBottomSheet();
+    });
+    expect(sortField()).toHaveAttribute('aria-expanded', 'false');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(elsewhere).toHaveFocus();
   });

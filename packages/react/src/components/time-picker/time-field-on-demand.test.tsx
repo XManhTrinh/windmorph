@@ -1,16 +1,34 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setMediaQueries } from '../../../test/setup';
 import { COMPACT_WINDOW } from '../date-picker/use-media-query';
+import type * as LoadOnDemand from '../../utils/load-on-demand';
+import type { OnDemandComponent } from '../../utils/load-on-demand';
+import type { TimeField as TimeFieldComponent } from './TimeField';
 
 // The field's dialog and docked list, loaded on demand; a test can hold their loads back, or
 // fail them.
 const parts = { fail: false, gate: Promise.resolve() };
+/** The parts loaded on demand, with their loaders' source. */
+const made: { source: string; part: OnDemandComponent<object> }[] = [];
+/** The part whose loader imports `module`. */
+const partOf = (module: string) => made.find(({ source }) => source.includes(module))!.part;
+let TimeField: typeof TimeFieldComponent;
 
-/** The field's modules, imported afresh, so each test starts with nothing loaded. */
-async function freshTimeField() {
+// The field's modules, imported afresh once for the file: each test uses its own part, which
+// starts with nothing loaded.
+beforeAll(async () => {
   vi.resetModules();
+  vi.doMock('../../utils/load-on-demand', async (importOriginal) => {
+    const original = await importOriginal<typeof LoadOnDemand>();
+    const onDemand: typeof original.onDemand = (load) => {
+      const part = original.onDemand(load);
+      made.push({ source: String(load), part: part as unknown as OnDemandComponent<object> });
+      return part;
+    };
+    return { ...original, onDemand };
+  });
   for (const part of ['./TimeFieldDialog', './TimeFieldList']) {
     vi.doMock(part, async (importOriginal) => {
       await parts.gate;
@@ -18,8 +36,8 @@ async function freshTimeField() {
       return importOriginal();
     });
   }
-  return (await import('./TimeField')).TimeField;
-}
+  ({ TimeField } = await import('./TimeField'));
+});
 
 /** The times the field said its code failed to load (React's own warnings aside). */
 const loadErrors = (error: { mock: { calls: unknown[][] } }) =>
@@ -33,30 +51,8 @@ beforeEach(() => {
 
 describe('TimeField code loaded on demand', () => {
   for (const presentation of ['dialog', 'docked'] as const) {
-    it(`closes its ${presentation} picker when its code fails to load, and loads it on the next open`, async () => {
-      const TimeField = await freshTimeField();
+    it(`closes its ${presentation} picker on a failed load and, while it loads, on Escape, a press outside${presentation === 'dialog' ? ', typing' : ''} or focus moving on`, async () => {
       const error = vi.spyOn(console, 'error').mockImplementation(() => {});
-      parts.fail = true;
-      render(<TimeField label="Opens at" presentation={presentation} />);
-      const button = screen.getByRole('button', { name: 'Open time picker' });
-      await userEvent.click(button);
-      // Closed, not left open over nothing, and said in development.
-      await waitFor(() => expect(button).toHaveAttribute('aria-expanded', 'false'));
-      expect(loadErrors(error)).toBe(1);
-      parts.fail = false;
-      await userEvent.click(button);
-      expect(
-        await screen.findByRole(presentation === 'dialog' ? 'dialog' : 'listbox'),
-      ).toBeInTheDocument();
-      error.mockRestore();
-    });
-  }
-
-  for (const presentation of ['dialog', 'docked'] as const) {
-    it(`closes its ${presentation} picker opened while its code loads on Escape, a press outside or focus moving on`, async () => {
-      const TimeField = await freshTimeField();
-      let release = () => {};
-      parts.gate = new Promise<void>((resolve) => (release = resolve));
       render(
         <>
           <TimeField label="Opens at" presentation={presentation} />
@@ -65,6 +61,14 @@ describe('TimeField code loaded on demand', () => {
       );
       const button = screen.getByRole('button', { name: 'Open time picker' });
       const elsewhere = screen.getByRole('button', { name: 'Elsewhere' });
+      // A failed load closes it, said in development.
+      parts.fail = true;
+      await userEvent.click(button);
+      await waitFor(() => expect(button).toHaveAttribute('aria-expanded', 'false'));
+      expect(loadErrors(error)).toBe(1);
+      parts.fail = false;
+      let release = () => {};
+      parts.gate = new Promise<void>((resolve) => (release = resolve));
       const open = async () => {
         await userEvent.click(button);
         expect(button).toHaveAttribute('aria-expanded', 'true');
@@ -77,18 +81,30 @@ describe('TimeField code loaded on demand', () => {
       await open();
       await userEvent.click(document.body);
       expect(button).toHaveAttribute('aria-expanded', 'false');
+      if (presentation === 'dialog') {
+        // Typing a time in the text box while nothing shows: the modal picker would cover it.
+        await open();
+        await userEvent.keyboard('9');
+        expect(button).toHaveAttribute('aria-expanded', 'false');
+      }
       await open();
       act(() => elsewhere.focus());
       expect(button).toHaveAttribute('aria-expanded', 'false');
-      // The code coming in later opens nothing and leaves focus where it went.
+      // The code coming in (the load itself, awaited) opens nothing and leaves focus where it went.
       await act(async () => {
         release();
-        await parts.gate;
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await partOf(presentation === 'dialog' ? 'TimeFieldDialog' : 'TimeFieldList').preload();
       });
-      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+      expect(button).toHaveAttribute('aria-expanded', 'false');
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
       expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
       expect(elsewhere).toHaveFocus();
+      // The next open shows it.
+      await userEvent.click(button);
+      expect(
+        await screen.findByRole(presentation === 'dialog' ? 'dialog' : 'listbox'),
+      ).toBeInTheDocument();
+      error.mockRestore();
     });
   }
 });

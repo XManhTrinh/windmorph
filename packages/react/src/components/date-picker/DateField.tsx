@@ -300,7 +300,10 @@ function DateFieldInner({
     ) !== undefined;
   // Open with nothing in the page yet: Escape, a press outside the field and focus leaving it
   // close the dialog, so its code coming in opens nothing.
-  useDismissWhileLoading(fieldRef, compact && overlay.isOpen && !compactIn, overlay.close);
+  useDismissWhileLoading(fieldRef, compact && overlay.isOpen && !compactIn, overlay.close, {
+    // Typing in the text box moves on too: the full-screen dialog would cover it.
+    closeOnInput: true,
+  });
   const {
     root: rootClassName,
     calendar,
