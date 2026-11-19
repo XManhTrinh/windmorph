@@ -145,4 +145,29 @@ describe('onDemand useLoaded', () => {
       vi.useRealTimers();
     }
   });
+
+  it('tries a mounted Component once, and a caller without onError once while it is wanted', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      const load = vi.fn(() => Promise.reject(new Error('The network is down')));
+      const part = onDemand<object>(load);
+      function Quiet() {
+        part.useLoaded(true);
+        return null;
+      }
+      // A tooltip, a field's dialog: rendered while wanted, with nothing to report to.
+      render(
+        <>
+          <part.Component />
+          <Quiet />
+        </>,
+      );
+      await act(() => vi.advanceTimersByTimeAsync(0));
+      expect(load).toHaveBeenCalledTimes(1);
+      await act(() => vi.advanceTimersByTimeAsync(LOAD_RETRY_MOST * 4));
+      expect(load).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

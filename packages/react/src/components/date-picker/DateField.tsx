@@ -34,6 +34,7 @@ import type { Density } from '../../tokens/density';
 import { OptionPopover } from '../select/option-list';
 import type { TextFieldClassNames } from '../text-field/TextField';
 import { LazyTooltip } from '../tooltip/lazy-tooltip';
+import { closeOnLoadError } from '../../utils/close-on-load-error';
 import { onDemand, usePreloadOnIntent } from '../../utils/load-on-demand';
 import { TooltipTrigger } from '../tooltip/tooltip-trigger';
 import { CalendarGrid } from './CalendarGrid';
@@ -287,6 +288,9 @@ function DateFieldInner({
   // then, and if not it opens as it arrives, taking focus as it would have.
   const [compactOpened, setCompactOpened] = useState(compact && overlay.isOpen);
   if (compact && overlay.isOpen && !compactOpened) setCompactOpened(true);
+  // A failed load closes the dialog, rather than leaving it open over nothing; its next open
+  // tries again.
+  compactDialog.useLoaded(compact && overlay.isOpen, closeOnLoadError('DateField', overlay.close));
   const {
     root: rootClassName,
     calendar,

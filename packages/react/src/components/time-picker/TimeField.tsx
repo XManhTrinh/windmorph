@@ -18,6 +18,7 @@ import { useLabels } from '../labels/use-labels';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import type { Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
+import { closeOnLoadError } from '../../utils/close-on-load-error';
 import { onDemand, usePreloadOnIntent } from '../../utils/load-on-demand';
 import {
   ariaFlag,
@@ -285,6 +286,11 @@ function TimeFieldInner({
   usePreloadOnIntent(fieldRef, docked ? dockedList.preload : pickerDialog.preload, true);
   const [opened, setOpened] = useState(overlay.isOpen);
   if (overlay.isOpen && !opened) setOpened(true);
+  // A failed load closes the picker, rather than leaving it open over nothing; its next open
+  // tries again.
+  const reportLoadError = closeOnLoadError('TimeField', overlay.close);
+  pickerDialog.useLoaded(overlay.isOpen && !docked, reportLoadError);
+  dockedList.useLoaded(overlay.isOpen && docked, reportLoadError);
 
   const outOfRange = (time: Time) =>
     (min !== undefined && time.compare(min) < 0) || (max !== undefined && time.compare(max) > 0);

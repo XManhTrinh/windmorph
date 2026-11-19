@@ -15,12 +15,13 @@ export interface OnDemandComponent<P extends object> {
   Component: ComponentType<P>;
   /**
    * The component once its module is in, else `undefined`, re-rendering the caller as it
-   * arrives, whichever call loaded it. While `enabled` it starts the load, and a failed load
-   * calls `onError` (once, until `enabled` turns off): the caller usually closes, which ends
-   * the wait, and the next time `enabled` turns on (or a `preload`) tries again. While it stays
-   * enabled (an app holding a menu open that its close can't change), it's tried again after a
-   * pause, `LOAD_RETRY_DELAY` and doubling up to `LOAD_RETRY_MOST`, so it shows once the
-   * network is back.
+   * arrives, whichever call loaded it. While `enabled` it starts the load. Without `onError`
+   * a failed load is tried again only the next time `enabled` turns on (or on `preload`). With
+   * it, a failed load calls `onError` (once, until `enabled` turns off): the caller usually
+   * closes, which ends the wait, and the next open tries again; while it stays enabled (an app
+   * holding a menu open that its close can't change), it's tried again after a pause,
+   * `LOAD_RETRY_DELAY` and doubling up to `LOAD_RETRY_MOST`, so it shows once the network is
+   * back.
    */
   useLoaded: (
     enabled?: boolean,
@@ -86,8 +87,10 @@ export function onDemand<P extends object>(
       let retry: ReturnType<typeof setTimeout> | undefined;
       const attempt = (pause: number) => {
         preload().catch((error: unknown) => {
-          if (!current) return;
-          if (pause === LOAD_RETRY_DELAY) report.current?.(error);
+          const onError = report.current;
+          // A caller with nothing to report to (a mounted `Component`, a tooltip) tries once.
+          if (!current || !onError) return;
+          if (pause === LOAD_RETRY_DELAY) onError(error);
           retry = setTimeout(() => attempt(Math.min(pause * 2, LOAD_RETRY_MOST)), pause);
         });
       };
