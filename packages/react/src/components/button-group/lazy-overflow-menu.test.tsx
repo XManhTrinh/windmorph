@@ -1,33 +1,27 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { loadControl, resetOnDemand } from '../../../test/on-demand';
+import { Button } from '../button/Button';
+import { ButtonGroup } from './ButtonGroup';
+import { preloadOverflowMenu } from './lazy-overflow-menu';
+
+// The menu loads through a mock loader, reset before each test, so each starts with it not yet
+// loaded without importing the components afresh (slow under a loaded run).
+vi.mock('../../utils/load-on-demand', async (importOriginal) =>
+  (await import('../../../test/on-demand')).mockOnDemand(importOriginal),
+);
 
 /**
  * The overflow menu's module, loaded slowly: each load is counted and waits until the test
- * lets it finish, so the moment between folding and the menu being ready can be checked.
+ * lets it finish (`finishMenu`), so the moment between folding and the menu being ready can be
+ * checked.
  */
-const menuModule = { loads: 0, finish: () => {}, ready: Promise.resolve(), fail: false };
+const menuModule = loadControl('overflow-menu-list');
+let finishMenu = () => {};
 
-/** Fresh modules per test, so each starts with the menu not yet loaded. */
-async function load() {
-  vi.resetModules();
-  menuModule.loads = 0;
-  menuModule.fail = false;
-  menuModule.ready = new Promise<void>((resolve) => {
-    menuModule.finish = resolve;
-  });
-  vi.doMock('./overflow-menu-list', async (importOriginal) => {
-    menuModule.loads += 1;
-    await menuModule.ready;
-    if (menuModule.fail) throw new Error('The network is down');
-    return importOriginal();
-  });
-  const [{ Button }, { ButtonGroup }, { preloadOverflowMenu }] = await Promise.all([
-    import('../button/Button'),
-    import('./ButtonGroup'),
-    import('./lazy-overflow-menu'),
-  ]);
-
+/** The components under test. */
+function load() {
   function Actions({ overflow, count }: { overflow: boolean; count: number }) {
     const labels = ['Reply', 'Forward', 'Archive', 'Delete'].slice(0, count);
     return (
@@ -44,12 +38,14 @@ async function load() {
   return { Actions, preloadOverflowMenu };
 }
 
-const finishLoading = () => act(async () => menuModule.finish());
+const finishLoading = () => act(async () => finishMenu());
 const more = () => screen.getByRole('button', { name: 'More options' });
 
 /** jsdom has no layout: a 200px group, 80px buttons and a 40px indicator, no gap. */
 let restoreLayout = () => {};
 beforeEach(() => {
+  resetOnDemand();
+  finishMenu = menuModule.hold();
   const width = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(200);
   const rect = vi
     .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
@@ -65,7 +61,7 @@ afterEach(() => restoreLayout());
 
 describe('ButtonGroup lazy overflow menu', () => {
   it('never loads the menu without overflow, or while every button fits', async () => {
-    const { Actions } = await load();
+    const { Actions } = load();
     const off = render(<Actions overflow={false} count={4} />);
     await userEvent.hover(screen.getByRole('button', { name: 'Reply' }));
     off.unmount();
@@ -78,7 +74,7 @@ describe('ButtonGroup lazy overflow menu', () => {
   });
 
   it('loads the menu once a button folds, before the indicator is pressed', async () => {
-    const { Actions } = await load();
+    const { Actions } = load();
     const { rerender } = render(<Actions overflow count={2} />);
     expect(menuModule.loads).toBe(0);
     rerender(<Actions overflow count={4} />);
@@ -92,7 +88,7 @@ describe('ButtonGroup lazy overflow menu', () => {
   });
 
   it('shows nothing when opened before the menu is ready, then focuses the first item', async () => {
-    const { Actions } = await load();
+    const { Actions } = load();
     render(<Actions overflow count={4} />);
     await waitFor(() => expect(menuModule.loads).toBe(1));
     more().focus();
@@ -106,7 +102,7 @@ describe('ButtonGroup lazy overflow menu', () => {
   });
 
   it('once loaded, opens in the same pass as the press, with no Suspense delay', async () => {
-    const { Actions, preloadOverflowMenu } = await load();
+    const { Actions, preloadOverflowMenu } = load();
     render(<Actions overflow count={4} />);
     await waitFor(() => expect(menuModule.loads).toBe(1));
     await finishLoading();
@@ -120,7 +116,7 @@ describe('ButtonGroup lazy overflow menu', () => {
   });
 
   it('closes on Escape, a press outside or focus moving on while the menu loads, and never opens after', async () => {
-    const { Actions, preloadOverflowMenu } = await load();
+    const { Actions, preloadOverflowMenu } = load();
     render(<Actions overflow count={4} />);
     const elsewhere = screen.getByRole('button', { name: 'Elsewhere' });
     const open = async () => {
@@ -144,7 +140,7 @@ describe('ButtonGroup lazy overflow menu', () => {
     expect(more()).toHaveAttribute('aria-expanded', 'false');
     // The code coming in (the load itself, awaited) opens nothing and leaves focus where it went.
     await act(async () => {
-      menuModule.finish();
+      finishMenu();
       await preloadOverflowMenu();
     });
     expect(more()).toHaveAttribute('aria-expanded', 'false');
@@ -153,10 +149,10 @@ describe('ButtonGroup lazy overflow menu', () => {
   });
 
   it('closes when the menu fails to load, and loads it again on the next open', async () => {
-    const { Actions } = await load();
+    const { Actions } = load();
     const error = vi.spyOn(console, 'error').mockImplementation(() => {});
     menuModule.fail = true;
-    menuModule.finish();
+    finishMenu();
     render(<Actions overflow count={4} />);
     more().focus();
     await userEvent.keyboard('{Enter}');

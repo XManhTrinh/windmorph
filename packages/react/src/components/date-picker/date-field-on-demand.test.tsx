@@ -1,46 +1,24 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { loadControl, partOf, resetOnDemand } from '../../../test/on-demand';
 import { setMediaQueries } from '../../../test/setup';
-import type * as LoadOnDemand from '../../utils/load-on-demand';
-import type { OnDemandComponent } from '../../utils/load-on-demand';
-import type { DateField as DateFieldComponent } from './DateField';
+import { DateField } from './DateField';
 import { COMPACT_WINDOW } from './use-media-query';
 
-// The compact window's dialog, loaded on demand; a test can hold its load back, or fail it.
-const parts = { fail: false, gate: Promise.resolve() };
-/** The parts loaded on demand, with their loaders' source. */
-const made: { source: string; part: OnDemandComponent<object> }[] = [];
-/** The part whose loader imports `module`. */
-const partOf = (module: string) => made.find(({ source }) => source.includes(module))!.part;
-let DateField: typeof DateFieldComponent;
+// The field's parts load through a mock loader, reset before each test (no fresh imports).
+vi.mock('../../utils/load-on-demand', async (importOriginal) =>
+  (await import('../../../test/on-demand')).mockOnDemand(importOriginal),
+);
 
-// The field's modules, imported afresh for the file, so it starts with nothing loaded.
-beforeAll(async () => {
-  vi.resetModules();
-  vi.doMock('../../utils/load-on-demand', async (importOriginal) => {
-    const original = await importOriginal<typeof LoadOnDemand>();
-    const onDemand: typeof original.onDemand = (load) => {
-      const part = original.onDemand(load);
-      made.push({ source: String(load), part: part as unknown as OnDemandComponent<object> });
-      return part;
-    };
-    return { ...original, onDemand };
-  });
-  vi.doMock('./CompactDateDialog', async (importOriginal) => {
-    await parts.gate;
-    if (parts.fail) throw new Error('The network is down');
-    return importOriginal();
-  });
-  ({ DateField } = await import('./DateField'));
-  // A fresh import of the field and all it imports: under a full run on two cores it takes as
-  // long as a test may.
-}, 20_000);
+// The compact window's dialog: a test can hold its load back, or fail it.
+const parts = loadControl('CompactDateDialog');
 
 /** The times the field said its code failed to load (React's own warnings aside). */
 const loadErrors = (error: { mock: { calls: unknown[][] } }) =>
   error.mock.calls.filter(([message]) => String(message).includes("couldn't load")).length;
 
+beforeEach(() => resetOnDemand());
 afterEach(() => setMediaQueries({ [COMPACT_WINDOW]: false }));
 
 describe('DateField code loaded on demand', () => {
@@ -61,8 +39,7 @@ describe('DateField code loaded on demand', () => {
     await waitFor(() => expect(button).toHaveAttribute('aria-expanded', 'false'));
     expect(loadErrors(error)).toBe(1);
     parts.fail = false;
-    let release = () => {};
-    parts.gate = new Promise<void>((resolve) => (release = resolve));
+    const release = parts.hold();
     const open = async () => {
       await userEvent.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'true');
