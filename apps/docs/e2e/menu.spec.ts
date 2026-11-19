@@ -1179,6 +1179,110 @@ test.describe('Menu in place: behaviour', () => {
   }
 });
 
+/** Where focus is, and the shared surface's level and height, on one frame. */
+const FOCUS_AND_SURFACE = `(() => {
+  const active = document.activeElement;
+  const surface = document.querySelector('[data-level]');
+  return {
+    focus: !active || active === document.body ? 'BODY' : active.tagName,
+    level: surface ? surface.getAttribute('data-level') : null,
+    height: surface ? surface.getBoundingClientRect().height : null,
+  };
+})()`;
+
+interface FocusFrame {
+  focus: string;
+  level: string | null;
+  height: number | null;
+}
+
+test.describe('Menu in place: closing from a page', () => {
+  test('a choice that closes the menu keeps focus off the page and the page in place as it leaves', async ({
+    page,
+  }) => {
+    await openPlayer(page, {}, { afterSelect: 'close' });
+    await page.getByRole('menuitem', { name: /^Quality/ }).focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(page.getByRole('menuitemradio', { name: 'Auto' })).toBeFocused();
+    await page.keyboard.press('ArrowDown');
+    // The page has grown to its height.
+    await settle(page);
+    const frames = await samplePaintedFrames<FocusFrame>(
+      page,
+      FOCUS_AND_SURFACE,
+      () => page.keyboard.press('Enter'),
+      700,
+    );
+    for (const [i, frame] of frames.entries()) {
+      expect(frame.focus, `frame ${i}`).not.toBe('BODY');
+      // The page it closed from stays, at its height, while the menu fades out.
+      if (frame.level !== null) {
+        expect(frame.level, `frame ${i}`).toBe('1');
+        expect(frame.height, `frame ${i}`).toBe(frames[0]!.height);
+      }
+    }
+    await expect(page.getByRole('menu')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Settings' })).toBeFocused();
+  });
+
+  test('an action on a page of a sheet keeps focus off the page as the sheet leaves', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 412, height: 800 });
+    await openStory(page, 'components-menu--submenus', {}, { presentation: 'sheet' });
+    await page.getByRole('button', { name: 'File' }).focus();
+    await page.keyboard.press('Enter');
+    const sheet = page.getByRole('dialog', { name: 'File' });
+    await expect(sheet.getByRole('menuitem').first()).toBeFocused();
+    await sheet.getByRole('menuitem', { name: 'Share' }).focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(sheet.getByRole('menuitem', { name: 'Email' })).toBeFocused();
+    const frames = await samplePaintedFrames<FocusFrame>(
+      page,
+      FOCUS_AND_SURFACE,
+      () => page.keyboard.press('Enter'),
+      900,
+    );
+    for (const [i, frame] of frames.entries()) expect(frame.focus, `frame ${i}`).not.toBe('BODY');
+    await expect(page.getByTestId('last')).toHaveText('Last action: email');
+    await expect(page.getByRole('button', { name: 'File' })).toBeFocused();
+  });
+});
+
+test.describe('Menu in an element partly off screen', () => {
+  test('a player half above the window, in a scrolled pane: the menu stays in sight', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 900, height: 420 });
+    await openStory(page, PLAYER);
+    // The window scrolled down, and the pane around the player too, so the player's top is above
+    // both while its controls stay in sight.
+    await page.evaluate(() => window.scrollTo(0, document.scrollingElement!.scrollHeight));
+    await page.getByTestId('pane').evaluate((el) => (el.scrollTop = 80));
+    const [pane, player, trigger] = await Promise.all([
+      page.getByTestId('pane').boundingBox(),
+      page.getByTestId('player').boundingBox(),
+      page.getByRole('button', { name: 'Settings' }).boundingBox(),
+    ]);
+    const shown = Math.max(0, pane!.y);
+    expect(player!.y).toBeLessThan(shown);
+    expect(trigger!.y).toBeGreaterThan(shown);
+    expect(trigger!.y + trigger!.height).toBeLessThanOrEqual(420);
+    await page.getByRole('button', { name: 'Settings' }).click();
+    const first = page.getByRole('menuitem', { name: /^Quality/ });
+    await expect(first).toBeFocused();
+    await settle(page);
+    const [surface, item] = await Promise.all([
+      page.locator('[data-level]').boundingBox(),
+      first.boundingBox(),
+    ]);
+    // Kept 12px inside what's shown of the player (the pane's top, under the window's).
+    expect(surface!.y).toBeGreaterThanOrEqual(shown + 12 - 0.5);
+    expect(item!.y).toBeGreaterThanOrEqual(shown);
+    expect(surface!.y + surface!.height).toBeLessThanOrEqual(trigger!.y - 8 + 0.5);
+  });
+});
+
 test.describe('Menu in place: loaded on demand', () => {
   const CHUNK = /\/menu-in-place-[\w-]+\.js/;
 

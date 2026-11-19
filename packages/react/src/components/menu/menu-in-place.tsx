@@ -42,6 +42,20 @@ import { useBoundaryForSubmenus, useBoundaryInContainer } from './use-boundary-i
 import { usePageHeight } from './use-page-height';
 
 /**
+ * `value` while the menu is open, and the last value it had open while the menu leaves. Closing
+ * the whole menu from a page (an action, a choice, a press outside) clears every open submenu at
+ * once, while the menu plays its exit: the page and its focused item left the document then, so
+ * focus fell to `<body>` until the menu's own exit ended, and the first page showed again, at its
+ * own height, as it faded (2026-11-19). What was showing stays instead, so focus goes back to
+ * the trigger from the page as the menu leaves.
+ */
+function useHeldWhileLeaving<T>(value: T, open: boolean): T {
+  const [held, setHeld] = useState(value);
+  if (open && held !== value) setHeld(value);
+  return open ? value : held;
+}
+
+/**
  * Which way the last page change went, for the page coming in (`data-page-direction`):
  * `undefined` until the first change, so the first page never moves in as the menu opens.
  * Derived as the level changes, in the same render, so the page and the direction it reads
@@ -84,7 +98,7 @@ export function MenuSheet({
   const labels = useLabels('Menu', DEFAULT_LABELS, labelsProp);
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
   const [activeLevel, setActiveLevel] = useState(0);
-  const level = trigger.state.expandedKeysStack.length;
+  const level = useHeldWhileLeaving(trigger.state.expandedKeysStack.length, trigger.state.isOpen);
   const pageDirection = usePageDirection(level);
   const menuProps = mergeProps(triggerMenuProps(trigger, props), props);
   // The sheet takes the menu's name: its `aria-labelledby` when it has one, which names the
@@ -233,7 +247,7 @@ function PopoverInPlace({
   const popoverRef = useRef<HTMLDivElement>(null);
   // In place, the pages' element holds the submenus' pages.
   const [pages, setPages] = useState<HTMLDivElement | null>(null);
-  const level = trigger.state.expandedKeysStack.length;
+  const level = useHeldWhileLeaving(trigger.state.expandedKeysStack.length, trigger.state.isOpen);
   // While a page other than the first shows in place, the popover keeps the side of the
   // trigger it opened on: a taller page grows away from the trigger (and its list scrolls if it
   // runs out of room) instead of jumping across it mid-change.
@@ -374,7 +388,8 @@ function MenuPageSurface({
  */
 function SubmenuPage({ state, submenuRef, menuProps, submenu, title }: SubmenuPageProps) {
   const tree = useContext(MenuTreeContext)!;
-  if (!state.isOpen || !tree.container) return null;
+  const shown = useHeldWhileLeaving(state.isOpen, tree.rootState.isOpen);
+  if (!shown || !tree.container) return null;
   const { submenuLevel, ...ariaMenuProps } = menuProps;
   const own = submenu.props;
   const variant = own.variant ?? tree.variant;

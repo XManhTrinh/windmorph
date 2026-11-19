@@ -1367,6 +1367,27 @@ describe('Menu submenus in place (submenuPresentation="replace")', () => {
     expectOpen('Settings');
   });
 
+  it('keeps the page, and focus in it, while the menu leaves after an action on it', async () => {
+    const onAction = vi.fn();
+    render(<PlayerSettings onAction={onAction} />);
+    const subtitles = await openPage('Subtitles');
+    await waitFor(() =>
+      expect(within(subtitles).getByRole('menuitem', { name: 'Off' })).toHaveFocus(),
+    );
+    await userEvent.keyboard('{Enter}');
+    expect(onAction.mock.lastCall?.[0]).toBe('off');
+    // Closing, the menu plays its exit with the page it closed from, focus still on its item.
+    expect(screen.getByRole('button', { name: 'Settings', hidden: true })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
+    expect(subtitles).toBeInTheDocument();
+    expect(subtitles.closest('[data-level]')).toHaveAttribute('data-level', '1');
+    expect(document.activeElement).not.toBe(document.body);
+    await closed();
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Settings' })).toHaveFocus());
+  });
+
   it('closes every page and the menu on Tab', async () => {
     render(
       <>
