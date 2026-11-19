@@ -16,6 +16,11 @@ import type { OnDemandComponent } from '../src/utils/load-on-demand';
  *
  * A part whose loader names a module given to `loadControl` loads through that control: the
  * test can count its loads, hold them back (`hold`) or fail them (`fail`).
+ *
+ * Only the parts are reset: the modules stay imported for the whole file. After the first test
+ * that loads a part, its real `import()` is cached and resolves at once, so a test that needs
+ * the moment while a part loads must `hold()` it; and any other module state (a component's
+ * module-level caches, the idle queue) carries from one test to the next.
  */
 export async function mockOnDemand(importOriginal: () => Promise<unknown>) {
   const original = (await importOriginal()) as typeof LoadOnDemand;
