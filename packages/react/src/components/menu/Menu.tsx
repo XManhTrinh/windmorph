@@ -567,7 +567,9 @@ export function Menu({
   const waiting =
     open && (asSheet ? !(sheetIn && bottomSheetIn) : (replace || contained) && !inPlaceIn);
   useDismissWhileLoading(trigger.triggerRef, waiting, trigger.state.close, {
-    onArrow: (focus) => trigger.state.open(focus),
+    // A context menu's trigger is a region whose content takes its own arrows; React Aria
+    // opens a context menu with none.
+    onArrow: trigger.contextMenu ? undefined : (focus) => trigger.state.open(focus),
     anyPress: trigger.contextMenu,
   });
   const { setPending } = trigger;

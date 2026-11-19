@@ -357,4 +357,16 @@ describe('Menu opened while its code loads', () => {
     });
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
+
+  it('leaves the arrow keys to a context menu’s region while its code loads', async () => {
+    const { Region } = await freshMenu();
+    holdLoad();
+    render(<Region />);
+    const text = screen.getByText('Selected text');
+    fireEvent.contextMenu(text, { clientX: 40, clientY: 60 });
+    text.focus();
+    // The region's own content (a text area, a list) takes its arrows as ever.
+    expect(fireEvent.keyDown(text, { key: 'ArrowDown' })).toBe(true);
+    expect(fireEvent.keyDown(text, { key: 'ArrowUp' })).toBe(true);
+  });
 });
