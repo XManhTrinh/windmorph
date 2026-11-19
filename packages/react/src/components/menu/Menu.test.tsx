@@ -1344,13 +1344,27 @@ describe('Menu submenus in place (submenuPresentation="replace")', () => {
     expect(await axeViolations(document.body)).toEqual([]);
   });
 
+  it('keeps typeahead to the page, for a letter the menu under it has too', async () => {
+    render(<PlayerSettings />);
+    const quality = await openPage('Quality');
+    await waitFor(() =>
+      expect(within(quality).getByRole('menuitemradio', { name: 'Auto' })).toHaveFocus(),
+    );
+    // "Show playback stats" here, "Subtitles" on the menu this page hides: a key that reached
+    // that menu would focus its item, out of sight.
+    await userEvent.keyboard('s');
+    expect(within(quality).getByRole('menuitem', { name: 'Show playback stats' })).toHaveFocus();
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: /^Quality/ })).toHaveFocus());
+  });
+
   it('goes back one page with Escape, the back arrow or the back button, focusing the item', async () => {
     render(<PlayerSettings />);
     const subtitles = await openPage('Subtitles');
     await waitFor(() =>
       expect(within(subtitles).getByRole('menuitem', { name: 'Off' })).toHaveFocus(),
     );
-    // Typeahead stays within the page.
+    // Typeahead moves within the page (and keeps to it: see the test below).
     await userEvent.keyboard('f');
     expect(within(subtitles).getByRole('menuitem', { name: 'French' })).toHaveFocus();
     await userEvent.keyboard('f');
