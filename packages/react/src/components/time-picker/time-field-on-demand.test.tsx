@@ -37,7 +37,9 @@ beforeAll(async () => {
     });
   }
   ({ TimeField } = await import('./TimeField'));
-});
+  // A fresh import of the field and all it imports: under a full run on two cores it takes as
+  // long as a test may.
+}, 20_000);
 
 /** The times the field said its code failed to load (React's own warnings aside). */
 const loadErrors = (error: { mock: { calls: unknown[][] } }) =>
