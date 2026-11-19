@@ -320,8 +320,9 @@ export interface MenuProps
   children: ReactNode;
   /**
    * `standard` (surface colours) or `vibrant` (tertiary container). A submenu shown in place
-   * (in a sheet, or with `submenuPresentation="replace"`) takes the root menu's, since its page
-   * sits on the root's surface. @default "standard"
+   * (in a sheet, or with `submenuPresentation="replace"`) takes the root menu's: a menu's pages
+   * share one variant, so a page never looks different from the one that opened it, and the
+   * same in a popover and in a sheet. @default "standard"
    */
   variant?: MenuVariant;
   /**

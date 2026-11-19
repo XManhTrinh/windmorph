@@ -392,8 +392,9 @@ function SubmenuPage({ state, submenuRef, menuProps, submenu, title }: SubmenuPa
   const shown = useHeldWhileLeaving(state.isOpen, tree.rootState.isOpen);
   if (!shown || !tree.container) return null;
   const { submenuLevel, ...ariaMenuProps } = menuProps;
-  // The page sits on the surface the pages share, in the root menu's variant (the plan's
-  // decision 4), and takes the submenu's `className` and `style` (they went nowhere before).
+  // The page takes the root menu's variant, as every page of the menu does, in a popover or a
+  // sheet, so it never looks different from the one that opened it (the plan's decision 4), and
+  // the submenu's `className` and `style` (they went nowhere before).
   const { className, style, variant: _variant, ...own } = submenu.props;
   const variant = tree.variant;
   const styles = menuStyles({ variant });
