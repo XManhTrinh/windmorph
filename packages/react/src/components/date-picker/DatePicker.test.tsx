@@ -69,6 +69,27 @@ describe('DatePicker', () => {
     expect(days.join('')).not.toMatch(/[0-9]/);
   });
 
+  // A day's name came from React Aria's tag (`ar-Latn-EG`) with a Latin 4 while it showed ٤, so
+  // the name didn't contain the visible label (WCAG 2.5.3).
+  it('names each day with the digits it shows inside a region of the other direction', () => {
+    render(
+      <I18nProvider locale="ar-EG">
+        <div dir="ltr" style={{ direction: 'ltr' }}>
+          <DatePicker defaultValue={new CalendarDate(2030, 9, 4)} />
+        </div>
+      </I18nProvider>,
+    );
+    const days = [
+      ...document.querySelectorAll<HTMLElement>('[data-slot="day"]:not([data-outside])'),
+    ];
+    expect(days.length).toBeGreaterThan(27);
+    for (const day of days) expect(day.getAttribute('aria-label')).toContain(day.textContent);
+    const fourth = days.find((day) => day.textContent === '٤')!;
+    // React Aria's wording around the date stays: the picked day says it's selected.
+    expect(fourth.getAttribute('aria-label')).not.toMatch(/[0-9]/);
+    expect(fourth).toHaveAttribute('data-selected', 'true');
+  });
+
   it('names its weekdays in the page’s script inside a region of the other direction', () => {
     // Serbian in Latin script; the language in another script falls back to Cyrillic.
     render(

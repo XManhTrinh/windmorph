@@ -10,7 +10,13 @@ import {
   type CalendarDate,
 } from '@internationalized/date';
 import { useRef } from 'react';
-import { mergeProps, useCalendarCell, useCalendarGrid, useLocale } from 'react-aria';
+import {
+  mergeProps,
+  useCalendarCell,
+  useCalendarGrid,
+  useDateFormatter,
+  useLocale,
+} from 'react-aria';
 import type { CalendarState, RangeCalendarState } from 'react-stately';
 import { usePageDateFormatter } from '../../primitives/use-page-formatters';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
@@ -137,6 +143,23 @@ function CalendarCell({
     timeZone: state.timeZone,
     calendar: date.calendar.identifier,
   });
+  // The day's name holds the date as the page writes it, so it contains the day shown (WCAG
+  // 2.5.3). React Aria's wording around it ("Today", "selected", the range) stays: its date,
+  // written with the same options in its own locale, is swapped for the page's.
+  const nameOptions: Intl.DateTimeFormatOptions = {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    era: date.calendar.identifier === 'gregory' && date.era === 'BC' ? 'short' : undefined,
+    timeZone: state.timeZone,
+  };
+  const ariaName = useDateFormatter(nameOptions);
+  const pageName = usePageDateFormatter(nameOptions);
+  const native = date.toDate(state.timeZone);
+  const ariaDate = ariaName.format(native);
+  const label = buttonProps['aria-label'];
+  const name = label?.includes(ariaDate) ? label.replace(ariaDate, pageName.format(native)) : label;
   // Days of the months around this one (the docked picker shows them) can't be chosen.
   const isOutside = isOutsideVisibleRange || !isSameMonth(date, shownMonth);
   const disabled = isDisabled || isUnavailable;
@@ -165,6 +188,7 @@ function CalendarCell({
     >
       <div
         {...mergeProps(buttonProps, interactionProps)}
+        aria-label={name}
         {...dataAttributes}
         ref={ref}
         data-slot="day"
@@ -175,7 +199,7 @@ function CalendarCell({
         data-outside={isOutside || undefined}
         className={styles.day({ class: className })}
       >
-        {dayFormat.format(date.toDate(state.timeZone))}
+        {dayFormat.format(native)}
       </div>
     </td>
   );
