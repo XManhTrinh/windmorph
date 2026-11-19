@@ -23,9 +23,9 @@ import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 import { useLabels } from '../labels/use-labels';
 import { LazyBottomSheet } from '../sheet/lazy-bottom-sheet';
+import { closeOnLoadError } from '../../utils/load-on-demand';
 import { BackIcon } from '../sheet/sheet-icons';
 import {
-  closeOnLoadError,
   DEFAULT_LABELS,
   MenuList,
   MenuPopoverFrame,
@@ -126,7 +126,7 @@ export function MenuSheet({
   return (
     <LazyBottomSheet
       {...naming}
-      onLoadError={closeOnLoadError(trigger)}
+      onLoadError={closeOnLoadError('Menu', trigger.state.close)}
       // A menu sheet opens at its own height (up to the window, the list scrolling inside):
       // at half the window, a short phone left its last items off-screen, where the arrow
       // keys could still move focus.

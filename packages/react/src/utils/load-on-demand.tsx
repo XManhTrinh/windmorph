@@ -93,6 +93,23 @@ export function onDemand<P extends object>(
   return { preload, Component, useLoaded };
 }
 
+/**
+ * What a component does when the code it opens with fails to load (`useLoaded`'s `onError`): it
+ * closes, so it isn't left open over nothing, and says so in development; its next open tries
+ * again (library-internal).
+ */
+export function closeOnLoadError(component: string, close: () => void) {
+  return (error: unknown) => {
+    if (process.env.NODE_ENV !== 'production') {
+      console.error(
+        `[@windmorph/react] A ${component} couldn't load the code it opens with, so it closed; it tries again when it next opens.`,
+        error,
+      );
+    }
+    close();
+  };
+}
+
 /** How long after mounting a browser without `requestIdleCallback` waits before preloading. */
 export const IDLE_FALLBACK_DELAY = 1000;
 

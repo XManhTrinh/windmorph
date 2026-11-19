@@ -32,6 +32,7 @@ import { matchesSearch } from '../../utils/search';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
+import { closeOnLoadError } from '../../utils/load-on-demand';
 import { renderedDescription } from '../../utils/rendered-description';
 import {
   ariaFlag,
@@ -634,6 +635,8 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
       </FieldShell>
       {asSheet ? (
         <LazyBottomSheet
+          // A failed load closes the field, which tries again on its next open.
+          onLoadError={closeOnLoadError('Select', state.close)}
           // Opens at its own height (up to the window, the list scrolling inside), never half
           // the window, which left the last options off-screen on a short phone.
           skipPartiallyExpanded

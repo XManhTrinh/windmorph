@@ -8,18 +8,20 @@ import { COMPACT_WINDOW } from '../date-picker/use-media-query';
  * The sheet's module, loaded slowly: each load is counted and waits until the test lets it
  * finish, so the moment between opening and the sheet appearing can be checked.
  */
-const sheetModule = { loads: 0, finish: () => {}, ready: Promise.resolve() };
+const sheetModule = { loads: 0, finish: () => {}, ready: Promise.resolve(), fail: false };
 
 /** Fresh modules per test, so each starts with the sheet not yet loaded. */
 async function load() {
   vi.resetModules();
   sheetModule.loads = 0;
+  sheetModule.fail = false;
   sheetModule.ready = new Promise<void>((resolve) => {
     sheetModule.finish = resolve;
   });
   vi.doMock('./BottomSheet', async (importOriginal) => {
     sheetModule.loads += 1;
     await sheetModule.ready;
+    if (sheetModule.fail) throw new Error('The network is down');
     return importOriginal();
   });
   const [{ Button }, menu, select, options, { preloadBottomSheet }] = await Promise.all([
@@ -130,6 +132,25 @@ describe('lazy bottom sheet', () => {
     await finishLoading();
     expect(await screen.findByRole('dialog', { name: 'Sort by' })).toBeInTheDocument();
     expect(screen.getByRole('listbox')).toBeInTheDocument();
+  });
+
+  it('closes a sheet select whose sheet fails to load, and loads it again on the next open', async () => {
+    const { Sort } = await load();
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    sheetModule.fail = true;
+    render(<Sort presentation="sheet" />);
+    await userEvent.click(sortField());
+    await finishLoading();
+    // Closed, not left open over nothing, and said in development.
+    await waitFor(() => expect(sortField()).toHaveAttribute('aria-expanded', 'false'));
+    expect(error).toHaveBeenCalledWith(expect.stringContaining("couldn't load"), expect.any(Error));
+    expect(sortField()).toHaveFocus();
+    // Back online, the next open loads it and shows the sheet.
+    sheetModule.fail = false;
+    await userEvent.click(sortField());
+    expect(await screen.findByRole('dialog', { name: 'Sort by' })).toBeInTheDocument();
+    expect(sheetModule.loads).toBe(2);
+    error.mockRestore();
   });
 
   it('once preloaded, opens in the same pass as the open, with no Suspense delay', async () => {

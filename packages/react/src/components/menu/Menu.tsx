@@ -69,7 +69,7 @@ import { useTypeaheadDelegate } from '../../utils/typeahead';
 import { COMPACT_WINDOW, useMediaQuery } from '../date-picker/use-media-query';
 import { Divider } from '../divider/Divider';
 import { usePreloadBottomSheet } from '../sheet/lazy-bottom-sheet';
-import { onDemand, usePreloadOnIntent } from '../../utils/load-on-demand';
+import { closeOnLoadError, onDemand, usePreloadOnIntent } from '../../utils/load-on-demand';
 import type { MenuPopoverInPlaceProps, MenuSheetProps } from './menu-in-place';
 import { useRevealEntering } from './use-reveal-entering';
 import { menuOwnWidth, menuStyles, type MenuLayout, type MenuVariant } from './menu-styles';
@@ -536,7 +536,7 @@ export function Menu({
   usePreloadOnIntent(trigger.triggerRef, preloadMenuInPlace, asSheet || replace || contained);
   const open = trigger.state.isOpen;
   // Opening loads the code if it isn't in yet; a failed load closes the menu.
-  const reportLoadError = closeOnLoadError(trigger);
+  const reportLoadError = closeOnLoadError('Menu', trigger.state.close);
   const sheetIn = menuSheet.useLoaded(asSheet && open, reportLoadError) !== undefined;
   const inPlaceIn =
     menuInPlace.useLoaded((replace || contained) && open, reportLoadError) !== undefined;
@@ -598,23 +598,6 @@ const menuInPlace = onDemand<MenuPopoverInPlaceProps>(() =>
 const menuSheet = onDemand<MenuSheetProps>(() =>
   import('./menu-in-place').then((module) => module.MenuSheet),
 );
-
-/**
- * What a menu does when the code it opens with (its sheet, its pages in place, its container)
- * fails to load: it closes, so its trigger isn't left open over nothing, and tries again on the
- * next open (library-internal).
- */
-export function closeOnLoadError(trigger: MenuTriggerContextValue) {
-  return (error: unknown) => {
-    if (process.env.NODE_ENV !== 'production') {
-      console.error(
-        "[@windmorph/react] A Menu couldn't load the code it opens with, so it closed; it tries again when it next opens.",
-        error,
-      );
-    }
-    trigger.state.close();
-  };
-}
 
 /** Starts loading the sheet's, the pages' and the container's code, once (library-internal). */
 export const preloadMenuInPlace = () => Promise.all([menuInPlace.preload(), menuSheet.preload()]);
