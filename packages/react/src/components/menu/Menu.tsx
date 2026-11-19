@@ -68,7 +68,7 @@ import { cn } from '../../utils/cn';
 import { useTypeaheadDelegate } from '../../utils/typeahead';
 import { COMPACT_WINDOW, useMediaQuery } from '../date-picker/use-media-query';
 import { Divider } from '../divider/Divider';
-import { usePreloadBottomSheet } from '../sheet/lazy-bottom-sheet';
+import { preloadBottomSheet, usePreloadBottomSheet } from '../sheet/lazy-bottom-sheet';
 import { closeOnLoadError, onDemand, usePreloadOnIntent } from '../../utils/load-on-demand';
 import type { MenuPopoverInPlaceProps, MenuSheetProps } from './menu-in-place';
 import { useRevealEntering } from './use-reveal-entering';
@@ -535,11 +535,17 @@ export function Menu({
   // enters it, before the menu opens.
   usePreloadOnIntent(trigger.triggerRef, preloadMenuInPlace, asSheet || replace || contained);
   const open = trigger.state.isOpen;
-  // Opening loads the code if it isn't in yet; a failed load closes the menu.
+  // Opening loads the code if it isn't in yet (a sheet's alone, for a sheet); a failed load
+  // closes the menu.
   const reportLoadError = closeOnLoadError('Menu', trigger.state.close);
   const sheetIn = menuSheet.useLoaded(asSheet && open, reportLoadError) !== undefined;
   const inPlaceIn =
-    menuInPlace.useLoaded((replace || contained) && open, reportLoadError) !== undefined;
+    menuInPlace.useLoaded((replace || contained) && !asSheet && open, reportLoadError) !==
+    undefined;
+  // A sheet's first open loads the sheet's code with the menu's, not once the menu's is in.
+  useEffect(() => {
+    if (asSheet && open) void preloadBottomSheet().catch(() => undefined);
+  }, [asSheet, open]);
   // A sheet renders from its first open on, and stays to play its exits; before that nothing.
   const [sheetOpened, setSheetOpened] = useState(false);
   if (asSheet && open && !sheetOpened) setSheetOpened(true);

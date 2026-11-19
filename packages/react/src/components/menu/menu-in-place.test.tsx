@@ -50,6 +50,10 @@ function holdLoad() {
 
 const trigger = () => screen.getByRole('button', { name: 'Settings', hidden: true });
 
+/** The times a menu said its code failed to load (React's own warnings aside). */
+const loadErrors = (error: { mock: { calls: unknown[][] } }) =>
+  error.mock.calls.filter(([message]) => String(message).includes("couldn't load")).length;
+
 beforeEach(() => {
   loads.count = 0;
   loads.gate = Promise.resolve();
@@ -129,6 +133,25 @@ describe('Menu code loaded on demand', () => {
     loads.fail = false;
     await userEvent.keyboard('{Enter}');
     await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Quality' })).toHaveFocus());
+    error.mockRestore();
+  });
+
+  it('reports a failed load once for a sheet menu with pages in place or a container', async () => {
+    const { Settings } = await freshMenu();
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    loads.fail = true;
+    render(
+      <Settings
+        presentation="sheet"
+        submenuPresentation="replace"
+        portalContainer={document.body}
+      />,
+    );
+    trigger().focus();
+    await userEvent.keyboard('{Enter}');
+    await waitFor(() => expect(trigger()).toHaveAttribute('aria-expanded', 'false'));
+    // The sheet's code alone: the popover's isn't wanted, and isn't loaded or reported.
+    expect(loadErrors(error)).toBe(1);
     error.mockRestore();
   });
 

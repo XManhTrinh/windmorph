@@ -10,6 +10,9 @@ import { COMPACT_WINDOW } from '../date-picker/use-media-query';
  */
 const sheetModule = { loads: 0, finish: () => {}, ready: Promise.resolve(), fail: false };
 
+/** The menu's own module for its sheet, which a test can hold back too. */
+const menuModule = { loads: 0, finish: () => {}, ready: Promise.resolve() };
+
 /** Fresh modules per test, so each starts with the sheet not yet loaded. */
 async function load() {
   vi.resetModules();
@@ -18,10 +21,17 @@ async function load() {
   sheetModule.ready = new Promise<void>((resolve) => {
     sheetModule.finish = resolve;
   });
+  menuModule.loads = 0;
+  menuModule.ready = Promise.resolve();
   vi.doMock('./BottomSheet', async (importOriginal) => {
     sheetModule.loads += 1;
     await sheetModule.ready;
     if (sheetModule.fail) throw new Error('The network is down');
+    return importOriginal();
+  });
+  vi.doMock('../menu/menu-in-place', async (importOriginal) => {
+    menuModule.loads += 1;
+    await menuModule.ready;
     return importOriginal();
   });
   const [{ Button }, menu, select, options, { preloadBottomSheet }] = await Promise.all([
@@ -132,6 +142,20 @@ describe('lazy bottom sheet', () => {
     await finishLoading();
     expect(await screen.findByRole('dialog', { name: 'Sort by' })).toBeInTheDocument();
     expect(screen.getByRole('listbox')).toBeInTheDocument();
+  });
+
+  it('starts loading the sheet with the menu’s own code as a sheet menu first opens', async () => {
+    const { EditMenu } = await load();
+    menuModule.ready = new Promise<void>((resolve) => (menuModule.finish = resolve));
+    const { rerender } = render(<EditMenu presentation="sheet" open={false} />);
+    // Opened with nothing preloaded (a controlled open, an app's shortcut): both load at once,
+    // not the sheet only once the menu's code has come.
+    rerender(<EditMenu presentation="sheet" open />);
+    await waitFor(() => expect(menuModule.loads).toBe(1));
+    await waitFor(() => expect(sheetModule.loads).toBe(1));
+    await act(async () => menuModule.finish());
+    await finishLoading();
+    expect(await screen.findByRole('dialog', { name: 'Edit' })).toBeInTheDocument();
   });
 
   it('closes a sheet select whose sheet fails to load, and loads it again on the next open', async () => {
