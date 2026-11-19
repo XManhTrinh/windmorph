@@ -12,6 +12,11 @@ export interface DismissWhileLoadingOptions {
   closeOnArrow?: boolean;
   /** Typing in the trigger closes it (a field under a modal picker). */
   closeOnInput?: boolean;
+  /**
+   * A key with focus on the page itself closes it, as in the trigger (a context menu opened on
+   * a region that takes no focus leaves focus on `<body>`).
+   */
+  keysFromPage?: boolean;
 }
 
 /**
@@ -19,6 +24,8 @@ export interface DismissWhileLoadingOptions {
  * moving on from it (to another element, or by Tab out of the page, not a window switch) close
  * the overlay, so its code coming in opens nothing (library-internal).
  */
+const MODIFIERS = new Set(['Shift', 'Control', 'Alt', 'Meta']);
+
 export function useDismissWhileLoading(
   triggerRef: RefObject<HTMLElement | null>,
   waiting: boolean,
@@ -37,7 +44,12 @@ export function useDismissWhileLoading(
     const dismiss = () => latest.current.close();
     let tabbing = false;
     const onKeyDown = (event: KeyboardEvent) => {
-      const { onArrow, closeOnArrow } = latest.current.options;
+      const { onArrow, closeOnArrow, keysFromPage } = latest.current.options;
+      const onPage = event.target === page.body || event.target === page.documentElement;
+      if (keysFromPage && onPage && !MODIFIERS.has(event.key) && event.key !== 'Tab') {
+        dismiss();
+        return;
+      }
       const arrow = event.key === 'ArrowDown' || event.key === 'ArrowUp';
       if (event.key === 'Tab') tabbing = inside(event.target);
       else if (event.key === 'Escape') {

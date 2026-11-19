@@ -574,6 +574,7 @@ export function Menu({
     // In a context menu's region, typing or an arrow is the person carrying on there.
     closeOnInput: trigger.contextMenu,
     closeOnArrow: trigger.contextMenu,
+    keysFromPage: trigger.contextMenu,
   });
   const { setPending } = trigger;
   useLayoutEffect(() => {

@@ -400,4 +400,29 @@ describe('Menu opened while its code loads', () => {
     fireEvent.focusOut(trigger(), { relatedTarget: null });
     expect(trigger()).toHaveAttribute('aria-expanded', 'true');
   });
+
+  for (const [name, keys] of [
+    ['typing', 'a'],
+    ['an arrow key', '{ArrowDown}'],
+  ] as const) {
+    it(`never opens a context menu late over ${name} with focus on the page, from a region that takes none`, async () => {
+      const release = holdLoad();
+      render(
+        <ContextMenuTrigger>
+          <div>A photo</div>
+          <Menu aria-label="Photo" submenuPresentation="replace">
+            <MenuItem key="save">Save</MenuItem>
+          </Menu>
+        </ContextMenuTrigger>,
+      );
+      fireEvent.contextMenu(screen.getByText('A photo'), { clientX: 40, clientY: 60 });
+      expect(document.activeElement).toBe(document.body);
+      await userEvent.keyboard(keys);
+      await act(async () => {
+        release();
+        await preloadMenuInPlace();
+      });
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    });
+  }
 });
