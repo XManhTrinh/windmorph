@@ -100,6 +100,21 @@ describe('Menu code loaded on demand', () => {
     expect(loads.count).toBe(0);
   });
 
+  it('treats the page’s body or root as no container, so there is nothing to load', async () => {
+    const { Settings } = await freshMenu();
+    for (const page of [document.body, document.documentElement]) {
+      const { unmount } = render(<Settings portalContainer={page} />);
+      runIdleCallbacks();
+      trigger().focus();
+      await userEvent.keyboard('{Enter}');
+      // Open at once, in the page, as a menu with no container is.
+      expect(screen.getByRole('menu', { name: 'Settings' })).toBeInTheDocument();
+      await userEvent.keyboard('{Escape}');
+      unmount();
+    }
+    expect(loads.requested).toBe(0);
+  });
+
   it('loads it when a menu with pages in place first opens, focus on the trigger meanwhile', async () => {
     const { Settings } = await freshMenu();
     const release = holdLoad();

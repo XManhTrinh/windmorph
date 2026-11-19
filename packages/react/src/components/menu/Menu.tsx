@@ -417,7 +417,8 @@ export interface MenuProps
    * `position: relative`, keep the trigger inside it or along its edge, and pass the element
    * from a callback ref kept in state. It must draw its children (not a `<video>`, `<canvas>`
    * or `<img>`). Popovers only: a bottom sheet opens over the window (and inside the element
-   * in full screen, as every overlay does). Set it on the root menu.
+   * in full screen, as every overlay does). The page's `body` or `<html>` counts as no element:
+   * the menu opens in `body`, kept in the window. Set it on the root menu.
    */
   portalContainer?: Element | null;
   /**
@@ -535,7 +536,10 @@ export function Menu({
   const presence = usePresence(trigger.state.isOpen);
   const asSheet = presentation === 'sheet' || (presentation === 'auto' && compact);
   const replace = submenuPresentation === 'replace';
-  const contained = portalContainer != null;
+  // The page's `body` or root is the page itself, not an element to keep the menu in: it
+  // would cap the menu at a short page's height and load the container's code for nothing.
+  const container = elementOtherThanPage(portalContainer);
+  const contained = container !== null;
   usePreloadBottomSheet(trigger.triggerRef, asSheet);
   // The sheet, pages in place and a `portalContainer` load their code first: usually in the
   // browser's first idle period after mount, or as the pointer moves over the trigger or focus
@@ -590,7 +594,7 @@ export function Menu({
         instant={instant}
         replace={replace}
         transition={submenuTransition}
-        boundary={portalContainer ?? null}
+        boundary={container}
         isExiting={isExiting}
         exitProps={presence.exitProps}
       />
@@ -607,6 +611,13 @@ export function Menu({
       />
     </Overlay>
   );
+}
+
+/** `element`, unless it's the page's `body` or root (or none). */
+function elementOtherThanPage(element: Element | null | undefined): Element | null {
+  if (!element) return null;
+  const page = element.ownerDocument;
+  return element === page.body || element === page.documentElement ? null : element;
 }
 
 /*
