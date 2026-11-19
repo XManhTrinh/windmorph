@@ -11,6 +11,7 @@ const SECTION = 'flex flex-col gap-3';
 
 const BAR_SLOTS = [
   'strip',
+  'body',
   'part',
   'fill',
   'share',
