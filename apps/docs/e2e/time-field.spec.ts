@@ -215,3 +215,61 @@ test.describe('TimeField under consumer classes', () => {
     }
   }
 });
+
+test.describe('TimeField code loaded on demand', () => {
+  for (const [presentation, story, name, other, chunk] of [
+    [
+      'dialog',
+      'components-timefield--schedule',
+      'Monday Opens',
+      'Monday Closes',
+      /\/TimeFieldDialog-[\w-]+\.js/,
+    ],
+    ['docked', 'components-timefield--docked', 'Opens at', 'Lunch', /\/TimeFieldList-[\w-]+\.js/],
+  ] as const) {
+    test(`a ${presentation} picker opened while its code loads: Escape, a press outside and focus moving on close it, and it never takes focus after`, async ({
+      page,
+    }) => {
+      let release = () => {};
+      const waiting = new Promise<void>((resolve) => (release = resolve));
+      let asked = () => {};
+      const requested = new Promise<void>((resolve) => (asked = resolve));
+      await page.route(chunk, async (route) => {
+        asked();
+        await waiting;
+        await route.continue();
+      });
+      await openStory(page, story);
+      const button = page
+        .getByRole('textbox', { name, exact: true })
+        .locator('xpath=ancestor::*[@data-field-state][1]')
+        .getByRole('button');
+      const open = async () => {
+        await button.click();
+        await expect(button).toHaveAttribute('aria-expanded', 'true');
+        // No list is in the page yet for the button to name.
+        await expect(button).not.toHaveAttribute('aria-controls');
+      };
+      await open();
+      await requested;
+      await page.keyboard.press('Escape');
+      await expect(button).toHaveAttribute('aria-expanded', 'false');
+      await open();
+      await page.mouse.click(5, 5);
+      await expect(button).toHaveAttribute('aria-expanded', 'false');
+      await open();
+      const next = page.getByRole('textbox', { name: other, exact: true });
+      await next.focus();
+      await expect(button).toHaveAttribute('aria-expanded', 'false');
+      // The code coming in opens nothing and leaves focus where it went.
+      release();
+      await page.waitForResponse(chunk);
+      await page.evaluate(
+        () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+      );
+      await expect(page.getByRole('dialog')).toHaveCount(0);
+      await expect(page.getByRole('listbox')).toHaveCount(0);
+      await expect(next).toBeFocused();
+    });
+  }
+});
