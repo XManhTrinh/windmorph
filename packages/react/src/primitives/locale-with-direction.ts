@@ -38,8 +38,11 @@ const directed = new Map<string, string>();
  * `ar-Latn` for LTR) and the language and region stay. A new script can change how the locale
  * formats, so the tag keeps the original's digits, hour cycle and calendar wherever it would
  * (`ar-EG` → `ar-Latn-EG-u-nu-arab`, still Arabic-Indic digits; `zh-Hant-TW` →
- * `zh-Latn-TW-u-hc-h12`, still a 12-hour clock), and only those: a numbering system in the tag
- * also stops numbers typed in other digits from being read. No tag with another script keeps the
+ * `zh-Arab-TW-u-hc-h12` for right to left, still a 12-hour clock), and only those. The trade-off:
+ * a numbering system in the tag also stops React Aria's `NumberParser` reading other digits, so
+ * an app's own React Aria number or date-segment input in a left-to-right region of an Arabic
+ * page takes Arabic-Indic digits only, not Latin ones (the core's own fields read the page's
+ * locale). No tag with another script keeps the
  * rest of a locale's own data, which then comes from its language's: words written in its script
  * (Serbian's Latin month names come out Cyrillic) and a region's own patterns and separators
  * (`en-GB`'s day-first dates, `es-MX`'s decimal point). So the tag is for React Aria only:

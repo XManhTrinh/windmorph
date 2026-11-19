@@ -1,9 +1,11 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
+import { I18nProvider } from 'react-aria';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { labelInNameViolations } from '../../../test/label-in-name';
+import { DirectionLocale } from '../../primitives/DomDirectionLocale';
 import { ThemeScope } from '../../theme/ThemeScope';
 import { SelectItem, SelectSection } from './option-list';
 import { Select, type SelectProps } from './Select';
@@ -109,6 +111,32 @@ describe('Select', () => {
     await waitFor(() => expect(sortField()).toHaveFocus());
     await userEvent.keyboard('n');
     expect(sortField()).toHaveTextContent('Newest first');
+  });
+
+  it('matches typeahead in the page’s language inside a core region laid out the other way', async () => {
+    // Serbian in Latin script tells č from c. In a toolbar, list or tab of the other direction
+    // React Aria gets the language in another script, whose collation doesn't.
+    render(
+      <I18nProvider locale="sr-Latn-RS">
+        <DirectionLocale direction="rtl">
+          <Select label="Town">
+            <SelectItem key="beograd">Beograd</SelectItem>
+            <SelectItem key="cacak">Čačak</SelectItem>
+            <SelectItem key="cetinje">Cetinje</SelectItem>
+          </Select>
+        </DirectionLocale>
+      </I18nProvider>,
+    );
+    await userEvent.tab();
+    // The closed field…
+    await userEvent.keyboard('c');
+    expect(screen.getByRole('button', { name: /Town/ })).toHaveTextContent('Cetinje');
+    // …and its list, opened on Cetinje: Čačak isn't a "c", so c stays there.
+    await userEvent.keyboard('{ArrowDown}');
+    const list = screen.getByRole('listbox');
+    expect(within(list).getByRole('option', { name: 'Cetinje' })).toHaveFocus();
+    await userEvent.keyboard('c');
+    expect(within(list).getByRole('option', { name: 'Cetinje' })).toHaveFocus();
   });
 
   // M3 menus keyboard table: "Letters — Focus moves to the next menu item starting with letter".

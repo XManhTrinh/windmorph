@@ -12,6 +12,29 @@ import { List, ListItem, type ListItemProps } from './List';
 const Icon = () => <svg data-testid="icon" viewBox="0 0 24 24" />;
 
 describe('List (static)', () => {
+  it('matches typeahead in the page’s language in a tree laid out the other way', async () => {
+    render(
+      <I18nProvider locale="sr-Latn-RS">
+        <div dir="rtl">
+          <List aria-label="Towns" defaultExpandedKeys={['serbia']}>
+            <ListItem
+              key="serbia"
+              childItems={[
+                <ListItem key="cacak">Čačak</ListItem>,
+                <ListItem key="cetinje">Cetinje</ListItem>,
+              ]}
+            >
+              Serbia
+            </ListItem>
+          </List>
+        </div>
+      </I18nProvider>,
+    );
+    screen.getByRole('row', { name: /Serbia/ }).focus();
+    await userEvent.keyboard('c');
+    expect(screen.getByRole('row', { name: /Cetinje/ })).toHaveFocus();
+  });
+
   it.each([
     ['a list box', { selectionMode: 'single' as const }, 'option'],
     ['a grid list', { onAction: () => {} }, 'row'],

@@ -55,6 +55,22 @@ describe('DatePicker', () => {
     expect(screen.getByText('4 Sept 2030')).toHaveClass('text-headline-large');
   });
 
+  it('names its weekdays in the page’s script inside a region of the other direction', () => {
+    // Serbian in Latin script; the language in another script falls back to Cyrillic.
+    render(
+      <I18nProvider locale="sr-Latn-RS">
+        <div dir="rtl" style={{ direction: 'rtl' }}>
+          <DatePicker defaultValue={new CalendarDate(2030, 9, 4)} />
+        </div>
+      </I18nProvider>,
+    );
+    const weekdays = screen.getAllByRole('columnheader').map((header) => header.textContent);
+    expect(weekdays.length).toBe(7);
+    for (const weekday of weekdays) expect(weekday).toMatch(/^[A-Za-zčćžšđČĆŽŠĐ.]+$/);
+    // The month above the days too.
+    expect(screen.getByText(/^septembar 2030/)).toBeInTheDocument();
+  });
+
   it('reads the modal date picker tokens for the headline, picked days and today', () => {
     render(<DatePicker defaultValue={march} data-testid="picker" />);
     const picker = screen.getByTestId('picker');
