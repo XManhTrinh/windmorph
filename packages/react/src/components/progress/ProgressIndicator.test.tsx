@@ -1,7 +1,28 @@
 import { render, screen, waitFor } from '@testing-library/react';
+import { I18nProvider } from 'react-aria';
 import { describe, expect, it } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { DirectionLocale } from '../../primitives/DomDirectionLocale';
 import { CircularProgressIndicator, LinearProgressIndicator } from './ProgressIndicator';
+
+// A region laid out the other way gives React Aria the locale in another script (`ar-Latn-EG`),
+// whose digits are Latin; the value is read in the page's.
+describe('progress indicators in a region of the other direction', () => {
+  it('read their value in the page’s locale', () => {
+    render(
+      <I18nProvider locale="ar-EG">
+        <DirectionLocale direction="ltr">
+          <LinearProgressIndicator aria-label="Upload" value={0.5} />
+          <CircularProgressIndicator aria-label="Sync" value={0.5} />
+        </DirectionLocale>
+      </I18nProvider>,
+    );
+    const percent = new Intl.NumberFormat('ar-EG', { style: 'percent' }).format(0.5);
+    for (const name of ['Upload', 'Sync']) {
+      expect(screen.getByRole('progressbar', { name })).toHaveAttribute('aria-valuetext', percent);
+    }
+  });
+});
 
 describe('LinearProgressIndicator', () => {
   it('is a determinate progressbar with a track, an active line and a stop dot', async () => {

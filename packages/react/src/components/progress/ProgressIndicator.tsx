@@ -10,6 +10,7 @@ import {
   type RefObject,
 } from 'react';
 import { mergeProps, useObjectRef, useProgressBar } from 'react-aria';
+import { usePageNumberFormatter } from '../../primitives/use-page-formatters';
 import { cn } from '../../utils/cn';
 import {
   AMPLITUDE_DURATION_MS,
@@ -282,12 +283,16 @@ export function LinearProgressIndicator({
   const amplitude = useAmplitude(ampTarget, reduceMotion);
   const handoff = useHandoff<number[]>(indeterminate, reduceMotion);
   const drawnValue = useAnimatedValue(v, wavy, indeterminate, reduceMotion);
+  // Read in the page's locale: React Aria's own is, in a region laid out the other way, the
+  // locale in another script, with that script's digits.
+  const percent = usePageNumberFormatter({ style: 'percent' });
   const { progressBarProps } = useProgressBar({
     ...rest,
     value: indeterminate ? undefined : v,
     minValue: 0,
     maxValue: 1,
     isIndeterminate: indeterminate,
+    valueLabel: indeterminate ? undefined : percent.format(v),
   });
 
   /** The track and active paths for some line positions, wave amplitude and clock. */
@@ -495,12 +500,16 @@ export function CircularProgressIndicator({
   const amplitude = useAmplitude(ampTarget, reduceMotion);
   const handoff = useHandoff<CircularFrame>(indeterminate, reduceMotion);
   const drawnValue = useAnimatedValue(v, wavy, indeterminate, reduceMotion);
+  // Read in the page's locale: React Aria's own is, in a region laid out the other way, the
+  // locale in another script, with that script's digits.
+  const percent = usePageNumberFormatter({ style: 'percent' });
   const { progressBarProps } = useProgressBar({
     ...rest,
     value: indeterminate ? undefined : v,
     minValue: 0,
     maxValue: 1,
     isIndeterminate: indeterminate,
+    valueLabel: indeterminate ? undefined : percent.format(v),
   });
   const styles = circularProgressStyles({ wavy });
   const period = circularWavePeriod(

@@ -5,6 +5,7 @@ import { useMemo, useRef, type ComponentPropsWithRef, type CSSProperties } from 
 import { mergeProps, useProgressBar } from 'react-aria';
 import type { MorphShape } from '../../primitives/morph-path';
 import type { RoundedPolygon } from '../../shapes/rounded-polygon';
+import { usePageNumberFormatter } from '../../primitives/use-page-formatters';
 import { cn } from '../../utils/cn';
 import {
   CONTAINER_SIZE,
@@ -122,12 +123,17 @@ export function LoadingIndicator({
   const prepared = useMemo(() => prepareShapes(sequence, indeterminate), [key, indeterminate]);
   const reduceMotion = useReducedMotion() ?? false;
 
+  // Read in the page's locale: React Aria's own is, in a region laid out the other way, the
+  // locale in another script, with that script's digits.
+  const percent = usePageNumberFormatter({ style: 'percent' });
+  const shown = indeterminate ? undefined : Number.isNaN(value) ? 0 : value;
   const { progressBarProps } = useProgressBar({
     ...rest,
-    value: indeterminate ? undefined : Number.isNaN(value) ? 0 : value,
+    value: shown,
     minValue: 0,
     maxValue: 1,
     isIndeterminate: indeterminate,
+    valueLabel: shown === undefined ? undefined : percent.format(Math.min(1, Math.max(0, shown))),
   });
 
   const frameAt = (elapsedMs: number): Frame =>
