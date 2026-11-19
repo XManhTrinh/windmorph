@@ -1054,22 +1054,23 @@ test.describe('Menu in place: behaviour', () => {
       return [s.top - p.top, s.left - p.left, p.top];
     })()`;
     const pane = page.getByTestId('pane');
-    const frames = await samplePaintedFrames<number[]>(
+    const painted = await samplePaintedFrames<number[]>(
       page,
       offset,
       async () => {
         for (let i = 0; i < 6; i++) {
           await pane.evaluate((el) => (el.scrollTop += 20));
-          await page.waitForTimeout(32);
+          // Each step painted before the next.
+          await frames(page, 2);
         }
       },
       400,
     );
     // The pane scrolled the player, and the menu with it.
-    expect(frames.at(-1)![2]).toBeLessThan(frames[0]![2]! - 60);
-    for (const [top, left] of frames) {
-      expect(Math.abs(top! - frames[0]![0]!)).toBeLessThanOrEqual(0.5);
-      expect(Math.abs(left! - frames[0]![1]!)).toBeLessThanOrEqual(0.5);
+    expect(painted.at(-1)![2]).toBeLessThan(painted[0]![2]! - 60);
+    for (const [top, left] of painted) {
+      expect(Math.abs(top! - painted[0]![0]!)).toBeLessThanOrEqual(0.5);
+      expect(Math.abs(left! - painted[0]![1]!)).toBeLessThanOrEqual(0.5);
     }
   });
 

@@ -1,12 +1,17 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { ComponentProps } from 'react';
+import { StrictMode, type ComponentProps } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { runIdleCallbacks } from '../../../test/setup';
 import { LOAD_RETRY_DELAY } from '../../utils/load-on-demand';
+import type * as LoadOnDemand from '../../utils/load-on-demand';
 
-// Counts the loads of the module a menu loads on demand; a test can hold one back, or fail it.
-const loads = { count: 0, gate: Promise.resolve(), fail: false };
+/**
+ * Counts the loads of the module a menu loads on demand (`count`, as the module is imported)
+ * and the loads asked for of any part loaded on demand (`requested`, as `preload` asks, at once);
+ * a test can hold a load back, or fail it.
+ */
+const loads = { count: 0, requested: 0, gate: Promise.resolve(), fail: false };
 
 /**
  * The menu's modules, imported afresh for each test, so each starts with nothing loaded,
@@ -14,6 +19,15 @@ const loads = { count: 0, gate: Promise.resolve(), fail: false };
  */
 async function freshMenu() {
   vi.resetModules();
+  vi.doMock('../../utils/load-on-demand', async (importOriginal) => {
+    const original = await importOriginal<typeof LoadOnDemand>();
+    const onDemand: typeof original.onDemand = (load) =>
+      original.onDemand(() => {
+        loads.requested += 1;
+        return load();
+      });
+    return { ...original, onDemand };
+  });
   vi.doMock('./menu-in-place', async (importOriginal) => {
     loads.count += 1;
     await loads.gate;
@@ -57,6 +71,7 @@ const loadErrors = (error: { mock: { calls: unknown[][] } }) =>
 
 beforeEach(() => {
   loads.count = 0;
+  loads.requested = 0;
   loads.gate = Promise.resolve();
   loads.fail = false;
 });
@@ -182,12 +197,43 @@ describe('Menu code loaded on demand', () => {
   it('loads a sheet menu’s code when the browser is idle, not as the page mounts', async () => {
     const { Settings } = await freshMenu();
     render(<Settings presentation="sheet" />);
-    await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
-    expect(loads.count).toBe(0);
+    // Mounting asked for nothing: its effects have run, and a load is asked for in them at once.
+    expect(loads.requested).toBe(0);
     runIdleCallbacks();
+    expect(loads.requested).toBeGreaterThan(0);
     await waitFor(() => expect(loads.count).toBe(1));
     trigger().focus();
     await userEvent.keyboard('{Enter}');
     expect(await screen.findByRole('dialog', { name: 'Settings' })).toBeInTheDocument();
+  });
+
+  it('loads, opens, changes pages and closes under StrictMode, leaving no stand-in behind', async () => {
+    const { Settings } = await freshMenu();
+    const player = document.body.appendChild(document.createElement('div'));
+    player.style.position = 'relative';
+    const { unmount } = render(
+      <StrictMode>
+        <Settings submenuPresentation="replace" portalContainer={player} />
+      </StrictMode>,
+    );
+    trigger().focus();
+    await userEvent.keyboard('{Enter}');
+    const quality = screen.getByRole('menuitem', { name: 'Quality' });
+    await waitFor(() => expect(quality).toHaveFocus());
+    expect(player).toContainElement(screen.getByRole('menu', { name: 'Settings' }));
+    // One stand-in for the container, however often StrictMode ran the effects.
+    expect(document.querySelectorAll('[data-menu-boundary]')).toHaveLength(1);
+    await userEvent.keyboard('{ArrowRight}');
+    const page = await screen.findByRole('menu', { name: 'Quality' });
+    await waitFor(() => expect(page).toContainElement(document.activeElement as HTMLElement));
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(quality).toHaveFocus());
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
+    expect(trigger()).toHaveFocus();
+    expect(document.querySelectorAll('[data-menu-boundary]')).toHaveLength(0);
+    expect(loads.count).toBe(1);
+    unmount();
+    player.remove();
   });
 });
