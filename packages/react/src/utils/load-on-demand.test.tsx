@@ -1,8 +1,14 @@
-import { render } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { runIdleCallbacks } from '../../test/setup';
-import { IDLE_FALLBACK_DELAY, usePreloadWhenIdle } from './load-on-demand';
+import {
+  IDLE_FALLBACK_DELAY,
+  LOAD_RETRY_DELAY,
+  LOAD_RETRY_MOST,
+  onDemand,
+  usePreloadWhenIdle,
+} from './load-on-demand';
 
 function Part({ preload, enabled = true }: { preload: () => Promise<unknown>; enabled?: boolean }) {
   usePreloadWhenIdle(preload, enabled);
@@ -101,5 +107,42 @@ describe('usePreloadWhenIdle', () => {
     expect(request).not.toHaveBeenCalled();
     expect(preload).not.toHaveBeenCalled();
     request.mockRestore();
+  });
+});
+
+describe('onDemand useLoaded', () => {
+  it('tries a failed load again while it is wanted, pausing longer each time, and stops when it is not', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      const load = vi.fn(() => Promise.reject(new Error('The network is down')));
+      const part = onDemand<object>(load);
+      const onError = vi.fn();
+      function Wanting({ enabled }: { enabled: boolean }) {
+        part.useLoaded(enabled, onError);
+        return null;
+      }
+      const { rerender } = render(<Wanting enabled />);
+      await act(() => vi.advanceTimersByTimeAsync(0));
+      expect(load).toHaveBeenCalledTimes(1);
+      // Reported once; then tried after 1s, 2s, 4s… up to 30s apart.
+      expect(onError).toHaveBeenCalledTimes(1);
+      await act(() => vi.advanceTimersByTimeAsync(LOAD_RETRY_DELAY));
+      expect(load).toHaveBeenCalledTimes(2);
+      await act(() => vi.advanceTimersByTimeAsync(LOAD_RETRY_DELAY * 2 - 1));
+      expect(load).toHaveBeenCalledTimes(2);
+      await act(() => vi.advanceTimersByTimeAsync(1));
+      expect(load).toHaveBeenCalledTimes(3);
+      await act(() => vi.advanceTimersByTimeAsync(LOAD_RETRY_MOST * 10));
+      const tries = load.mock.calls.length;
+      await act(() => vi.advanceTimersByTimeAsync(LOAD_RETRY_MOST));
+      expect(load.mock.calls.length).toBe(tries + 1);
+      expect(onError).toHaveBeenCalledTimes(1);
+      // No longer wanted (the menu closed): no more tries.
+      rerender(<Wanting enabled={false} />);
+      await act(() => vi.advanceTimersByTimeAsync(LOAD_RETRY_MOST * 4));
+      expect(load.mock.calls.length).toBe(tries + 1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

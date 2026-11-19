@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import type { ComponentProps } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { runIdleCallbacks } from '../../../test/setup';
+import { LOAD_RETRY_DELAY } from '../../utils/load-on-demand';
 
 // Counts the loads of the module a menu loads on demand; a test can hold one back, or fail it.
 const loads = { count: 0, gate: Promise.resolve(), fail: false };
@@ -153,6 +154,29 @@ describe('Menu code loaded on demand', () => {
     // The sheet's code alone: the popover's isn't wanted, and isn't loaded or reported.
     expect(loadErrors(error)).toBe(1);
     error.mockRestore();
+  });
+
+  it('loads its code again after a pause while it stays open, when its app holds it open', async () => {
+    const { Settings } = await freshMenu();
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    loads.fail = true;
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      // A controlled `open` with no `onOpenChange`: the failed load's close changes nothing.
+      render(<Settings open submenuPresentation="replace" />);
+      await vi.waitFor(() => expect(loadErrors(error)).toBe(1));
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+      // Back online: tried again after a pause, the menu shows, with no second report.
+      loads.fail = false;
+      await act(() => vi.advanceTimersByTimeAsync(LOAD_RETRY_DELAY));
+      await vi.waitFor(() =>
+        expect(screen.getByRole('menu', { name: 'Settings' })).toBeInTheDocument(),
+      );
+      expect(loadErrors(error)).toBe(1);
+    } finally {
+      vi.useRealTimers();
+      error.mockRestore();
+    }
   });
 
   it('loads a sheet menu’s code when the browser is idle, not as the page mounts', async () => {

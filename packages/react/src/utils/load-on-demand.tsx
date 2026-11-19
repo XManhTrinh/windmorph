@@ -16,7 +16,11 @@ export interface OnDemandComponent<P extends object> {
   /**
    * The component once its module is in, else `undefined`, re-rendering the caller as it
    * arrives, whichever call loaded it. While `enabled` it starts the load, and a failed load
-   * calls `onError`; it's tried again the next time `enabled` turns on, or on `preload`.
+   * calls `onError` (once, until `enabled` turns off): the caller usually closes, which ends
+   * the wait, and the next time `enabled` turns on (or a `preload`) tries again. While it stays
+   * enabled (an app holding a menu open that its close can't change), it's tried again after a
+   * pause, `LOAD_RETRY_DELAY` and doubling up to `LOAD_RETRY_MOST`, so it shows once the
+   * network is back.
    */
   useLoaded: (
     enabled?: boolean,
@@ -25,6 +29,15 @@ export interface OnDemandComponent<P extends object> {
 }
 
 const loadedNothing = () => undefined;
+
+/**
+ * The first pause before a failed load is tried again while it's still wanted; each next
+ * pause doubles, up to `LOAD_RETRY_MOST`.
+ */
+export const LOAD_RETRY_DELAY = 1000;
+
+/** The longest pause between tries of a failed load that's still wanted. */
+export const LOAD_RETRY_MOST = 30_000;
 
 /**
  * Loads a component on demand, for parts a component shows only sometimes (a tooltip on
@@ -74,11 +87,18 @@ export function onDemand<P extends object>(
     useEffect(() => {
       if (!enabled || loaded) return;
       let current = true;
-      preload().catch((error: unknown) => {
-        if (current) report.current?.(error);
-      });
+      let retry: ReturnType<typeof setTimeout> | undefined;
+      const attempt = (pause: number) => {
+        preload().catch((error: unknown) => {
+          if (!current) return;
+          if (pause === LOAD_RETRY_DELAY) report.current?.(error);
+          retry = setTimeout(() => attempt(Math.min(pause * 2, LOAD_RETRY_MOST)), pause);
+        });
+      };
+      attempt(LOAD_RETRY_DELAY);
       return () => {
         current = false;
+        clearTimeout(retry);
       };
     }, [enabled]);
     return component;
@@ -102,7 +122,7 @@ export function closeOnLoadError(component: string, close: () => void) {
   return (error: unknown) => {
     if (process.env.NODE_ENV !== 'production') {
       console.error(
-        `[@windmorph/react] A ${component} couldn't load the code it opens with, so it closed; it tries again when it next opens.`,
+        `[@windmorph/react] A ${component} couldn't load the code it opens with, so it closed; it tries again when it next opens, or after a pause while it's held open.`,
         error,
       );
     }
