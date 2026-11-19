@@ -318,14 +318,18 @@ export interface MenuProps
   disabledKeys?: AriaMenuProps<object>['disabledKeys'];
   /** `MenuItem`s, `MenuGroup`s and `SubmenuTrigger`s. */
   children: ReactNode;
-  /** `standard` (surface colours) or `vibrant` (tertiary container). @default "standard" */
+  /**
+   * `standard` (surface colours) or `vibrant` (tertiary container). A submenu shown in place
+   * (in a sheet, or with `submenuPresentation="replace"`) takes the root menu's, since its page
+   * sits on the root's surface. @default "standard"
+   */
   variant?: MenuVariant;
   /**
    * How groups are set apart. `divider`: one surface with dividers between groups, which M3
    * recommends on the web and for menus that scroll. `gap`: each group is its own surface,
    * 2px apart; a `gap` menu that has to scroll switches to dividers, since M3 doesn't use
-   * gaps in scrolling menus. A submenu takes its parent's layout and variant unless it
-   * sets its own.
+   * gaps in scrolling menus. A submenu beside its item takes its parent's layout and variant
+   * unless it sets its own; shown in place, it takes the `divider` layout and the root's variant.
    * @default "divider"
    */
   layout?: MenuLayout;
@@ -432,12 +436,13 @@ export interface MenuProps
    * Goes with `style` on the menu's outermost element: the box React Aria places against the
    * trigger, or the bottom sheet's outermost element in a sheet. The surface inside keeps
    * its size and its place against the trigger whatever layout class lands here (the box
-   * keeps the menu's own width); style it with `classNames.panel`.
+   * keeps the menu's own width); style it with `classNames.panel`. On a submenu shown in place
+   * (in a sheet, or with `submenuPresentation="replace"`), its page: the back row and its list.
    */
   className?: string;
   /** Classes for each part, by slot. */
   classNames?: MenuClassNames;
-  /** Goes on the menu's outermost element, with `className`. */
+  /** Goes on the menu's outermost element, with `className` (a submenu's page, shown in place). */
   style?: CSSProperties;
   /** Ref to the menu's list, the `role="menu"` element, in a popover or a sheet. */
   ref?: Ref<HTMLDivElement>;

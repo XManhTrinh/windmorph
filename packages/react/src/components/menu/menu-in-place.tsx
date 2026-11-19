@@ -410,8 +410,10 @@ function SubmenuPage({ state, submenuRef, menuProps, submenu, title }: SubmenuPa
   const shown = useHeldWhileLeaving(state.isOpen, tree.rootState.isOpen);
   if (!shown || !tree.container) return null;
   const { submenuLevel, ...ariaMenuProps } = menuProps;
-  const own = submenu.props;
-  const variant = own.variant ?? tree.variant;
+  // The page sits on the surface the pages share, in the root menu's variant (the plan's
+  // decision 4), and takes the submenu's `className` and `style` (they went nowhere before).
+  const { className, style, variant: _variant, ...own } = submenu.props;
+  const variant = tree.variant;
   const styles = menuStyles({ variant });
   const page = menuPageStyles({ instant: tree.instant });
   const part = (name: 'header' | 'back' | 'title') =>
@@ -423,7 +425,8 @@ function SubmenuPage({ state, submenuRef, menuProps, submenu, title }: SubmenuPa
         // The header reads the menu's tokens, as the items do.
         data-tokens="md-comp-menus"
         data-variant={variant}
-        className={page.panel()}
+        style={style}
+        className={page.panel({ class: className })}
       >
         <div className={styles.sheetHeader({ class: part('header') })}>
           <MenuBackButton

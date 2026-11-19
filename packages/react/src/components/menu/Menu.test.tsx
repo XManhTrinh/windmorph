@@ -1420,6 +1420,21 @@ describe('Menu submenus in place (submenuPresentation="replace")', () => {
     expectOpen('Settings');
   });
 
+  it("puts a submenu's className and style on its page, which takes the root menu's variant", async () => {
+    render(
+      <PlayerSettings
+        quality={{ variant: 'vibrant', className: 'app-page', style: { marginTop: 3 } }}
+      />,
+    );
+    const quality = await openPage('Quality');
+    const page = quality.closest<HTMLElement>('[data-submenu-panel]')!;
+    expect(page).toHaveClass('app-page');
+    expect(page).toHaveStyle({ marginTop: '3px' });
+    // One surface, one variant: the root's (the plan's decision 4).
+    expect(page).toHaveAttribute('data-variant', 'standard');
+    expect(quality).toHaveAttribute('data-variant', 'standard');
+  });
+
   it('goes back one page with Escape or the back arrow on the back button', async () => {
     render(<PlayerSettings />);
     await openMenu('Settings');
