@@ -193,6 +193,8 @@ export async function LineChartBody(): Promise<ComponentDoc> {
               (<InlineCode>entrance=&quot;rise&quot;</InlineCode>, the default), or drawn on from
               the start (<InlineCode>entrance=&quot;draw&quot;</InlineCode>). A chart already on
               screen as the page loads shows its final picture at once, from the server&apos;s HTML.
+              Under reduced motion the chart shows its final picture at once, wherever it is on the
+              page.
             </li>
             <li>
               When the numbers change, the lines move from where they are to the new values on the

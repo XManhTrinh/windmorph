@@ -188,9 +188,9 @@ export async function BarChartBody(): Promise<ComponentDoc> {
               chart is seen.
             </li>
             <li>
-              Under reduced motion nothing moves: bars take their new size and place at once,
-              without the one-after-another start, and a place that leaves goes at once. The fades
-              still run.
+              Under reduced motion nothing moves: a chart shows its final picture at once, wherever
+              it is on the page, bars take their new size and place at once, without the
+              one-after-another start, and a place that leaves goes at once. The fades still run.
             </li>
           </ul>
         </section>

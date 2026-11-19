@@ -158,7 +158,8 @@ export async function SegmentedBarBody(): Promise<ComponentDoc> {
             <li>
               The parts grow to their shares when the bar first comes into view, and a change moves
               them to their new shares, on the spatial spring. One on screen as the page loads shows
-              its shares at once, from the server&apos;s HTML.
+              its shares at once, from the server&apos;s HTML. Under reduced motion the bar shows
+              its final picture at once, wherever it is on the page.
             </li>
             <li>
               In a <InlineCode>ChartFrame</InlineCode>, the frame&apos;s title names it, unless it

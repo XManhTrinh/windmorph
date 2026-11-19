@@ -95,7 +95,8 @@ export async function MeterBody(): Promise<ComponentDoc> {
               The fill grows from the start the first time the meter comes into view, while the
               number counts up from <InlineCode>min</InlineCode>; a new amount moves both from where
               they are. A meter on screen as the page loads shows its final picture from the
-              server&apos;s HTML, with nothing replayed.
+              server&apos;s HTML, with nothing replayed. Under reduced motion the meter shows its
+              final picture at once, wherever it is on the page.
             </li>
             <li>
               An amount or a limit that isn&apos;t a number reads{' '}

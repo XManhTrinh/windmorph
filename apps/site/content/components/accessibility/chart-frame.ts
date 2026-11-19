@@ -20,7 +20,7 @@ export const chartFrame: ComponentAccessibility = {
       'The table switch is a toggle button named `labels.showTable` ("Show as a table"), the same name in both views, with `aria-pressed` saying whether the table shows. While `pending`, the chart area is `aria-busy` over the chart or the table, never over a state, whose announcements some screen readers would hold back inside a busy area; the table view shows its loading bar too.',
     notes: [
       'While `loading`, a status says `labels.loading` ("Loading"); the status goes into the page a moment before its words, so it is announced.',
-      "The `error` message, and `empty` words given as text, are announced politely as they take the chart's place, through a status that is in the page from the start. An `EmptyState` passed as `empty` announces itself with its own `announce`.",
+      "The `error` message, and `empty` words given as text, are announced politely as they take the chart's place, through a status that is in the page from the start. While a retry is `pending` with its `error` the status goes quiet, so a retry that fails again with the same words is said again. An `EmptyState` passed as `empty` announces itself with its own `announce`.",
       'The description is a `div` under the title, so it may hold more than words (a list, a link). It describes every chart inside and the table view through `aria-describedby`.',
       'While the table shows, the chart stays in the page, hidden from everyone.',
     ],

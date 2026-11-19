@@ -98,7 +98,8 @@ export async function ChartFrameBody(): Promise<ComponentDoc> {
               formats them, and the frame offers a switch, &quot;Show as a table&quot; (
               <InlineCode>labels.showTable</InlineCode>), pressed while the table shows. Lists,
               meters and stat tiles give none, since their figures are already printed, so the
-              switch isn&apos;t there. With several charts inside, the table shows the first&apos;s.
+              switch isn&apos;t there, nor is it while a chart has nothing to tabulate (no places,
+              series or parts). With several charts inside, the table shows the first&apos;s.
             </li>
             <li>
               The table is a plain <InlineCode>DataTable</InlineCode> named by the title: the places
@@ -165,8 +166,10 @@ export async function ChartFrameBody(): Promise<ComponentDoc> {
               <InlineCode>empty</InlineCode> or <InlineCode>error</InlineCode> given as a failed{' '}
               <InlineCode>{"cond && 'Words'"}</InlineCode> (<InlineCode>false</InlineCode>) is no
               state, as React draws nothing for it. <InlineCode>minHeight</InlineCode> (240px at the
-              default text size, growing with larger text) is the chart area&apos;s least height, so
-              a state or a table keeps it.
+              default text size, growing with larger text) is the chart area&apos;s least height: a
+              line or bar chart with no <InlineCode>minHeight</InlineCode> of its own fills it, its
+              legend included, and a state, a table or a reload&apos;s placeholder keeps the last
+              chart&apos;s height, so nothing below moves as the chart comes back.
             </li>
           </ul>
         </section>

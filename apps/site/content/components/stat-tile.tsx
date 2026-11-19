@@ -105,7 +105,8 @@ export async function StatTileBody(): Promise<ComponentDoc> {
               it is read once: the direction, the amount and the context, then good or bad news in
               words (<InlineCode>labels.good</InlineCode>, <InlineCode>labels.bad</InlineCode>):
               &quot;Up 12% on last week, better&quot;. <InlineCode>labels.change(parts)</InlineCode>{' '}
-              puts the sentence together, so a language can order it its own way.
+              puts the sentence together, so a language can order it its own way, and{' '}
+              <InlineCode>labels.separator</InlineCode> is the dot before the tone on screen.
             </li>
             <li>
               <InlineCode>trend</InlineCode> takes the number&apos;s recent values, oldest first,
@@ -116,9 +117,10 @@ export async function StatTileBody(): Promise<ComponentDoc> {
             <li>
               A sparkline is drawn over its values&apos; own range rather than from 0, so its shape
               reads at a small size; a run that moves less than a tenth of its level keeps that
-              tenth, so a nearly flat figure stays nearly flat. Values that aren&apos;t numbers are
-              left out. Time runs from the start edge, so right to left the newest value is on the
-              left.
+              tenth, so a nearly flat figure stays nearly flat. A value that isn&apos;t a number (
+              <InlineCode>null</InlineCode> or <InlineCode>NaN</InlineCode>) leaves a gap in its
+              place, so time keeps its spacing. Time runs from the start edge, so right to left the
+              newest value is on the left.
             </li>
             <li>
               Inside a tile the sparkline is decorative. On its own, beside the words it stands for,

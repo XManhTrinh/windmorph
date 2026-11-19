@@ -128,7 +128,8 @@ export async function RankedBarsBody(): Promise<ComponentDoc> {
             <li>
               The bars grow from nothing one after another when the list first comes into view, and
               a change moves every bar at once, on the spatial spring. A list on screen as the page
-              loads shows its bars at once, from the server&apos;s HTML.
+              loads shows its bars at once, from the server&apos;s HTML. Under reduced motion the
+              list shows its final picture at once, wherever it is on the page.
             </li>
             <li>
               In a <InlineCode>ChartFrame</InlineCode>, the frame&apos;s title names the list,
