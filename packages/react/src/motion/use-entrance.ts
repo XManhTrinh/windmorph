@@ -20,8 +20,8 @@ export interface EntranceResult {
    * Whether the element shows its final state. `false` only while an entrance is waiting to
    * play: show the start state (bars at their baseline, a number at its start). It turns `true`
    * once, as the element first comes into view or the page is printed; under reduced motion it is
-   * always `true`, so nothing waits at its start to jump in (a fade-in waiting for it doesn't
-   * play either).
+   * always `true`, and stays so when reduced motion is turned off, so nothing waits at its start
+   * to jump in (a fade-in waiting for it doesn't play either).
    */
   entered: boolean;
   /**
@@ -137,6 +137,11 @@ export function useEntrance(
   const done = useRef(false);
   // Hydrated: the first report decides, once, whether it showed its final picture already.
   const hydrating = useRef(!mountedInBrowser);
+  // Under reduced motion nothing waits at its start state: an entrance would only jump in. It
+  // enters for good (here, and as done in the effect), so turning reduced motion off never
+  // sends it back.
+  const reducedMotion = useReducedMotion() === true;
+  if (reducedMotion && !entered) setEntered(true);
 
   useEffect(() => {
     const element = ref.current;
@@ -150,7 +155,12 @@ export function useEntrance(
     let whole = false;
     let inside = false;
     let onScreenNow = false;
-    let printingNow = false;
+    // Mounted during a print: entered for good, and out of view until it ends.
+    let printingNow = isPrinting();
+    if (printingNow || reducedMotion) {
+      done.current = true;
+      hydrating.current = false;
+    }
     const enter = () => {
       if (done.current || !(whole || inside) || document.hidden) return;
       done.current = true;
@@ -215,9 +225,7 @@ export function useEntrance(
       document.removeEventListener('visibilitychange', enter);
       unsubscribePrint();
     };
-  }, [ref, amount, mountedInBrowser]);
+  }, [ref, amount, mountedInBrowser, reducedMotion]);
 
-  // Under reduced motion nothing waits at its start state: an entrance would only jump in.
-  const reducedMotion = useReducedMotion() === true;
   return { entered: entered || reducedMotion, inView };
 }

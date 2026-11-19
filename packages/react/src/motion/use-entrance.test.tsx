@@ -140,6 +140,16 @@ describe('useEntrance', () => {
     expect(seen).not.toContain(false);
   });
 
+  it('stays entered when reduced motion is turned off', () => {
+    reducedMotion.value = true;
+    const { container, rerender } = render(<Chart />);
+    expect(box(container)).toHaveAttribute('data-entered', 'true');
+    // Below the fold, the setting turned off: it showed its final picture, and keeps it.
+    reducedMotion.value = false;
+    rerender(<Chart amount={0.3} />);
+    expect(box(container)).toHaveAttribute('data-entered', 'true');
+  });
+
   it('waits in the start state when the browser mounts it, and enters once it has come in', () => {
     const { container } = render(<Chart />);
     expect(box(container)).toHaveAttribute('data-entered', 'false');
@@ -330,6 +340,27 @@ describe('useEntrance', () => {
       expect(box(container)).toHaveAttribute('data-entered', 'false');
     } finally {
       remove.mockRestore();
+    }
+  });
+
+  it('is out of view while the print it mounted in goes on, and enters for good', () => {
+    // One already on the page, so the print is under way when the next one mounts.
+    render(<Chart />);
+    outsideAct(() => window.dispatchEvent(new Event('beforeprint')));
+    const section = document.createElement('div');
+    document.body.append(section);
+    const root = createRoot(section);
+    try {
+      // On screen as it mounts in the print: a print runs no frames, so nothing is in view.
+      place({ visible: true, ratio: 1, inside: true });
+      act(() => root.render(<Chart />));
+      expect(box(section)).toHaveAttribute('data-entered', 'true');
+      expect(box(section)).toHaveAttribute('data-in-view', 'false');
+      act(() => window.dispatchEvent(new Event('afterprint')));
+      expect(box(section)).toHaveAttribute('data-in-view', 'true');
+    } finally {
+      act(() => root.unmount());
+      section.remove();
     }
   });
 
