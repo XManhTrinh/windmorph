@@ -42,8 +42,9 @@ const directed = new Map<string, string>();
  * (Serbian's Latin month names come out Cyrillic) and a region's own patterns and separators
  * (`en-GB`'s day-first dates, `es-MX`'s decimal point). So the tag is for React Aria only:
  * `DomDirectionLocale` keeps the original for the components' own dates, times and numbers
- * (their digits included) and for `useLocale`, and only React Aria's own words and formats there
- * (a calendar day's accessible name) follow the tag. A locale that can't be read gives `ar` or
+ * (their digits included, and the date in a calendar day's name) and for `useLocale`, and only
+ * React Aria's own words and formats there (the wording around a day's date, such as "selected",
+ * and the grid's month name) follow the tag. A locale that can't be read gives `ar` or
  * `en-US`.
  */
 export function localeWithDirection(locale: string, direction: 'ltr' | 'rtl'): string {

@@ -44,9 +44,9 @@ export function DirectionLocale({
  * the wrong way. This reads the element's computed direction and, when it differs from
  * the page locale's, gives React Aria the same locale with the matching direction
  * ({@link localeWithDirection}). The components' own dates, times and numbers inside (the
- * date and time fields' text, a slider's value, `AnimatedNumber`, and `useLocale` for an
- * app's) keep the page's locale; React Aria's own words and formats there (a calendar day's
- * name, a date segment) follow the directed one.
+ * date and time fields' text, a slider's value, `AnimatedNumber`, the date in a calendar
+ * day's name, and `useLocale` for an app's) keep the page's locale; React Aria's own words and
+ * formats there (the wording around a day's date, the grid's month name) follow the directed one.
  */
 export function DomDirectionLocale({ children }: DomDirectionLocaleProps) {
   const { direction: localeDirection } = useLocale();
