@@ -155,6 +155,14 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
         item: 'Offset',
         note: '`offset` sets a gap between the trigger and the menu (the split button uses 4px).',
       },
+      {
+        item: 'Submenus in place',
+        note: 'The spec opens a submenu next to its item, without covering it. `submenuPresentation="replace"` shows it in place of the menu instead, on the same surface below a back button, for a menu confined to a small surface such as a video player; `submenuTransition` fades or slides the pages, and `afterSelect="back"` returns to the page that opened a submenu after a choice.',
+      },
+      {
+        item: 'Opening inside an element',
+        note: '`portalContainer` opens the menu inside an element (a player) instead of the page, kept within it and shown with it in full screen.',
+      },
     ],
     notBuilt: [
       {

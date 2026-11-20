@@ -12,11 +12,14 @@ import {
   SubmenuTrigger,
   DENSITIES,
   type Density as DensityLevel,
+  type MenuAfterSelect,
   type MenuLayout,
   type MenuPresentation,
+  type MenuSubmenuPresentation,
+  type MenuSubmenuTransition,
   type MenuVariant,
 } from '@windmorph/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AddIcon, DeleteIcon, EditIcon, SearchIcon, SendIcon, StarIcon } from './icons';
 import {
   LAYOUT_OVERRIDES,
@@ -267,6 +270,261 @@ export const Submenus: Story = {
         </MenuTrigger>
         <p className="text-body-medium" data-testid="last">
           Last action: {last}
+        </p>
+      </div>
+    );
+  },
+};
+
+const SettingsIcon = () => (
+  <svg viewBox="0 -960 960 960" fill="currentColor">
+    <path d="m370-80-16-128q-13-5-24.5-12T307-235l-119 50L78-375l103-78q-1-7-1-13.5v-27q0-6.5 1-13.5L78-585l110-190 119 50q11-8 23-15t24-12l16-128h220l16 128q13 5 24.5 12t22.5 15l119-50 110 190-103 78q1 7 1 13.5v27q0 6.5-2 13.5l103 78-110 190-118-50q-11 8-23 15t-24 12L590-80H370Zm112-260q58 0 99-41t41-99q0-58-41-99t-99-41q-59 0-99.5 41T342-480q0 58 40.5 99t99.5 41Z" />
+  </svg>
+);
+
+const FullscreenIcon = () => (
+  <svg viewBox="0 -960 960 960" fill="currentColor">
+    <path d="M120-120v-200h80v120h120v80H120Zm520 0v-80h120v-120h80v200H640ZM120-640v-200h200v80H200v120h-80Zm640 0v-120H640v-80h200v200h-80Z" />
+  </svg>
+);
+
+const FullscreenExitIcon = () => (
+  <svg viewBox="0 -960 960 960" fill="currentColor">
+    <path d="M240-120v-120H120v-80h200v200h-80Zm400 0v-200h200v80H720v120h-80ZM120-640v-80h120v-120h80v200H120Zm520 0v-200h80v120h120v80H640Z" />
+  </svg>
+);
+
+/**
+ * Whether the page shows an element in full screen, following the browser (Escape or the
+ * browser's own control leave it too).
+ */
+function useFullscreen() {
+  const [fullscreen, setFullscreen] = useState(false);
+  useEffect(() => {
+    const update = () => setFullscreen(document.fullscreenElement !== null);
+    document.addEventListener('fullscreenchange', update);
+    return () => document.removeEventListener('fullscreenchange', update);
+  }, []);
+  return fullscreen;
+}
+
+/** Shows `element` in full screen, or leaves it; a browser may refuse, which changes nothing. */
+function toggleFullscreen(element: HTMLElement | null) {
+  const change = document.fullscreenElement
+    ? document.exitFullscreen()
+    : element?.requestFullscreen();
+  change?.catch(() => undefined);
+}
+
+/** Consumer classes on the player for the container's override matrix (architecture §10). */
+const PLAYER_OVERRIDES = {
+  none: '',
+  static: 'static',
+  overflowHidden: 'overflow-hidden',
+  transform: '[transform:translateX(0px)]',
+  translate: 'translate-x-[0px]',
+  containPaint: '[contain:paint]',
+} as const;
+
+// Each page's choices, in order (an object would put the number-like keys first).
+const QUALITIES = [
+  ['auto', 'Auto'],
+  ['1080', '1080p'],
+  ['720', '720p'],
+  ['480', '480p'],
+  ['360', '360p'],
+] as const;
+const SPEEDS = [
+  ['0.5', '0.5×'],
+  ['1', 'Normal'],
+  ['1.5', '1.5×'],
+  ['2', '2×'],
+] as const;
+const SUBTITLES = [
+  ['off', 'Off'],
+  ['en', 'English'],
+  ['fr', 'French'],
+] as const;
+const SIZES = [
+  ['small', 'Small'],
+  ['medium', 'Medium'],
+  ['large', 'Large'],
+] as const;
+
+/** The label of a single selection's one key. */
+const chosen = (choices: readonly (readonly [string, string])[], keys: Set<string>) =>
+  choices.find(([key]) => keys.has(key))?.[1];
+
+/** Keeps a selection as a set of string keys. */
+const keep = (set: (keys: Set<string>) => void) => (keys: unknown) =>
+  set(new Set(keys as Set<string>));
+
+/**
+ * A video player's settings menu (`submenuPresentation="replace"`, `portalContainer`): it opens
+ * over the picture from the settings button in the player's bottom end corner, inside the
+ * player, so it moves with it and shows in full screen. Quality, Playback speed and Subtitles
+ * (with a Font size page of its own) replace the content on the same surface, below a back
+ * button, and a choice goes back to the first page (`afterSelect="back"`), which shows it.
+ * `corner` puts the controls at the top, so the menu opens below its trigger; `flip` asks for
+ * the side with no room in the player; `override` puts a consumer class on the player and
+ * `boxOverride` one on the menu's placed box (its `className`);
+ * `triggerOutside` puts the button below the player; `inPlayer` off opens it in `body`.
+ */
+export const PlayerSettings: StoryObj<{
+  variant: MenuVariant;
+  submenuPresentation: MenuSubmenuPresentation;
+  submenuTransition: MenuSubmenuTransition;
+  afterSelect: MenuAfterSelect;
+  inPlayer: boolean;
+  corner: 'bottom' | 'top';
+  override: keyof typeof PLAYER_OVERRIDES;
+  boxOverride: LayoutOverrideName;
+  triggerOutside: boolean;
+  flip: boolean;
+  instant: boolean;
+}> = {
+  args: {
+    variant: 'standard',
+    submenuPresentation: 'replace',
+    submenuTransition: 'fade',
+    afterSelect: 'back',
+    inPlayer: true,
+    corner: 'bottom',
+    override: 'none',
+    boxOverride: 'none',
+    triggerOutside: false,
+    flip: false,
+    instant: false,
+  },
+  argTypes: {
+    variant: { control: 'inline-radio', options: ['standard', 'vibrant'] },
+    submenuPresentation: { control: 'inline-radio', options: ['beside', 'replace'] },
+    submenuTransition: { control: 'inline-radio', options: ['fade', 'slide'] },
+    afterSelect: { control: 'inline-radio', options: ['close', 'back'] },
+    corner: { control: 'inline-radio', options: ['bottom', 'top'] },
+    override: { control: 'select', options: Object.keys(PLAYER_OVERRIDES) },
+    boxOverride: { control: 'select', options: LAYOUT_OVERRIDE_NAMES },
+  },
+  render: function PlayerSettingsStory({
+    variant,
+    submenuPresentation,
+    submenuTransition,
+    afterSelect,
+    inPlayer,
+    corner,
+    override,
+    boxOverride,
+    triggerOutside,
+    flip,
+    instant,
+  }) {
+    const [player, setPlayer] = useState<HTMLDivElement | null>(null);
+    const [quality, setQuality] = useState(new Set(['auto']));
+    const [speed, setSpeed] = useState(new Set(['1']));
+    const [subtitles, setSubtitles] = useState(new Set(['off']));
+    const [size, setSize] = useState(new Set(['medium']));
+    const [loop, setLoop] = useState(new Set<string>());
+    const isFullscreen = useFullscreen();
+    const page = { selectionMode: 'single', deselectable: false, afterSelect } as const;
+    const settings = (
+      <MenuTrigger>
+        <IconButton variant="standard" icon={<SettingsIcon />} aria-label="Settings" />
+        <Menu
+          aria-label="Settings"
+          variant={variant}
+          instant={instant}
+          submenuPresentation={submenuPresentation}
+          submenuTransition={submenuTransition}
+          portalContainer={inPlayer ? player : null}
+          className={LAYOUT_OVERRIDES[boxOverride]}
+          // Away from the trigger's edge of the player, unless `flip` asks for the side
+          // without room, which the menu then flips from.
+          placement={(corner === 'bottom' || triggerOutside) !== flip ? 'top-end' : 'bottom-end'}
+          offset={8}
+        >
+          <SubmenuTrigger>
+            <MenuItem key="quality" description={chosen(QUALITIES, quality)}>
+              Quality
+            </MenuItem>
+            <Menu {...page} selectedKeys={quality} onSelectionChange={keep(setQuality)}>
+              {QUALITIES.map(([key, label]) => (
+                <MenuItem key={key}>{label}</MenuItem>
+              ))}
+            </Menu>
+          </SubmenuTrigger>
+          <SubmenuTrigger>
+            <MenuItem key="speed" description={chosen(SPEEDS, speed)}>
+              Playback speed
+            </MenuItem>
+            <Menu {...page} selectedKeys={speed} onSelectionChange={keep(setSpeed)}>
+              {SPEEDS.map(([key, label]) => (
+                <MenuItem key={key}>{label}</MenuItem>
+              ))}
+            </Menu>
+          </SubmenuTrigger>
+          <SubmenuTrigger>
+            <MenuItem key="subtitles" description={chosen(SUBTITLES, subtitles)}>
+              Subtitles
+            </MenuItem>
+            <Menu {...page} selectedKeys={subtitles} onSelectionChange={keep(setSubtitles)}>
+              <MenuGroup aria-label="Language">
+                {SUBTITLES.map(([key, label]) => (
+                  <MenuItem key={key}>{label}</MenuItem>
+                ))}
+              </MenuGroup>
+              <MenuGroup aria-label="Appearance" selectionMode="none">
+                <SubmenuTrigger>
+                  <MenuItem key="size" description={chosen(SIZES, size)}>
+                    Font size
+                  </MenuItem>
+                  <Menu {...page} selectedKeys={size} onSelectionChange={keep(setSize)}>
+                    {SIZES.map(([key, label]) => (
+                      <MenuItem key={key}>{label}</MenuItem>
+                    ))}
+                  </Menu>
+                </SubmenuTrigger>
+              </MenuGroup>
+            </Menu>
+          </SubmenuTrigger>
+          <MenuGroup
+            aria-label="Playback"
+            selectionMode="multiple"
+            selectedKeys={loop}
+            onSelectionChange={keep(setLoop)}
+          >
+            <MenuItem key="loop">Loop</MenuItem>
+          </MenuGroup>
+        </Menu>
+      </MenuTrigger>
+    );
+    const fullscreen = (
+      <IconButton
+        variant="standard"
+        icon={isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
+        aria-label={isFullscreen ? 'Exit full screen' : 'Full screen'}
+        onPress={() => toggleFullscreen(player)}
+      />
+    );
+    return (
+      <div
+        data-testid="pane"
+        className="h-[480px] w-[720px] max-w-full overflow-auto rounded-corner-large bg-surface p-[24px]"
+      >
+        <div
+          ref={setPlayer}
+          data-testid="player"
+          // The controls are in the player's flow, so a consumer class on it (`static`) moves
+          // only what positions against it: the menu.
+          className={`relative flex aspect-video w-[640px] max-w-full flex-col rounded-corner-medium bg-surface-container-highest ${corner === 'bottom' ? 'justify-end' : 'justify-start'} ${PLAYER_OVERRIDES[override]}`}
+        >
+          <div className="flex justify-end gap-[4px] p-[8px]">
+            {!triggerOutside && settings}
+            {fullscreen}
+          </div>
+        </div>
+        {triggerOutside && <div className="flex justify-end pt-[8px]">{settings}</div>}
+        <p className="h-[320px] pt-[16px] text-body-medium text-on-surface-variant">
+          Loop: {loop.size ? 'on' : 'off'}
         </p>
       </div>
     );

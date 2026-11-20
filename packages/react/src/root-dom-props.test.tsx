@@ -4,6 +4,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRef, type ReactElement, type RefObject } from 'react';
 import { describe, expect, it, vi } from 'vitest';
+import * as publicApi from './index';
 import {
   AssistChip,
   Autocomplete,
@@ -430,13 +431,16 @@ describe('root DOM attributes', () => {
     expect(getByRole('radio', { name: 'Standard' })).not.toHaveAttribute('aria-invalid');
   });
 
-  it('covers every component that splits its props with splitRootProps', () => {
+  it('covers every public component that splits its props with splitRootProps', () => {
     const src = dirname(fileURLToPath(import.meta.url));
     const splitting = readdirSync(join(src, 'components'), { recursive: true, withFileTypes: true })
       .filter((entry) => entry.isFile() && /\.tsx$/.test(entry.name) && !/test/.test(entry.name))
       .map((entry) => readFileSync(join(entry.parentPath, entry.name), 'utf8'))
       .filter((code) => code.includes('splitRootProps('))
-      .flatMap((code) => [...code.matchAll(/^export function ([A-Z]\w*)/gm)].map((m) => m[1]!));
+      .flatMap((code) => [...code.matchAll(/^export function ([A-Z]\w*)/gm)].map((m) => m[1]!))
+      // A part a module shares with another of its own (`MenuList` with the menu's lazily loaded
+      // module) isn't a component an app renders.
+      .filter((name) => name in publicApi);
     const covered = new Set(Object.keys(CASES).map((name) => name.split(' ')[0]));
     expect(splitting.filter((name) => !covered.has(name))).toEqual([]);
   });
