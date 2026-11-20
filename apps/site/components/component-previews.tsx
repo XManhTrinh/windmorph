@@ -604,6 +604,22 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
       </span>
     </span>
   ),
+  shelf: (
+    <Row gap={1}>
+      <Col gap={1}>
+        <Shape w={64} h={40} fill="tertiary" round="sm" />
+        <Text w={48} strong />
+      </Col>
+      <Col gap={1}>
+        <Shape w={64} h={40} fill="secondary" round="sm" />
+        <Text w={40} strong />
+      </Col>
+      <Col gap={1}>
+        <Shape w={24} h={40} fill="high" round="sm" />
+        <Text w={20} strong />
+      </Col>
+    </Row>
+  ),
   'shaped-icon': (
     <Row gap={3}>
       <Shape w={40} h={40} fill="primary" round="lg" />

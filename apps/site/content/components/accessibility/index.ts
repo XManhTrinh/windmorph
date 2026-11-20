@@ -32,6 +32,7 @@ import { carousel } from './carousel';
 import { mediaGrid } from './media-grid';
 import { mediaTimeSlider } from './media-time-slider';
 import { durationTag } from './duration-tag';
+import { shelf } from './shelf';
 import { statTile } from './stat-tile';
 import { meter } from './meter';
 import { lineChart } from './line-chart';
@@ -124,6 +125,7 @@ export const ACCESSIBILITY: Record<string, ComponentAccessibility> = {
   'media-viewer': mediaViewer,
   'media-time-slider': mediaTimeSlider,
   'duration-tag': durationTag,
+  shelf,
   'stat-tile': statTile,
   meter: meter,
   'line-chart': lineChart,

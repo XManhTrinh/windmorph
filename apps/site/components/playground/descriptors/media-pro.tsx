@@ -1,10 +1,46 @@
 'use client';
 
-import { DurationTag, MediaFrame } from '@windmorph/react-pro';
+import { DurationTag, MediaFrame, Shelf } from '@windmorph/react-pro';
 import { createElement } from 'react';
 import { loose, type PlaygroundDescriptor } from './shared';
 
 const DurationTagAny = loose(DurationTag);
+const ShelfAny = loose(Shelf);
+
+/** The shelf preview's cards: a picture in one of the theme's tones and a title. */
+const SHELF_TITLES = [
+  'Harbour lights',
+  'Mountain pass',
+  'Night market',
+  'Old town',
+  'River walk',
+  'Desert road',
+  'Northern coast',
+  'Glass house',
+];
+const SHELF_TONES = [
+  'bg-primary-container',
+  'bg-inverse-surface',
+  'bg-tertiary-container',
+  'bg-secondary',
+];
+
+function shelfCard(title: string, index: number, tall: boolean) {
+  return createElement(
+    'a',
+    {
+      key: title,
+      href: `#${title}`,
+      className:
+        'flex flex-col gap-2 rounded-corner-medium text-on-surface outline-offset-2 focus-visible:outline-[3px] focus-visible:outline-secondary',
+    },
+    createElement('span', {
+      'data-shelf-media': '',
+      className: `block w-full rounded-corner-medium ${tall ? 'aspect-[9/16]' : 'aspect-video'} ${SHELF_TONES[index % SHELF_TONES.length]}`,
+    }),
+    createElement('span', { className: 'text-title-small' }, title),
+  );
+}
 
 /** Playgrounds for the Windmorph Pro media components, by page slug. */
 export const MEDIA_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
@@ -36,5 +72,32 @@ export const MEDIA_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       before: '<MediaFrame ratio="16/9">\n  <img src="/media/poster.jpg" alt="" />',
       after: '</MediaFrame>',
     },
+  },
+  shelf: {
+    component: 'Shelf',
+    importFrom: '@windmorph/react-pro',
+    notRendered: {
+      ShelfPlaceholder:
+        'The loading row, a server component with skeleton cards; the "Loading" example shows it.',
+    },
+    render: (props) =>
+      createElement(
+        'div',
+        { className: 'w-full' },
+        createElement(
+          ShelfAny,
+          { ...props, 'aria-label': 'Series' },
+          SHELF_TITLES.map((title, index) => shelfCard(title, index, props.per === 'tall')),
+        ),
+      ),
+    defaultProps: { per: 'wide', arrowsAlign: 'center', arrows: true },
+    surfacedProps: ['per', 'arrowsAlign', 'arrows', 'cardWidth'],
+    notControlled: {
+      previousIcon: 'A replacement chevron; the preview keeps the shelf’s own.',
+      nextIcon: 'A replacement chevron; the preview keeps the shelf’s own.',
+    },
+    codeSlots: { 'aria-label': '"Series"' },
+    codeChildren:
+      '<a href="/series/harbour">Harbour lights</a>\n<a href="/series/pass">Mountain pass</a>\n<a href="/series/market">Night market</a>',
   },
 };

@@ -47,6 +47,7 @@ import { LoadMoreBody } from './load-more';
 import { MediaGridBody } from './media-grid';
 import { MediaTimeSliderBody } from './media-time-slider';
 import { DurationTagBody } from './duration-tag';
+import { ShelfBody } from './shelf';
 import { StatTileBody } from './stat-tile';
 import { MeterBody } from './meter';
 import { LineChartBody } from './line-chart';
@@ -183,6 +184,7 @@ const BODIES: Record<string, ComponentDocLoader> = {
   'media-grid': MediaGridBody,
   'media-time-slider': MediaTimeSliderBody,
   'duration-tag': DurationTagBody,
+  shelf: ShelfBody,
   'stat-tile': StatTileBody,
   meter: MeterBody,
   'line-chart': LineChartBody,

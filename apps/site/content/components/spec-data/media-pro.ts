@@ -36,4 +36,33 @@ export const MEDIA_PRO_SPEC: Record<string, ComponentSpecData> = {
       },
     ],
   },
+  shelf: {
+    covers: [
+      {
+        name: 'Wide (16:9) cards, the arrows centred on their pictures (`arrowsAlign="media"`)',
+        kind: 'variant',
+        examples: ['shelf/shelf-wide'],
+      },
+      {
+        name: 'Tall (9:16) cards (`per="tall"`)',
+        kind: 'variant',
+        examples: ['shelf/shelf-tall'],
+      },
+      {
+        name: 'Loading, with skeleton cards (`ShelfPlaceholder`)',
+        kind: 'configuration',
+        examples: ['shelf/shelf-loading'],
+      },
+    ],
+    extensions: [
+      {
+        item: 'Not an M3 component',
+        note: 'M3’s carousel sizes its items as a share of the row and clips them; a shelf keeps an app’s own cards untouched in a plain list, with side arrows that M3’s carousel rules out.',
+      },
+      {
+        item: 'Sized by its own width',
+        note: 'Cards to a line step by the shelf’s width at the library’s size classes, never whole numbers, so part of the next card always shows.',
+      },
+    ],
+  },
 };

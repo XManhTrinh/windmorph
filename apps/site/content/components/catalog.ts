@@ -1034,6 +1034,30 @@ export const COMPONENT_META: ComponentMeta[] = [
     ],
   },
   {
+    slug: 'shelf',
+    title: 'Shelf',
+    group: 'Containment & overlays',
+    railGroup: 'containment',
+    summary:
+      'One row of cards that scrolls sideways, with part of the next card showing at its end and Previous and Next at its sides for a mouse. Not an M3 component (@windmorph/react-pro).',
+    propsComponents: ['Shelf', 'ShelfPlaceholder'],
+    playground: 'full',
+    pro: true,
+    related: ['carousel', 'media-grid', 'card'],
+    whenNotToUse:
+      "For M3's carousel of pictures that change size as they scroll, use a Carousel; when every item must be seen at once, a grid of Cards.",
+    keywords: [
+      'row',
+      'scroller',
+      'rail of cards',
+      'horizontal list',
+      'horizontal scroll',
+      'row of cards',
+      'swimlane',
+      'strip',
+    ],
+  },
+  {
     slug: 'shaped-icon',
     title: 'Shaped icon',
     group: 'Containment & overlays',
