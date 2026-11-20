@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState, useSyncExternalStore, type RefObject } from 'react';
+import { flushSync } from 'react-dom';
+import { useReducedMotion } from 'motion/react';
 
 export interface EntranceOptions {
   /**
@@ -17,14 +19,83 @@ export interface EntranceResult {
   /**
    * Whether the element shows its final state. `false` only while an entrance is waiting to
    * play: show the start state (bars at their baseline, a number at its start). It turns `true`
-   * once, as the element first comes into view.
+   * once, as the element first comes into view or the page is printed; under reduced motion it is
+   * always `true`, so nothing waits at its start to jump in (a fade-in waiting for it doesn't
+   * play either). The preference is read as the element mounts (Motion's `useReducedMotion`
+   * doesn't follow a change), so a new setting reaches it on a remount; once entered under
+   * reduced motion, it stays entered.
    */
   entered: boolean;
-  /** Whether the element is in view now, so a change is worth animating. */
+  /**
+   * Whether the element is in view now, so a change is worth animating. `false` while the page
+   * prints, on screen or not: a print runs no frames to animate in.
+   */
   inView: boolean;
 }
 
 const subscribeNothing = () => () => undefined;
+
+/** Told `true` on `beforeprint` and `false` on `afterprint`. */
+type PrintListener = (printing: boolean) => void;
+const printListeners = new Set<PrintListener>();
+// Between `beforeprint` and `afterprint`: an entrance mounted then (a print-only section an app
+// renders from its own `beforeprint` handler) starts entered.
+let printing = false;
+// Inside the page's `beforeprint` dispatch: an app's handler may mount the first entrance there,
+// whose listener, added during the dispatch, the browser doesn't call for it.
+const inBeforePrint = () => typeof window !== 'undefined' && window.event?.type === 'beforeprint';
+const isPrinting = () => printing || inBeforePrint();
+
+// One pair of window listeners for every entrance on the page, added with the first and removed
+// after the last: a print commits them all in one `flushSync`, so the browser lays it out after a
+// single synchronous render, and a print begun inside React's own work warns once, not once for
+// each entrance (twelve tiles, twelve warnings). The pair goes only once the event being
+// dispatched is over, since a listener removed during a dispatch isn't called: an app's handler
+// that swaps the screen's charts for a print view's would otherwise take it away mid-print. Nor
+// while a print is under way (between `beforeprint` and `afterprint`): the pair stays until the
+// print ends, and `afterprint` lets it go if no entrance is left.
+let attached = false;
+let removal: ReturnType<typeof setTimeout> | undefined;
+const beforePrint = () => {
+  printing = true;
+  flushSync(() => {
+    for (const listener of [...printListeners]) listener(true);
+  });
+};
+const detach = () => {
+  if (!attached) return;
+  attached = false;
+  printing = false;
+  window.removeEventListener('beforeprint', beforePrint);
+  window.removeEventListener('afterprint', afterPrint);
+};
+function afterPrint() {
+  printing = false;
+  for (const listener of [...printListeners]) listener(false);
+  if (printListeners.size === 0) detach();
+}
+
+/** Calls `listener` as the page is printed and after; returns the unsubscribe. */
+function subscribeToPrint(listener: PrintListener) {
+  clearTimeout(removal);
+  if (!attached) {
+    attached = true;
+    window.addEventListener('beforeprint', beforePrint);
+    window.addEventListener('afterprint', afterPrint);
+  }
+  printListeners.add(listener);
+  // The first entrance, mounted in the page's `beforeprint` (it started entered): the print is
+  // under way until `afterprint`, so any mounted later in it starts entered too.
+  if (inBeforePrint()) printing = true;
+  return () => {
+    printListeners.delete(listener);
+    if (printListeners.size > 0) return;
+    removal = setTimeout(() => {
+      if (printListeners.size > 0 || printing) return;
+      detach();
+    });
+  };
+}
 
 /**
  * Whether an element's entrance should play: once, when it first comes into view, so motion
@@ -32,7 +103,17 @@ const subscribeNothing = () => () => undefined;
  * picture was in the server's HTML, and replaying it from nothing would flash. Content
  * server-rendered out of view switches to its start state unseen and enters when scrolled to;
  * content the browser mounts later enters as it comes into view. A hidden tab waits until it
- * shows. On the server `entered` is `true`.
+ * shows. On `beforeprint` the element enters and is out of view until `afterprint`, committed
+ * before the print is laid out, so what React renders from `entered` (text, an attribute, a style
+ * or CSS variable) prints in its final state. A print runs no frames, though: a Motion value
+ * moved by it jumps to its target, but Motion writes the styles bound to that value on its next
+ * frame, so a mark drawn from a Motion value needs a print value in CSS (its resting geometry
+ * written as a CSS variable and applied under `@media print`), as `AnimatedNumber` prints its
+ * final value. Every entrance on the page commits in the same render, from one shared listener. A
+ * print begun inside React's own work (`window.print()` from an effect, as a print view does) is
+ * laid out before this update renders, and only CSS reaches it (React warns once that it couldn't
+ * flush): start a print from a press, or from an effect through a `setTimeout`, so what React
+ * renders from `entered` prints. On the server `entered` is `true`.
  *
  * @param ref The element whose entrance it is; it must be rendered by the time effects run.
  * @example
@@ -50,13 +131,19 @@ export function useEntrance(
     () => false,
   );
   const [mountedInBrowser] = useState(inBrowser);
-  const [entered, setEntered] = useState(!mountedInBrowser);
+  // Mounted during a print (`printing`): its final state at once, so its first render prints it.
+  const [entered, setEntered] = useState(() => !mountedInBrowser || isPrinting());
   const [inView, setInView] = useState(false);
   // Entered once, for good: watching again (a new `amount`, an `Activity` shown again) never
   // sends it back to its start state.
   const done = useRef(false);
   // Hydrated: the first report decides, once, whether it showed its final picture already.
   const hydrating = useRef(!mountedInBrowser);
+  // Under reduced motion nothing waits at its start state: an entrance would only jump in. It
+  // enters for good (here, and as done in the effect), so a later value of the preference (read
+  // at mount by Motion) never sends it back.
+  const reducedMotion = useReducedMotion() === true;
+  if (reducedMotion && !entered) setEntered(true);
 
   useEffect(() => {
     const element = ref.current;
@@ -69,6 +156,12 @@ export function useEntrance(
     // Shown whole, or come `amount` of half the window in from its top or bottom.
     let whole = false;
     let inside = false;
+    let onScreenNow = false;
+    let printingNow = false;
+    if (reducedMotion) {
+      done.current = true;
+      hydrating.current = false;
+    }
     const enter = () => {
       if (done.current || !(whole || inside) || document.hidden) return;
       done.current = true;
@@ -82,7 +175,8 @@ export function useEntrance(
         const entry = newest(entries);
         if (!entry) return;
         whole = entry.isIntersecting && entry.intersectionRatio >= 0.999;
-        setInView(entry.isIntersecting);
+        onScreenNow = entry.isIntersecting;
+        if (!printingNow) setInView(entry.isIntersecting);
         if (hydrating.current) {
           // Hydrated with any part on screen: it showed its final picture already. Wholly out
           // of view: show the start state, unseen, until it's scrolled to.
@@ -107,15 +201,35 @@ export function useEntrance(
       },
       { rootMargin: inset, threshold: 0 },
     );
+    // Committed before the browser lays the print out (the shared `beforeprint` listener's
+    // `flushSync`): React would otherwise render after it. Dispatched inside React's own work
+    // (`window.print()` from an effect) `flushSync` can't commit, so only CSS print styles reach
+    // that print.
+    const print = (now: boolean) => {
+      printingNow = now;
+      if (now) {
+        done.current = true;
+        hydrating.current = false;
+        setEntered(true);
+        setInView(false);
+      } else {
+        setInView(onScreenNow);
+      }
+    };
+    // Started during a print (mounted then, or shown by an app's `beforeprint`, as a hidden
+    // `Activity`): that print's broadcast went out before this listener, so it enters now.
+    if (isPrinting()) print(true);
     onScreen.observe(element);
     pastEdge.observe(element);
     document.addEventListener('visibilitychange', enter);
+    const unsubscribePrint = subscribeToPrint(print);
     return () => {
       onScreen.disconnect();
       pastEdge.disconnect();
       document.removeEventListener('visibilitychange', enter);
+      unsubscribePrint();
     };
-  }, [ref, amount, mountedInBrowser]);
+  }, [ref, amount, mountedInBrowser, reducedMotion]);
 
-  return { entered, inView };
+  return { entered: entered || reducedMotion, inView };
 }
