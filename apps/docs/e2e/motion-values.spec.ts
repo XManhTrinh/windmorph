@@ -196,6 +196,43 @@ test.describe('Motion values', () => {
     expect(new Set(again.samples.map((sample) => Math.round(sample.value))).size).toBe(1);
   });
 
+  test('a counting number prints its final value before its entrance has played', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 800, height: 600 });
+    await open(page, 'entrance');
+    const total = page.getByTestId('row-total');
+    const figure = total.locator('[data-slot="figure"]');
+    // Never scrolled to, so its entrance waits at 0.
+    await expect(figure).toHaveText('0');
+    // Print media alone, with no `beforeprint` and so no update or frame: as a print started
+    // from an effect, laid out before React renders again. The final value prints in the
+    // figure's place, by CSS alone.
+    await page.emulateMedia({ media: 'print' });
+    const printed = await total.evaluate((root) => {
+      const box = root.firstElementChild!;
+      const [final, moving] = [...box.children] as HTMLElement[];
+      return {
+        final: final!.textContent,
+        finalVisibility: getComputedStyle(final!).visibility,
+        figureDisplay: getComputedStyle(moving!).display,
+        figure: moving!.textContent,
+        hidden: box.getAttribute('aria-hidden'),
+      };
+    });
+    expect(printed).toEqual({
+      final: '1,284',
+      finalVisibility: 'visible',
+      figureDisplay: 'none',
+      figure: '0',
+      hidden: 'true',
+    });
+    // On screen again, the figure is back and still waits for its entrance.
+    await page.emulateMedia({ media: 'screen' });
+    await expect(figure).toBeVisible();
+    await expect(figure).toHaveText('0');
+  });
+
   test('under reduced motion a value, a list and a number change at once', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await open(page, 'spring-value');
