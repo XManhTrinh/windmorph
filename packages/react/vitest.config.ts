@@ -11,6 +11,8 @@ export default defineConfig({
     // CI runs every package's tests at once on two cores, so heavy tests (theme colour
     // checks, interaction tests) can pass 5s there while taking well under 1s locally.
     testTimeout: 20_000,
+    // Hooks too (a `beforeAll` that preloads a menu's code).
+    hookTimeout: 20_000,
     // Its published ESM has extensionless imports, which Node's loader rejects.
     server: { deps: { inline: ['@material/material-color-utilities'] } },
   },

@@ -375,6 +375,39 @@ test.describe('Docked date picker', () => {
     await expect(page.getByRole('button', { name: 'Open calendar' })).toBeFocused();
   });
 
+  test('a phone dialog opened while its code loads: Escape and a press outside close it, and it never opens after', async ({
+    page,
+  }) => {
+    const chunk = /\/CompactDateDialog-[\w-]+\.js/;
+    let release = () => {};
+    const waiting = new Promise<void>((resolve) => (release = resolve));
+    let asked = () => {};
+    const requested = new Promise<void>((resolve) => (asked = resolve));
+    await page.route(chunk, async (route) => {
+      asked();
+      await waiting;
+      await route.continue();
+    });
+    await page.setViewportSize({ width: 330, height: 620 });
+    await openStory(page, 'components-pickers--docked');
+    const button = page.getByRole('button', { name: 'Open calendar' });
+    await button.click();
+    await requested;
+    await expect(button).toHaveAttribute('aria-expanded', 'true');
+    await page.keyboard.press('Escape');
+    await expect(button).toHaveAttribute('aria-expanded', 'false');
+    await button.click();
+    await page.mouse.click(5, 600);
+    await expect(button).toHaveAttribute('aria-expanded', 'false');
+    // The code coming in opens nothing.
+    release();
+    await page.waitForResponse(chunk);
+    await page.evaluate(
+      () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+    );
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+  });
+
   test('opens below the field, 360px wide, and Enter saves', async ({ page }) => {
     await openStory(page, 'components-pickers--docked');
     const field = page.getByRole('textbox', { name: 'Date' });

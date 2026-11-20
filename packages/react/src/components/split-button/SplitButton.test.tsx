@@ -100,7 +100,8 @@ describe('SplitButton', () => {
     // While the menu is open React Aria hides the rest of the page, trigger included.
     const button = trailing();
     await openMenu();
-    const menu = screen.getByRole('menu', { name: 'More send options' });
+    // Named by its own `aria-label`, as any triggered menu with one.
+    const menu = screen.getByRole('menu', { name: 'Send options' });
     expect(button).toHaveAttribute('aria-expanded', 'true');
     expect(button).toHaveAttribute('data-open', 'true');
     expect(button).toHaveClass(
