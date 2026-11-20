@@ -2,6 +2,7 @@
 
 import { useState, type RefObject } from 'react';
 import { onDemand, usePreloadOnIntent } from '../../utils/load-on-demand';
+import { useLoaded } from '../../utils/use-loaded';
 import type { BottomSheetProps } from './BottomSheet';
 
 const sheet = onDemand<BottomSheetProps>(() =>
@@ -25,13 +26,26 @@ export const preloadBottomSheet = sheet.preload;
  * (it never suspends, see `onDemand`). Once opened it stays mounted, so it can play its exit.
  * Server rendering works as it did: a sheet is never open there.
  */
-export function LazyBottomSheet(props: BottomSheetProps) {
+export function LazyBottomSheet({
+  onLoadError,
+  ...props
+}: BottomSheetProps & {
+  /**
+   * Called when the sheet's code fails to load as it opens (it's tried again on the next open);
+   * the component that opened it closes it, so nothing stays open over nothing.
+   */
+  onLoadError?: (error: unknown) => void;
+}) {
   const [opened, setOpened] = useState(props.open === true);
   // Set during render, so the first open renders the sheet in the same pass.
   if (props.open === true && !opened) setOpened(true);
-  if (!opened) return null;
+  const arrived = useLoaded(sheet, props.open === true, onLoadError) !== undefined;
+  if (!opened || !arrived) return null;
   return <sheet.Component {...props} />;
 }
+
+/** Whether the sheet's code is in, re-rendering the caller as it arrives (it loads nothing). */
+export const useBottomSheetLoaded = () => useLoaded(sheet, false) !== undefined;
 
 /**
  * Preloads the sheet when the pointer moves over `ref`'s element or focus enters it, while

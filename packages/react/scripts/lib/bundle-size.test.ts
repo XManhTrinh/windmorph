@@ -49,8 +49,13 @@ beforeAll(() => {
   write('components/sheet/BottomSheet.js', 'export function BottomSheet() {}');
   write(
     'components/dialog/Dialog.js',
-    'import { cn } from "../../utils/cn.js";\nexport function Dialog() {}\nexport function DialogTrigger() {}\nexport const dialogStyles = {};',
+    'import { cn } from "../../utils/cn.js";\nconst loadHelp = () => import("./dialog-help.js");\nexport function Dialog() {}\nexport function DialogTrigger() {}\nexport const dialogStyles = {};',
   );
+  write(
+    'components/dialog/dialog-help.js',
+    'import { cn } from "../../utils/cn.js";\nimport { extra } from "./help-extra.js";\nexport function DialogHelp() {}',
+  );
+  write('components/dialog/help-extra.js', 'export const extra = "help";');
 });
 
 afterAll(() => rmSync(dist, { recursive: true, force: true }));
@@ -86,6 +91,14 @@ describe('bundle size', () => {
     expect(report['components/button/Button']?.gzip).toBeGreaterThan(
       gzipSize(dist, ['components/button/Button.js']),
     );
+  });
+
+  it('measures a module a component loads on demand by what it adds as it loads', () => {
+    expect(measure(dist)['components/dialog/dialog-help']).toEqual({
+      exports: [],
+      loadedBy: 'components/dialog/Dialog',
+      gzip: gzipSize(dist, ['components/dialog/dialog-help.js', 'components/dialog/help-extra.js']),
+    });
   });
 
   it('passes within the tolerance and fails past it, without a budget or for a removed module', () => {

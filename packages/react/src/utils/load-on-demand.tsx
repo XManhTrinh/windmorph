@@ -10,9 +10,13 @@ export interface OnDemandComponent<P extends object> {
   /**
    * Renders the component once its module has loaded, and nothing until then; mounting it
    * starts the load. A failed load renders nothing and is tried again on the next mount or
-   * `preload`.
+   * `preload`; a load that ends later, by any of them, renders it then.
    */
   Component: ComponentType<P>;
+  /** The component once its module is in, else `undefined` (for `useLoaded`). */
+  loaded: () => ComponentType<P> | undefined;
+  /** Calls `listener` as the module arrives; returns the unsubscribe (for `useLoaded`). */
+  subscribe: (listener: () => void) => () => void;
 }
 
 /**
@@ -22,17 +26,24 @@ export interface OnDemandComponent<P extends object> {
  * Unlike `React.lazy` it never suspends: once the module is in, the component renders in the
  * same pass, and on first use it renders as soon as the module arrives. A `Suspense` boundary
  * would hold back content that resolves after its fallback showed (React throttles those
- * reveals by up to 300ms), so a part preloaded on hover would still show late.
+ * reveals by up to 300ms), so a part preloaded on hover would still show late. A component
+ * that opens with such a part, and must know when it's in or failed, reads it with
+ * `useLoaded` (`use-loaded.ts`), which only those components carry.
  */
 export function onDemand<P extends object>(
   load: () => Promise<ComponentType<P>>,
 ): OnDemandComponent<P> {
   let loaded: ComponentType<P> | undefined;
   let pending: Promise<ComponentType<P>> | undefined;
+  const listeners = new Set<() => void>();
 
   const preload = () => {
     pending ??= load().then(
-      (component) => (loaded = component),
+      (component) => {
+        loaded = component;
+        for (const listener of listeners) listener();
+        return component;
+      },
       (error: unknown) => {
         pending = undefined;
         throw error;
@@ -42,7 +53,7 @@ export function onDemand<P extends object>(
   };
 
   function Component(props: P) {
-    // Re-renders once the module arrives; `loaded` holds the component.
+    // Re-renders once the module arrives, whichever call loaded it; `loaded` holds it.
     const [, setArrived] = useState(false);
     useEffect(() => {
       if (loaded) return;
@@ -59,7 +70,15 @@ export function onDemand<P extends object>(
     return Loaded ? <Loaded {...props} /> : null;
   }
 
-  return { preload, Component };
+  return {
+    preload,
+    Component,
+    loaded: () => loaded,
+    subscribe: (listener) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+  };
 }
 
 /** How long after mounting a browser without `requestIdleCallback` waits before preloading. */

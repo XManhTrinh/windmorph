@@ -398,6 +398,7 @@ export {
   MenuTrigger,
   SubmenuTrigger,
   type ContextMenuTriggerProps,
+  type MenuAfterSelect,
   type MenuClassNames,
   type MenuGroupProps,
   type MenuItemProps,
@@ -406,6 +407,8 @@ export {
   type MenuPlacement,
   type MenuPresentation,
   type MenuProps,
+  type MenuSubmenuPresentation,
+  type MenuSubmenuTransition,
   type MenuTriggerProps,
   type SubmenuTriggerProps,
 } from './components/menu/Menu';
