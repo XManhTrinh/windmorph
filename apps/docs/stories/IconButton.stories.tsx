@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import {
+  Badge,
+  BadgedBox,
   IconButton,
   type IconTransition,
   type ButtonShape,
@@ -140,6 +142,61 @@ export const SizesAndWidths: Story = {
           </div>
         )),
       )}
+    </div>
+  ),
+};
+
+/**
+ * An icon in a wrapper of its own (a star with a mark on its corner): the slot sizes a single
+ * child that holds an `svg`, and an `svg` with only a `viewBox` fills that wrapper. A
+ * `BadgedBox` keeps its 24px icon at every size, so its badge stays on the icon's corner, and
+ * a single text child keeps its own size, centred.
+ */
+export const WrappedIcon: Story = {
+  render: () => (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-4" data-testid="wrapped">
+        {SIZES.map((size) => (
+          <IconButton
+            key={size}
+            variant="tonal"
+            size={size}
+            aria-label={`Starred, ${size}`}
+            icon={
+              <span className="relative">
+                <StarIcon />
+                <span className="absolute end-0 top-0 size-[30%] rounded-full bg-error" />
+              </span>
+            }
+          />
+        ))}
+      </div>
+      <div className="flex items-center gap-4" data-testid="badged">
+        {(['md', 'lg', 'xl'] as const).map((size) => (
+          <IconButton
+            key={size}
+            variant="tonal"
+            size={size}
+            aria-label={`Search, 3 new, ${size}`}
+            icon={
+              <BadgedBox badge={<Badge>{3}</Badge>}>
+                <SearchIcon />
+              </BadgedBox>
+            }
+          />
+        ))}
+      </div>
+      <div className="flex items-center gap-4" data-testid="text">
+        {(['md', 'lg', 'xl'] as const).map((size) => (
+          <IconButton
+            key={size}
+            variant="tonal"
+            size={size}
+            aria-label={`Letter A, ${size}`}
+            icon={<span>A</span>}
+          />
+        ))}
+      </div>
     </div>
   ),
 };

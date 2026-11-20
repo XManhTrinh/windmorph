@@ -68,13 +68,13 @@ export const splitButtonStyles = tv({
     content: 'relative inline-flex min-w-0 items-center justify-center',
     trailingContent: 'relative inline-flex items-center justify-center',
     label: 'min-w-0',
-    icon: 'inline-flex shrink-0 items-center justify-center [&>svg]:size-full',
+    icon: 'inline-flex shrink-0 items-center justify-center [&>svg]:size-full [&>:only-child:has(>svg)]:size-full',
     // The checked layer is the state layer's menu-open layer (`MenuTrigger` sets
     // `data-menu-open`), which adds to the hover and focus layers.
     trailing: half,
     // Optically centred: offset by --m3-optical (logical, so it mirrors in RTL).
     menuIcon: [
-      'relative start-(--m3-optical) inline-flex shrink-0 items-center justify-center [&>svg]:size-full',
+      'relative start-(--m3-optical) inline-flex shrink-0 items-center justify-center [&>svg]:size-full [&>:only-child:has(>svg)]:size-full',
       '[transition-property:inset-inline-start,rotate]',
       '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing)]',

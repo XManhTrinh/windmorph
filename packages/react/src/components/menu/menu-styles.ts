@@ -144,11 +144,11 @@ export const menuStyles = tv({
       'group-data-selected/item:grid-cols-[1fr] group-data-selected/item:opacity-100',
     ],
     selectedIconInner: 'overflow-hidden',
-    icon: 'me-[12px] inline-flex size-[20px] shrink-0 items-center justify-center text-[color:var(--_md-comp-menus-menu-item-leading-icon-color)] [&>svg]:size-full',
+    icon: 'me-[12px] inline-flex size-[20px] shrink-0 items-center justify-center text-[color:var(--_md-comp-menus-menu-item-leading-icon-color)] [&>svg]:size-full [&>:only-child:has(>svg)]:size-full',
     text: 'flex min-w-0 flex-1 flex-col',
     description: 'text-body-medium',
     trailing:
-      'ms-auto inline-flex shrink-0 items-center ps-[12px] text-label-small text-[color:var(--_md-comp-menus-menu-item-trailing-icon-color)] [&>svg]:size-[20px]',
+      'ms-auto inline-flex shrink-0 items-center ps-[12px] text-label-small text-[color:var(--_md-comp-menus-menu-item-trailing-icon-color)] [&>svg]:size-[20px] [&>:only-child:has(>svg)]:size-[20px]',
     badge: 'inline-flex shrink-0 items-center ps-[12px]',
     // A menu's place in a bottom sheet. An open submenu's panel follows the menu that opened
     // it (portalled in after it) and hides it, and any panel before it, while it's open.
@@ -165,7 +165,8 @@ export const menuStyles = tv({
     sheetHeader: 'flex min-h-[48px] shrink-0 items-center gap-[4px] pe-[12px]',
     sheetBack: [
       'inline-flex size-[48px] shrink-0 cursor-pointer items-center justify-center rounded-corner-full',
-      'state-layer focus-ring text-on-surface-variant [&>svg]:size-[24px]',
+      // An app's `backIcon` may be an svg in a wrapper: the wrapper takes the icon's size too.
+      'state-layer focus-ring text-on-surface-variant [&>svg]:size-[24px] [&>:only-child:has(>svg)]:size-[24px]',
     ],
     sheetTitle: 'min-w-0 flex-1 truncate text-title-medium text-on-surface',
   },

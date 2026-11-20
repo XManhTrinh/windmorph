@@ -63,7 +63,7 @@ export const searchBarStyles = tv({
     // in the app bar's slots: Compose colours the search bar's and view's leading icon
     // `on-surface` and trailing icons `on-surface-variant`, buttons included.
     leading:
-      'ms-[4px] flex size-[48px] shrink-0 items-center justify-center text-[color:var(--_md-comp-search-bar-leading-icon-color)] [--md-comp-icon-button-icon-color:currentColor] [&>svg]:size-[24px]',
+      'ms-[4px] flex size-[48px] shrink-0 items-center justify-center text-[color:var(--_md-comp-search-bar-leading-icon-color)] [--md-comp-icon-button-icon-color:currentColor] [&>svg]:size-[24px] [&>:only-child:not(a,button):has(>svg)]:size-[24px]',
     // One or two trailing icon buttons, or an avatar (30px) and an icon button (M3). Two
     // 40px buttons sit 8px apart inside 4px of padding, so their 48px targets meet edge to
     // edge within the slot (a single one is centred in 48px, as before).
