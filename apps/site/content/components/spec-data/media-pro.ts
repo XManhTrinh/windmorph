@@ -133,4 +133,52 @@ export const MEDIA_PRO_SPEC: Record<string, ComponentSpecData> = {
       },
     ],
   },
+  'video-player': {
+    covers: [
+      {
+        name: 'A file, with nothing set',
+        kind: 'configuration',
+        examples: ['video-player/video-player-basic'],
+      },
+      {
+        name: 'Captions and chapters (`captions`, `chapters`)',
+        kind: 'configuration',
+        examples: ['video-player/video-player-controls'],
+      },
+      {
+        name: 'Next, Rotate, Autoplay and Theater (`onNext`, `rotatable`, `onAutoplayNextChange`, `onTheaterChange`)',
+        kind: 'configuration',
+        examples: ['video-player/video-player-controls'],
+      },
+      {
+        name: 'Looks: grouped and scrim (`look`)',
+        kind: 'variant',
+        examples: ['video-player/video-player-look'],
+      },
+      {
+        name: 'A control of your own and content at the end (`controls`, `ended`)',
+        kind: 'configuration',
+        examples: ['video-player/video-player-look'],
+      },
+      {
+        name: 'A stream an engine drives (`source={{ attach }}`)',
+        kind: 'use case',
+        examples: ['video-player/video-player-engine'],
+      },
+    ],
+    extensions: [
+      {
+        item: 'Not an M3 component',
+        note: 'M3 has no video player; this one is built from the core’s icon buttons, tooltips and loading indicator in a dark scope over the picture, with Pro’s `MediaTimeSlider` as its scrubber.',
+      },
+      {
+        item: 'One look over any picture',
+        note: 'The shared on-media tokens keep every word at 4.5:1 and every icon and focus ring at 3:1 over a white or a black frame, with a fallback fill under reduced transparency.',
+      },
+      {
+        item: 'Nothing downloads before Play',
+        note: 'The source is set on the `<video>` (or the engine attached) only when playback is first asked for, so a page of players loads only their posters.',
+      },
+    ],
+  },
 };

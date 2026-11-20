@@ -50,6 +50,7 @@ import { DurationTagBody } from './duration-tag';
 import { ShelfBody } from './shelf';
 import { FeaturedCarouselBody } from './featured-carousel';
 import { ReorderListBody } from './reorder-list';
+import { VideoPlayerBody } from './video-player';
 import { StatTileBody } from './stat-tile';
 import { MeterBody } from './meter';
 import { LineChartBody } from './line-chart';
@@ -189,6 +190,7 @@ const BODIES: Record<string, ComponentDocLoader> = {
   shelf: ShelfBody,
   'featured-carousel': FeaturedCarouselBody,
   'reorder-list': ReorderListBody,
+  'video-player': VideoPlayerBody,
   'stat-tile': StatTileBody,
   meter: MeterBody,
   'line-chart': LineChartBody,

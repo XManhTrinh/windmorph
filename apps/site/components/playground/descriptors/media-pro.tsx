@@ -8,6 +8,7 @@ import {
   ReorderList,
   ReorderListItem,
   Shelf,
+  VideoPlayer,
 } from '@windmorph/react-pro';
 import { createElement, useState } from 'react';
 import { loose, type PlaygroundDescriptor } from './shared';
@@ -16,6 +17,18 @@ const DurationTagAny = loose(DurationTag);
 const ShelfAny = loose(Shelf);
 const FeaturedCarouselAny = loose(FeaturedCarousel);
 const ReorderListAny = loose(ReorderList);
+const VideoPlayerAny = loose(VideoPlayer);
+
+/** The player preview's captions and chapters, as the snippet writes them. */
+const VIDEO_CAPTIONS = [
+  { lang: 'en', src: '/media/captions/tour-en.vtt' },
+  { lang: 'fr', src: '/media/captions/tour-fr.vtt' },
+];
+const VIDEO_CHAPTERS = [
+  { start: 0, title: 'Themes' },
+  { start: 6, title: 'Motion' },
+  { start: 12, title: 'Your own' },
+];
 
 /** The reorder preview's rows, kept in order by the preview itself. */
 const REORDER_STEPS = ['Soak the beans', 'Rinse and drain', 'Simmer', 'Season', 'Let it rest'];
@@ -217,5 +230,79 @@ export const MEDIA_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     },
     codeChildren:
       '{order.map((step) => (\n  <ReorderListItem key={step} textValue={step}>\n    {step}\n  </ReorderListItem>\n))}',
+  },
+  'video-player': {
+    component: 'VideoPlayer',
+    importFrom: '@windmorph/react-pro',
+    notRendered: {
+      VideoPlayerControl:
+        'A button of your own on the bar, passed in `controls`; the "The scrim look" example adds one.',
+      VideoPlayerControlGroup: 'A container for controls of your own, in the player’s look.',
+      VideoPlayerVolume: 'The player’s own sound control, exported for a player of your own.',
+      VideoPlayerNotice:
+        'The player draws its own notices; this one is for a frame without a player.',
+      MediaSlider:
+        'The thin slider of the volume and the settings’ speed, for a value of your own.',
+    },
+    render: ({ captions, chapters, ...props }) =>
+      createElement(VideoPlayerAny, {
+        ...props,
+        'aria-label': 'A tour of the components',
+        source: '/media/bento/bento-dark.mp4',
+        poster: { src: '/media/bento/bento-dark.jpg' },
+        width: 1152,
+        height: 720,
+        duration: 18,
+        captions: captions === true ? VIDEO_CAPTIONS : undefined,
+        chapters: chapters === true ? VIDEO_CHAPTERS : undefined,
+        className: 'aspect-[1152/720] w-full max-w-xl rounded-corner-large',
+      }),
+    defaultProps: { look: 'grouped', loop: false, rotatable: false },
+    surfacedProps: ['look', 'loop', 'rotatable', 'captions', 'chapters'],
+    controlKinds: { captions: 'boolean', chapters: 'boolean' },
+    toggledSlots: {
+      captions: `[\n    { lang: 'en', src: '/media/captions/tour-en.vtt' },\n    { lang: 'fr', src: '/media/captions/tour-fr.vtt' },\n  ]`,
+      chapters: `[\n    { start: 0, title: 'Themes' },\n    { start: 6, title: 'Motion' },\n    { start: 12, title: 'Your own' },\n  ]`,
+    },
+    notControlled: {
+      poster:
+        'The picture before the first frame; the preview always has one, and the snippet writes it.',
+      posterLoading: 'How the poster loads, which changes nothing to see.',
+      duration: 'The length known before anything loads; the preview’s video is 18 seconds.',
+      width: 'The video’s width before it loads; the preview’s is 1152.',
+      height: 'The video’s height before it loads; the preview’s is 720.',
+      autoPlay: 'Starts as it shows; the preview waits for Play, as a docs page should.',
+      playbackRate: 'The speed, which `<` and `>` change in the preview.',
+      defaultPlaybackRate: 'The speed at first; `<` and `>` change it in the preview.',
+      playbackRates:
+        'The speeds `<` and `>` step through; the preview keeps quarters from 0.25 to 2.',
+      rotation: 'The picture’s turn, which Rotate and R change once `rotatable` is on.',
+      defaultRotation: 'The turn at first; Rotate and R change it once `rotatable` is on.',
+      autoplayNext:
+        'Autoplay’s state, shown once `onAutoplayNextChange` is given; the "Captions, chapters" example has it.',
+      defaultAutoplayNext: 'Autoplay at first; the "Captions, chapters" example shows the switch.',
+      theater:
+        'Theater’s state, with the layout yours; the "Captions, chapters" example widens its frame.',
+      defaultTheater: 'Theater at first; the "Captions, chapters" example shows the button.',
+      theaterFrom: 'The window size class the Theater button shows from; the examples show it.',
+      captionsLang:
+        'The captions shown, which the Captions button and C change once `captions` is on.',
+      defaultCaptionsLang: 'The captions at first; the Captions button and C change them.',
+      resumeFrom: 'A second to start from, with "Resumed from"; it needs a fresh mount to show.',
+      inView:
+        'Pausing or playing by how much is in view, for a feed; a single preview can’t show it.',
+      covered: 'Something over the player, with `inView`; a single preview can’t show it.',
+      controls: 'Your own controls on the bar; the "The scrim look" example adds one.',
+      settings: 'The settings companion; the Video player settings page shows it.',
+      settingsBadge: 'A mark on the Settings button; the Video player settings page shows it.',
+      ended: 'Content over the picture when it ends; the "The scrim look" example has it.',
+      icons: 'Replacement icons; the preview keeps the player’s own.',
+      videoProps: 'Attributes for the `<video>`, such as `crossOrigin`, with nothing to see.',
+    },
+    codeSlots: {
+      'aria-label': '"A tour of the components"',
+      source: '"/media/tour.mp4"',
+      poster: "{ src: '/media/tour.jpg' }",
+    },
   },
 };

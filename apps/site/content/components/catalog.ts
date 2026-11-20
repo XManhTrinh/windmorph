@@ -1070,7 +1070,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     propsComponents: ['DurationTag', 'MediaFrame'],
     playground: 'full',
     pro: true,
-    related: ['badge', 'tag', 'media-grid'],
+    related: ['badge', 'tag', 'video-player'],
     whenNotToUse:
       'For a count or a status on an icon, use a Badge; for a label a person can act on, a Tag or a chip.',
     keywords: [
@@ -1106,6 +1106,42 @@ export const COMPONENT_META: ComponentMeta[] = [
       'row of cards',
       'swimlane',
       'strip',
+    ],
+  },
+  {
+    slug: 'video-player',
+    title: 'Video player',
+    group: 'Containment & overlays',
+    railGroup: 'containment',
+    summary:
+      'A video player complete with nothing set: its own controls, keys, touch gestures, captions and states over a file or a stream, drawn in the theme over any picture. Not an M3 component (@windmorph/react-pro).',
+    propsComponents: [
+      'VideoPlayer',
+      'VideoPlayerControl',
+      'VideoPlayerControlGroup',
+      'VideoPlayerVolume',
+      'VideoPlayerNotice',
+      'MediaSlider',
+    ],
+    hooks: ['useVideoPlayer'],
+    types: ['VideoPlayerPoster', 'VideoPlayerCaptionTrack'],
+    playground: 'full',
+    pro: true,
+    related: ['video-player-settings', 'media-time-slider', 'duration-tag'],
+    whenNotToUse:
+      "For a position bar alone, in an audio player of your own, use the Media time slider; for a video's length on a card, a Duration tag.",
+    keywords: [
+      'video',
+      'media player',
+      'player',
+      'playback',
+      'captions',
+      'subtitles',
+      'full screen',
+      'picture-in-picture',
+      'theater mode',
+      'streaming',
+      'controls',
     ],
   },
   {

@@ -35,6 +35,7 @@ import { durationTag } from './duration-tag';
 import { shelf } from './shelf';
 import { featuredCarousel } from './featured-carousel';
 import { reorderList } from './reorder-list';
+import { videoPlayer } from './video-player';
 import { statTile } from './stat-tile';
 import { meter } from './meter';
 import { lineChart } from './line-chart';
@@ -130,6 +131,7 @@ export const ACCESSIBILITY: Record<string, ComponentAccessibility> = {
   shelf,
   'featured-carousel': featuredCarousel,
   'reorder-list': reorderList,
+  'video-player': videoPlayer,
   'stat-tile': statTile,
   meter: meter,
   'line-chart': lineChart,
