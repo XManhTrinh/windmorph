@@ -165,7 +165,8 @@ export const menuStyles = tv({
     sheetHeader: 'flex min-h-[48px] shrink-0 items-center gap-[4px] pe-[12px]',
     sheetBack: [
       'inline-flex size-[48px] shrink-0 cursor-pointer items-center justify-center rounded-corner-full',
-      'state-layer focus-ring text-on-surface-variant [&>svg]:size-[24px]',
+      // An app's `backIcon` may be an svg in a wrapper: the wrapper takes the icon's size too.
+      'state-layer focus-ring text-on-surface-variant [&>svg]:size-[24px] [&>:only-child:has(>svg)]:size-[24px]',
     ],
     sheetTitle: 'min-w-0 flex-1 truncate text-title-medium text-on-surface',
   },

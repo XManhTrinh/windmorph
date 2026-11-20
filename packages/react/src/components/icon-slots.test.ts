@@ -39,10 +39,6 @@ const EXEMPT: Record<string, string[]> = {
     'state-layer [&>svg]:size-[20px] [&>svg]:fill-current',
     'bg-inverse-surface/70 text-inverse-on-surface [&>svg]:size-[16px] [&>svg]:fill-current',
   ],
-  // A submenu sheet's back arrow.
-  'components/menu/menu-styles.ts': [
-    'state-layer focus-ring text-on-surface-variant [&>svg]:size-[24px]',
-  ],
   // The open and clear buttons' own icons, beside their touch targets.
   'components/autocomplete/Autocomplete.tsx': [
     'relative flex size-[40px] items-center justify-center rounded-corner-full outline-none state-layer focus-ring [&>svg]:size-[24px]',
