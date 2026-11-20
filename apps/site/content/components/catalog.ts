@@ -683,7 +683,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     summary:
       "A media player's position bar: where playback is, what has loaded, and the time under the pointer, to seek by pointer, touch and keyboard. Not an M3 component (@windmorph/react-pro).",
     propsComponents: ['MediaTimeSlider'],
-    types: ['MediaTimeRanges'],
+    types: ['MediaTimeRanges', 'MediaTimeSliderChapter'],
     playground: 'full',
     pro: true,
     related: ['slider', 'media-viewer', 'progress'],

@@ -123,6 +123,17 @@ export async function MediaTimeSliderBody(): Promise<ComponentDoc> {
               <InlineCode>ms-4</InlineCode>) stay on the page&apos;s side.
             </li>
             <li>
+              <InlineCode>chapters</InlineCode>, each a start in seconds and a title, split the bar
+              by <InlineCode>--wm-media-time-slider-chapter-gap</InlineCode>; the segment under the
+              pointer or the handle grows a step, and the bubble shows its title over the time, said
+              with the position too.{' '}
+              <InlineCode>--wm-media-time-slider-played-color-end</InlineCode> turns the played part
+              into a gradient across the played length, and{' '}
+              <InlineCode>--wm-media-time-slider-underlay-color</InlineCode> draws a ground under
+              the line only, for contrast over a picture (the <InlineCode>VideoPlayer</InlineCode>{' '}
+              sets it).
+            </li>
+            <li>
               A touch waits to tell a tap, a drag and a scroll apart, as the core{' '}
               <InlineCode>Slider</InlineCode> does: a tap seeks as the finger lifts, a drag starts
               after 8px along the bar, and a swipe across it scrolls the page.
