@@ -73,7 +73,8 @@ export async function ReorderListBody(): Promise<ComponentDoc> {
               <InlineCode>moveUp</InlineCode>, <InlineCode>moveDown</InlineCode>,{' '}
               <InlineCode>moveToTop</InlineCode>, <InlineCode>moveToBottom</InlineCode>,{' '}
               <InlineCode>canMoveUp</InlineCode>, <InlineCode>canMoveDown</InlineCode>); give every
-              row such a menu then, or keyboard and screen-reader users have no way to move it.
+              row such a menu then, or keyboard and screen-reader users have no way to move it (a
+              development warning says so when no row uses the hook).
             </li>
           </ul>
         </section>
@@ -91,7 +92,7 @@ export async function ReorderListBody(): Promise<ComponentDoc> {
             <li>
               Focus stays with the moved row&apos;s handle (or your own control in it) and the row
               stays in view. A row that leaves while focus is in it hands focus to the row that took
-              its place.
+              its place, else the one before, else the list.
             </li>
             <li>
               A row with <InlineCode>reorderable=&#123;false&#125;</InlineCode> has no handle, keeps
@@ -101,7 +102,8 @@ export async function ReorderListBody(): Promise<ComponentDoc> {
             </li>
             <li>
               <InlineCode>handlePlacement=&quot;end&quot;</InlineCode> puts the handle at the
-              row&apos;s end. The lifted row carries <InlineCode>data-dragged</InlineCode>.
+              row&apos;s end. The lifted row carries <InlineCode>data-dragged</InlineCode>, and rows
+              of a disabled list <InlineCode>data-disabled</InlineCode>.
             </li>
           </ul>
         </section>
@@ -114,11 +116,12 @@ export async function ReorderListBody(): Promise<ComponentDoc> {
         </h2>
         <p className={TEXT}>
           Set the tokens below on the list or any ancestor: the dragged row&apos;s colours,
-          elevation and corner, the drop zone, the handle&apos;s icon and the motion. The handle is
-          the core <InlineCode>IconButton</InlineCode> and the move menu the core{' '}
+          elevation and corner, the drop zone, the handle&apos;s size, icon and colour, the
+          auto-scroll edge and the motion. The handle is a 48px round core{' '}
+          <InlineCode>IconButton</InlineCode> that follows density, and the move menu the core{' '}
           <InlineCode>Menu</InlineCode>, themed by their own tokens.{' '}
-          <InlineCode>className</InlineCode> goes on the list; style each part with{' '}
-          <InlineCode>classNames</InlineCode>: <CodeList names={SLOTS} />.
+          <InlineCode>className</InlineCode> and <InlineCode>aria-*</InlineCode> go on the list;
+          style each part with <InlineCode>classNames</InlineCode>: <CodeList names={SLOTS} />.
         </p>
         <TokenTable set={reorderListTokenSet} caption="ReorderList tokens" />
       </section>

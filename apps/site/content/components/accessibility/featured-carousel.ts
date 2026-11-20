@@ -35,7 +35,7 @@ export const featuredCarousel: ComponentAccessibility = {
   focus: [
     'The Pause control comes first in the Tab order (the APG), though it is drawn under the slides.',
     "When the current slide changes with focus inside it, focus moves first to the arriving slide's container (focusable by script only, with an inset focus ring), so it never falls to the page.",
-    'Keyboard focus coming into the carousel stops the timer until Play.',
+    'Keyboard focus coming into the carousel stops the slides moving by themselves; media in a slide plays on until the Pause control stops it.',
     'The side arrows show the shared two-tone ring over pictures, on keyboard focus only.',
   ],
   touchTarget: [

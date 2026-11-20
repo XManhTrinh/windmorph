@@ -40,7 +40,7 @@ export const reorderList: ComponentAccessibility = {
     "The handle shows the core icon button's focus ring on keyboard focus.",
   ],
   touchTarget: [
-    'Each handle is a 40px icon button with a 48px touch target.',
+    'Each handle is a 48px round icon button; it follows density, 4px smaller a step and never under 24px.',
     'The move menu is the route without a drag (WCAG 2.5.7); keep it, or give every row a menu of its own.',
   ],
   motion: [

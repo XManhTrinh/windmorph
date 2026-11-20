@@ -147,8 +147,9 @@ export const MEDIA_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
           SHELF_TITLES.map((title, index) => shelfCard(title, index, props.per === 'tall')),
         ),
       ),
-    defaultProps: { per: 'wide', arrowsAlign: 'center', arrows: true },
-    surfacedProps: ['per', 'arrowsAlign', 'arrows', 'cardWidth'],
+    defaultProps: { per: 'wide', arrowsAlign: 'center', arrows: true, pageShare: 0.85 },
+    surfacedProps: ['per', 'arrowsAlign', 'arrows', 'cardWidth', 'pageShare'],
+    numberRanges: { pageShare: { min: 0.25, max: 1, step: 0.05 } },
     notControlled: {
       previousIcon: 'A replacement chevron; the preview keeps the shelf’s own.',
       nextIcon: 'A replacement chevron; the preview keeps the shelf’s own.',
@@ -300,6 +301,12 @@ export const MEDIA_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       ended: 'Content over the picture when it ends; the "The scrim look" example has it.',
       icons: 'Replacement icons; the preview keeps the player’s own.',
       videoProps: 'Attributes for the `<video>`, such as `crossOrigin`, with nothing to see.',
+      posterDelay:
+        'Holds the poster back after another player; a single preview has nothing before it.',
+      volume: 'The volume, which the preview’s own slider and the arrow keys change.',
+      defaultVolume: 'The volume at first; the preview’s own slider changes it.',
+      muted: 'Whether it is muted, which the preview’s sound button and M change.',
+      defaultMuted: 'Muted at first; the preview’s sound button changes it.',
     },
     codeSlots: {
       'aria-label': '"A tour of the components"',

@@ -9,7 +9,36 @@ const LIST = `flex flex-col gap-2 ps-5 ${TEXT} [&>li]:list-disc`;
 const HEADING = 'text-headline-small text-on-surface';
 const SECTION = 'flex flex-col gap-3';
 
-const SLOTS = ['panel', 'page', 'header', 'divider', 'list', 'row', 'rowValue', 'check'];
+const SLOTS = [
+  'root',
+  'panel',
+  'sheet',
+  'scroller',
+  'page',
+  'header',
+  'back',
+  'title',
+  'divider',
+  'list',
+  'row',
+  'rowIcon',
+  'rowLabel',
+  'rowDescription',
+  'rowBadge',
+  'rowValue',
+  'rowArrow',
+  'check',
+  'switch',
+  'speed',
+  'speedValue',
+  'slider',
+  'slower',
+  'faster',
+  'presets',
+  'preset',
+  'presetLeading',
+  'presetCaption',
+];
 
 /** VideoPlayerSettings page body: examples, the rows, pages, the sheet and tokens. */
 export async function VideoPlayerSettingsBody(): Promise<ComponentDoc> {
@@ -102,7 +131,9 @@ export async function VideoPlayerSettingsBody(): Promise<ComponentDoc> {
               1.25, 1.5 and 2 by default, &ldquo;Normal&rdquo; under 1). A speed between two presets
               selects none. A preset can carry a caption and a mark before its figure; a disabled
               one doesn&apos;t change the speed and calls <InlineCode>onPresetPress</InlineCode>,
-              for a speed behind a subscription.
+              for a speed behind a subscription. <InlineCode>label</InlineCode> renames the row;{' '}
+              <InlineCode>formatValue</InlineCode> and <InlineCode>labels.presetValue</InlineCode>{' '}
+              write the speed and a preset&apos;s figure.
             </li>
             <li>
               <InlineCode>VideoPlayerSettingsPage</InlineCode>: a page of your own content under the
@@ -170,7 +201,8 @@ export async function VideoPlayerSettingsBody(): Promise<ComponentDoc> {
           keep every word at 4.5:1 over a white frame, a selected preset&apos;s label included; the
           blur is extra, and under reduced transparency the fill is opaque. The speed&apos;s slider
           takes the <InlineCode>--wm-media-slider-*</InlineCode> tokens, and the sheet the core
-          sheet&apos;s. <InlineCode>className</InlineCode> goes on the panel; style each part with{' '}
+          sheet&apos;s. The panel carries <InlineCode>data-open</InlineCode> while open.{' '}
+          <InlineCode>className</InlineCode> goes on the panel; style each part with{' '}
           <InlineCode>classNames</InlineCode>: <CodeList names={SLOTS} />.
         </p>
         <TokenTable set={videoPlayerSettingsTokenSet} caption="VideoPlayerSettings tokens" />

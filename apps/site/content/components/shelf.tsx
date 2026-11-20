@@ -62,11 +62,11 @@ export async function ShelfBody(): Promise<ComponentDoc> {
             </li>
             <li>
               With a mouse, at any width, Previous and Next fade in while the pointer is on the
-              shelf or focus is in it. Each moves 85% of the row (
-              <InlineCode>--wm-shelf-page-share</InlineCode>), then the snap lands on a card&apos;s
-              start, so no card is passed over; under reduced motion it jumps. The one at an end is
-              dimmed and <InlineCode>aria-disabled</InlineCode>, kept so focus on it isn&apos;t
-              lost. On touch, and when every card fits, there are none.
+              shelf or focus is in it. Each moves 85% of the row (<InlineCode>pageShare</InlineCode>
+              , or the <InlineCode>--wm-shelf-page-share</InlineCode> token), then the snap lands on
+              a card&apos;s start, so no card is passed over; under reduced motion it jumps. The one
+              at an end is dimmed and <InlineCode>aria-disabled</InlineCode>, kept so focus on it
+              isn&apos;t lost. On touch, and when every card fits, there are none.
             </li>
             <li>
               The arrows are centred on the row;{' '}
@@ -107,8 +107,9 @@ export async function ShelfBody(): Promise<ComponentDoc> {
           <InlineCode>FeaturedCarousel</InlineCode> uses, themed by its{' '}
           <InlineCode>--wm-side-arrow-*</InlineCode> tokens and the shared{' '}
           <InlineCode>--wm-on-media-*</InlineCode> ones on the Video player page.{' '}
-          <InlineCode>className</InlineCode> goes on the root; style each part with{' '}
-          <InlineCode>classNames</InlineCode>: <CodeList names={SLOTS} />.
+          <InlineCode>className</InlineCode> goes on the root and <InlineCode>aria-*</InlineCode> on
+          the list; style each part with <InlineCode>classNames</InlineCode>:{' '}
+          <CodeList names={SLOTS} />.
         </p>
         <TokenTable set={shelfTokenSet} caption="Shelf tokens" />
       </section>

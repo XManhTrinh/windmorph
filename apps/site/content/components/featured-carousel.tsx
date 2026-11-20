@@ -16,6 +16,7 @@ const SLOTS = [
   'slide',
   'previous',
   'next',
+  'foot',
   'indicator',
   'dot',
   'progress',
@@ -121,10 +122,11 @@ export async function FeaturedCarouselBody(): Promise<ComponentDoc> {
               than half of it is in view, while the tab is hidden, and while a slide holds it.
             </li>
             <li>
-              It stops until Play when keyboard focus comes in and when the person moves it by any
-              means. The Pause control, first in the Tab order though drawn under the slides, stops
-              everything that moves by itself, media in a slide included (
-              <InlineCode>paused</InlineCode>, <InlineCode>onPausedChange</InlineCode>).
+              The slides stop moving by themselves when keyboard focus comes in and when the person
+              moves them by any means; media in the slide they went to plays on. The Pause control,
+              first in the Tab order though drawn under the slides, stops everything that moves by
+              itself, media in a slide included, until Play (<InlineCode>paused</InlineCode> and{' '}
+              <InlineCode>onPausedChange</InlineCode> are that control&apos;s state).
             </li>
             <li>
               A slide that plays something passes <InlineCode>media</InlineCode> and reads{' '}
@@ -146,7 +148,7 @@ export async function FeaturedCarouselBody(): Promise<ComponentDoc> {
             <InlineCode>FeaturedCarouselPlaceholder</InlineCode>, a server component, draws the
             carousel&apos;s frame, one slide&apos;s box by the same classes and the foot (
             <InlineCode>foot=&#123;false&#125;</InlineCode> leaves it out), with your content in the
-            slide (<InlineCode>slideClassName</InlineCode> styles it): a{' '}
+            slide (<InlineCode>classNames.slide</InlineCode> styles it): a{' '}
             <InlineCode>Skeleton</InlineCode> while loading, a notice and Try again when it fails.
             Every slide is in the server&apos;s HTML, the first one current.
           </p>
@@ -166,8 +168,9 @@ export async function FeaturedCarouselBody(): Promise<ComponentDoc> {
           stay clear of them. The side arrows, shared with <InlineCode>Shelf</InlineCode>, take the{' '}
           <InlineCode>--wm-side-arrow-*</InlineCode> tokens below, and their colours, blur and focus
           ring the shared <InlineCode>--wm-on-media-*</InlineCode> ones on the Video player page.{' '}
-          <InlineCode>className</InlineCode> goes on the root; style each part with{' '}
-          <InlineCode>classNames</InlineCode>: <CodeList names={SLOTS} />.
+          <InlineCode>className</InlineCode> and <InlineCode>aria-*</InlineCode> go on the root, the
+          named region; style each part with <InlineCode>classNames</InlineCode>:{' '}
+          <CodeList names={SLOTS} />.
         </p>
         <TokenTable set={featuredCarouselTokenSet} caption="FeaturedCarousel tokens" />
         <TokenTable set={sideArrowTokenSet} caption="Side arrow tokens (FeaturedCarousel, Shelf)" />

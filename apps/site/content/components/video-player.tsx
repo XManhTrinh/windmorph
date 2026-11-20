@@ -23,6 +23,11 @@ const SLOTS = [
   'control',
   'time',
   'captions',
+  'bars',
+  'volume',
+  'sound',
+  'resumed',
+  'ended',
 ];
 
 /** VideoPlayer page body: examples, behaviour, options, the source, its parts and tokens. */
@@ -110,8 +115,10 @@ export async function VideoPlayerBody(): Promise<ComponentDoc> {
               <InlineCode>loading</InlineCode>, <InlineCode>buffering</InlineCode>,{' '}
               <InlineCode>playing</InlineCode>, <InlineCode>paused</InlineCode>,{' '}
               <InlineCode>ended</InlineCode>, <InlineCode>failed</InlineCode>,{' '}
-              <InlineCode>offline</InlineCode>) and <InlineCode>data-theater</InlineCode>, among
-              others.
+              <InlineCode>offline</InlineCode>), <InlineCode>data-controls-shown</InlineCode>,{' '}
+              <InlineCode>data-look</InlineCode>, <InlineCode>data-theater</InlineCode>,{' '}
+              <InlineCode>data-fullscreen</InlineCode>, <InlineCode>data-pip</InlineCode> and{' '}
+              <InlineCode>data-settings-open</InlineCode>.
             </li>
           </ul>
         </section>
@@ -170,7 +177,18 @@ export async function VideoPlayerBody(): Promise<ComponentDoc> {
               <InlineCode>loop</InlineCode> the <InlineCode>&lt;video&gt;</InlineCode>&apos;s own
               loop. Every state takes the controlled and uncontrolled pair (
               <InlineCode>loop</InlineCode>, <InlineCode>defaultLoop</InlineCode>,{' '}
-              <InlineCode>onLoopChange</InlineCode>).
+              <InlineCode>onLoopChange</InlineCode>), <InlineCode>volume</InlineCode> and{' '}
+              <InlineCode>muted</InlineCode> too; a mute the browser forced is never reported as the
+              person&apos;s.
+            </li>
+            <li>
+              <InlineCode>playerRef</InlineCode> hands you a{' '}
+              <InlineCode>VideoPlayerHandle</InlineCode> with <InlineCode>play</InlineCode>,{' '}
+              <InlineCode>pause</InlineCode>, <InlineCode>seek(seconds)</InlineCode>,{' '}
+              <InlineCode>toggleFullScreen</InlineCode> and{' '}
+              <InlineCode>togglePictureInPicture</InlineCode> (the last two only inside a press or
+              key handler). <InlineCode>posterDelay</InlineCode> holds the poster back where a
+              player follows another, so it never flashes between the two.
             </li>
             <li>
               <InlineCode>settings</InlineCode> takes a <InlineCode>VideoPlayerSettings</InlineCode>
@@ -216,7 +234,9 @@ export async function VideoPlayerBody(): Promise<ComponentDoc> {
               tooltip and gives it as <InlineCode>aria-keyshortcuts</InlineCode>;{' '}
               <InlineCode>toggle</InlineCode> makes it an on and off control (
               <InlineCode>selected</InlineCode>, <InlineCode>onSelectedChange</InlineCode>,{' '}
-              <InlineCode>selectedIcon</InlineCode>). Pass yours in{' '}
+              <InlineCode>selectedIcon</InlineCode>, <InlineCode>defaultSelected</InlineCode>);{' '}
+              <InlineCode>badge</InlineCode> puts a mark over its icon, hidden from assistive tech.
+              Its shortcut works while focus is anywhere in the player. Pass yours in{' '}
               <InlineCode>controls</InlineCode>.
             </li>
             <li>
@@ -227,7 +247,10 @@ export async function VideoPlayerBody(): Promise<ComponentDoc> {
             </li>
             <li>
               <InlineCode>useVideoPlayer()</InlineCode>, inside the player: its state (playing,
-              time, length, volume, speed, loop, rotation, Autoplay) and actions (
+              time, length, what has loaded, volume, speed, loop, rotation, Autoplay, captions,
+              theater, full screen, picture-in-picture, and its width class:{' '}
+              <InlineCode>compact</InlineCode> under 30rem, <InlineCode>medium</InlineCode> to
+              42rem, <InlineCode>expanded</InlineCode> beyond) and actions (
               <InlineCode>play</InlineCode>, <InlineCode>pause</InlineCode>,{' '}
               <InlineCode>seek</InlineCode>, <InlineCode>setVolume</InlineCode>,{' '}
               <InlineCode>setRate</InlineCode>…), for a control of your own.

@@ -54,8 +54,8 @@ function VideoSlide({ title, line }: { title: string; line: string }) {
 /**
  * `autoAdvance` moves it on every 7 seconds (`{ interval }` to change it), shown by the current
  * dot filling. It waits while a mouse is over the slides, while less than half of it is in
- * view and while the tab is hidden; it stops for good once the person moves it or keyboard
- * focus comes in, until Play. The Pause control, first in the Tab order, stops it and the
+ * view and while the tab is hidden; the slides stop once the person moves them or keyboard
+ * focus comes in. The Pause control, first in the Tab order, stops them and the
  * video together; under reduced motion it never moves by itself.
  */
 export function FeaturedCarouselAuto() {
