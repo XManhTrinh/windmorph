@@ -99,4 +99,38 @@ export const MEDIA_PRO_SPEC: Record<string, ComponentSpecData> = {
       },
     ],
   },
+  'reorder-list': {
+    covers: [
+      {
+        name: 'Moving a row by dragging its handle, by the keys and from the move menu',
+        kind: 'use case',
+        examples: ['reorder-list/reorder-list-steps'],
+      },
+      {
+        name: "A row's own menu moving it (`moveMenu={false}`, `useReorderListItem`)",
+        kind: 'configuration',
+        examples: ['reorder-list/reorder-list-own-menu'],
+      },
+      {
+        name: 'A row that keeps its place (`reorderable={false}`)',
+        kind: 'configuration',
+        examples: ['reorder-list/reorder-list-own-menu'],
+      },
+      {
+        name: 'The handle at the end (`handlePlacement="end"`)',
+        kind: 'configuration',
+        examples: ['reorder-list/reorder-list-own-menu'],
+      },
+    ],
+    extensions: [
+      {
+        item: 'M3’s dragged item',
+        note: 'The lifted row takes the dragged list item of M3’s Compose tokens: `tertiary-container` with `on-tertiary-container`, level 4 elevation and 16px corners, over a drop zone in `surface-container-low`.',
+      },
+      {
+        item: 'Moving without a drag',
+        note: 'Arrow keys, Home and End on the handle and its move menu move a row too, and every move is announced (WCAG 2.5.7, 4.1.3).',
+      },
+    ],
+  },
 };

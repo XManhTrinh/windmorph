@@ -556,6 +556,22 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
     </span>
   ),
   list: listRows(3, <Shape w={28} h={28} fill="tertiary" />),
+  'reorder-list': (
+    <span className="flex w-40 flex-col gap-1">
+      <span className="flex items-center gap-2 px-2 py-1">
+        <Shape w={10} h={14} fill="variant" round="sm" />
+        <Text w={72} strong />
+      </span>
+      <span className="flex items-center gap-2 rounded-corner-large bg-tertiary-container px-2 py-1 shadow-elevation-4">
+        <Shape w={10} h={14} fill="outline" round="sm" />
+        <Text w={88} strong />
+      </span>
+      <span className="flex items-center gap-2 px-2 py-1">
+        <Shape w={10} h={14} fill="variant" round="sm" />
+        <Text w={60} strong />
+      </span>
+    </span>
+  ),
   'list-detail-layout': (
     <Row gap={1}>
       <Panel w={64} h={88} round="md" fill="high">

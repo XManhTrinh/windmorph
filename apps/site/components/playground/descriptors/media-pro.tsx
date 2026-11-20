@@ -5,14 +5,41 @@ import {
   FeaturedCarousel,
   FeaturedCarouselSlide,
   MediaFrame,
+  ReorderList,
+  ReorderListItem,
   Shelf,
 } from '@windmorph/react-pro';
-import { createElement } from 'react';
+import { createElement, useState } from 'react';
 import { loose, type PlaygroundDescriptor } from './shared';
 
 const DurationTagAny = loose(DurationTag);
 const ShelfAny = loose(Shelf);
 const FeaturedCarouselAny = loose(FeaturedCarousel);
+const ReorderListAny = loose(ReorderList);
+
+/** The reorder preview's rows, kept in order by the preview itself. */
+const REORDER_STEPS = ['Soak the beans', 'Rinse and drain', 'Simmer', 'Season', 'Let it rest'];
+
+/** A reorder list holding its own order, so the preview's moves stay. */
+function ReorderPreview(props: Record<string, unknown>) {
+  const [order, setOrder] = useState(REORDER_STEPS);
+  return createElement(
+    ReorderListAny,
+    {
+      ...props,
+      'aria-label': 'Recipe steps',
+      className: 'w-full max-w-md',
+      onReorder: (keys: string[]) => setOrder(keys),
+    },
+    order.map((step) =>
+      createElement(
+        ReorderListItem,
+        { key: step, textValue: step },
+        createElement('span', { className: 'text-body-large text-on-surface' }, step),
+      ),
+    ),
+  );
+}
 
 /** The carousel preview's slides: a title on one of the theme's tones. */
 const CAROUSEL_SLIDES = [
@@ -164,5 +191,31 @@ export const MEDIA_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     codeSlots: { 'aria-label': '"Featured"' },
     codeChildren:
       '<FeaturedCarouselSlide textValue="City after dark">\n  <h3>City after dark</h3>\n</FeaturedCarouselSlide>\n<FeaturedCarouselSlide textValue="Harbour lights">\n  <h3>Harbour lights</h3>\n</FeaturedCarouselSlide>',
+  },
+  'reorder-list': {
+    component: 'ReorderList',
+    importFrom: '@windmorph/react-pro',
+    notRendered: {
+      ReorderListItem:
+        'Each preview row is one, with its `textValue`; the second example shows `reorderable`.',
+    },
+    render: (props) => createElement(ReorderPreview, props),
+    defaultProps: { disabled: false, handlePlacement: 'start', moveMenu: true },
+    surfacedProps: ['handlePlacement', 'moveMenu', 'disabled'],
+    notControlled: {
+      handleIcon: 'A replacement icon; the preview keeps the handle’s own.',
+      moveUpIcon: 'A replacement icon in the move menu; the preview keeps its own.',
+      moveDownIcon: 'A replacement icon in the move menu; the preview keeps its own.',
+      moveToTopIcon: 'A replacement icon in the move menu; the preview keeps its own.',
+      moveToBottomIcon: 'A replacement icon in the move menu; the preview keeps its own.',
+    },
+    importMembers: ['ReorderListItem'],
+    codeState: { order: "useState(['Soak the beans', 'Rinse and drain', 'Simmer'])" },
+    codeSlots: {
+      'aria-label': '"Recipe steps"',
+      onReorder: '(keys) => setOrder(keys as string[])',
+    },
+    codeChildren:
+      '{order.map((step) => (\n  <ReorderListItem key={step} textValue={step}>\n    {step}\n  </ReorderListItem>\n))}',
   },
 };

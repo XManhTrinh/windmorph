@@ -919,6 +919,31 @@ export const COMPONENT_META: ComponentMeta[] = [
       'For top-level navigation use a Navigation rail or bar; for tabular data use a table.',
   },
   {
+    slug: 'reorder-list',
+    title: 'Reorder list',
+    group: 'Containment & overlays',
+    railGroup: 'containment',
+    summary:
+      'A vertical list whose rows a person puts in order: by dragging a handle, with the arrow keys, or from a move menu with no drag at all, each move said to screen readers. Not an M3 component (@windmorph/react-pro).',
+    propsComponents: ['ReorderList', 'ReorderListItem'],
+    hooks: ['useReorderListItem'],
+    playground: 'full',
+    pro: true,
+    related: ['list', 'media-upload-grid', 'menu'],
+    whenNotToUse:
+      'For rows that are picked rather than ordered, use a List; to order photos being uploaded, the Media upload grid.',
+    keywords: [
+      'sortable',
+      'drag and drop',
+      'rearrange',
+      'reorder',
+      'drag to reorder',
+      'sort',
+      'playlist',
+      'drag handle',
+    ],
+  },
+  {
     slug: 'list-detail-layout',
     title: 'List-detail layout',
     group: 'Containment & overlays',

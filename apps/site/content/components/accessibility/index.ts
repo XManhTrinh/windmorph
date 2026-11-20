@@ -34,6 +34,7 @@ import { mediaTimeSlider } from './media-time-slider';
 import { durationTag } from './duration-tag';
 import { shelf } from './shelf';
 import { featuredCarousel } from './featured-carousel';
+import { reorderList } from './reorder-list';
 import { statTile } from './stat-tile';
 import { meter } from './meter';
 import { lineChart } from './line-chart';
@@ -128,6 +129,7 @@ export const ACCESSIBILITY: Record<string, ComponentAccessibility> = {
   'duration-tag': durationTag,
   shelf,
   'featured-carousel': featuredCarousel,
+  'reorder-list': reorderList,
   'stat-tile': statTile,
   meter: meter,
   'line-chart': lineChart,
