@@ -113,6 +113,18 @@ export async function CarouselBody(): Promise<ComponentDoc> {
             item, so all items can be seen without scrolling sideways. Don&apos;t put buttons inside
             the carousel or over it.
           </p>
+          <p className="text-body-large text-on-surface-variant">
+            Windmorph Pro has two rows of its own beside this one: a{' '}
+            <a href="/components/shelf" className="text-primary underline">
+              Shelf
+            </a>{' '}
+            for a row of cards with words, paged by arrows at its sides, and a{' '}
+            <a href="/components/featured-carousel" className="text-primary underline">
+              Featured carousel
+            </a>{' '}
+            for one large slide at a time at the top of a page, with Previous and Next, and moving
+            by itself with a Pause control.
+          </p>
         </section>
       </>
     ),
