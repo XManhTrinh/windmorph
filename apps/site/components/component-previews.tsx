@@ -597,6 +597,13 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
       <span className="mx-auto h-1.5 w-16 rounded-full bg-inverse-on-surface" />
     </span>
   ),
+  'duration-tag': (
+    <span className="grid h-20 w-36 overflow-hidden rounded-corner-medium bg-tertiary-container *:[grid-area:1/1]">
+      <span className="m-1 self-end justify-self-end rounded-corner-extra-small bg-inverse-surface px-1 text-label-small text-inverse-on-surface">
+        4:12
+      </span>
+    </span>
+  ),
   'shaped-icon': (
     <Row gap={3}>
       <Shape w={40} h={40} fill="primary" round="lg" />

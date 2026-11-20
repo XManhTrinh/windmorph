@@ -1010,6 +1010,30 @@ export const COMPONENT_META: ComponentMeta[] = [
     ],
   },
   {
+    slug: 'duration-tag',
+    title: 'Duration tag',
+    group: 'Containment & overlays',
+    railGroup: 'containment',
+    summary:
+      "A video's length in the corner of its picture, light on a dark see-through ground over any picture, read in words as part of the card's link. Not an M3 component (@windmorph/react-pro).",
+    propsComponents: ['DurationTag', 'MediaFrame'],
+    playground: 'full',
+    pro: true,
+    related: ['badge', 'tag', 'media-grid'],
+    whenNotToUse:
+      'For a count or a status on an icon, use a Badge; for a label a person can act on, a Tag or a chip.',
+    keywords: [
+      'duration',
+      'length',
+      'runtime',
+      'video length',
+      'timestamp',
+      'thumbnail overlay',
+      'time badge',
+      'video',
+    ],
+  },
+  {
     slug: 'shaped-icon',
     title: 'Shaped icon',
     group: 'Containment & overlays',

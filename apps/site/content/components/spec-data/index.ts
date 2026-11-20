@@ -8,6 +8,7 @@ import { FEEDBACK_PICKERS_SPEC } from './feedback-pickers';
 import { CHARTS_FIGURES_SPEC } from './charts-figures';
 import { CHARTS_CARTESIAN_SPEC } from './charts-cartesian';
 import { CHARTS_PARTS_SPEC } from './charts-parts';
+import { MEDIA_PRO_SPEC } from './media-pro';
 import type { ComponentSpecData } from './types';
 
 export type {
@@ -34,6 +35,7 @@ export const SPEC_DATA: Record<string, ComponentSpecData> = {
   ...CHARTS_FIGURES_SPEC,
   ...CHARTS_CARTESIAN_SPEC,
   ...CHARTS_PARTS_SPEC,
+  ...MEDIA_PRO_SPEC,
 };
 
 /** The m3.material.io URL of a spec page path (`buttons/specs`). */
