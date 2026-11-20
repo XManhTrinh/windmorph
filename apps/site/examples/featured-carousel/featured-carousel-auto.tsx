@@ -8,9 +8,9 @@ import {
 import { useEffect, useRef } from 'react';
 
 const SLIDES = [
-  { title: 'Spring collection', line: 'New colours for longer days', tone: 'bg-primary-container' },
+  { title: 'Spring collection', line: 'New colours for longer days', fill: 'bg-primary-container' },
   { title: 'Studio tour', line: 'A minute inside the workshop', video: true },
-  { title: 'Weekend offers', line: 'Free delivery until Sunday', tone: 'bg-tertiary-container' },
+  { title: 'Weekend offers', line: 'Free delivery until Sunday', fill: 'bg-tertiary-container' },
 ];
 
 /**
@@ -66,7 +66,7 @@ export function FeaturedCarouselAuto() {
           {slide.video ? (
             <VideoSlide title={slide.title} line={slide.line} />
           ) : (
-            <div className={`flex h-full flex-col justify-end ${slide.tone}`}>
+            <div className={`flex h-full flex-col justify-end ${slide.fill}`}>
               <div className="wm-featured-carousel-content flex flex-col gap-1 pb-6">
                 <h3 className="text-headline-small text-on-surface">{slide.title}</h3>
                 <p className="text-body-medium text-on-surface-variant">{slide.line}</p>

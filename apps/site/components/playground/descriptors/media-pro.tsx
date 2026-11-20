@@ -56,10 +56,10 @@ function ReorderPreview(props: Record<string, unknown>) {
 
 /** The carousel preview's slides: a title on one of the theme's tones. */
 const CAROUSEL_SLIDES = [
-  { title: 'City after dark', tone: 'bg-primary-container text-on-primary-container' },
-  { title: 'Harbour lights', tone: 'bg-tertiary-container text-on-tertiary-container' },
-  { title: 'Mountain pass', tone: 'bg-secondary-container text-on-secondary-container' },
-  { title: 'Night market', tone: 'bg-surface-container-highest text-on-surface' },
+  { title: 'City after dark', fill: 'bg-primary-container text-on-primary-container' },
+  { title: 'Harbour lights', fill: 'bg-tertiary-container text-on-tertiary-container' },
+  { title: 'Mountain pass', fill: 'bg-secondary-container text-on-secondary-container' },
+  { title: 'Night market', fill: 'bg-surface-container-highest text-on-surface' },
 ];
 
 /** The shelf preview's cards: a picture in one of the theme's tones and a title. */
@@ -117,6 +117,8 @@ export const MEDIA_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     defaultProps: { placement: 'bottom-end', raised: false },
     initialState: { duration: 252 },
     surfacedProps: ['duration', 'placement', 'raised', 'label'],
+    // `number | null | undefined`: a length not known yet draws nothing.
+    controlKinds: { duration: 'number' },
     numberRanges: { duration: { min: 0, max: 36000, step: 1 } },
     notControlled: {
       formatDuration:
@@ -178,7 +180,7 @@ export const MEDIA_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
               createElement(
                 'div',
                 {
-                  className: `wm-featured-carousel-content flex h-full items-end pb-6 ${slide.tone}`,
+                  className: `wm-featured-carousel-content flex h-full items-end pb-6 ${slide.fill}`,
                 },
                 createElement('h3', { className: 'text-headline-small' }, slide.title),
               ),

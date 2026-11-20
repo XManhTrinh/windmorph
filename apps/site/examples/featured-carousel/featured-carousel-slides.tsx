@@ -5,22 +5,22 @@ const ITEMS = [
   {
     title: 'City after dark',
     line: 'A night walk through the old town',
-    tone: 'from-primary to-tertiary',
+    fill: 'from-primary to-tertiary',
   },
   {
     title: 'Harbour lights',
     line: 'Boats come home at dusk',
-    tone: 'from-inverse-surface to-secondary',
+    fill: 'from-inverse-surface to-secondary',
   },
   {
     title: 'Mountain pass',
     line: 'Six days on the high road',
-    tone: 'from-tertiary to-primary-container',
+    fill: 'from-tertiary to-primary-container',
   },
   {
     title: 'Night market',
     line: 'Food stalls until the early hours',
-    tone: 'from-secondary to-inverse-surface',
+    fill: 'from-secondary to-inverse-surface',
   },
 ];
 
@@ -36,7 +36,7 @@ export function FeaturedCarouselSlides() {
     <FeaturedCarousel aria-label="Featured" className="w-full">
       {ITEMS.map((item) => (
         <FeaturedCarouselSlide key={item.title} textValue={item.title}>
-          <div className={`flex h-full flex-col justify-end bg-gradient-to-br ${item.tone}`}>
+          <div className={`flex h-full flex-col justify-end bg-gradient-to-br ${item.fill}`}>
             <div className="wm-featured-carousel-content flex flex-col gap-3 bg-gradient-to-t from-scrim/70 to-transparent pb-6 pt-16">
               <h3 className="text-headline-small text-white">
                 <a

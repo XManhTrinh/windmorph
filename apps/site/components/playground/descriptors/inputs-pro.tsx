@@ -356,6 +356,8 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
         "The media's time as it plays, kept by the app; the preview starts at `defaultValue`, and the player example follows a playing media.",
       buffered:
         "Ranges of seconds (pairs, or a media element's `buffered`); the preview shows two, and the snippet writes them.",
+      chapters:
+        'A list of starts and titles; the Video player page’s "Captions, chapters" example shows them on its scrubber.',
     },
     codeSlots: {
       'aria-label': '"Position"',

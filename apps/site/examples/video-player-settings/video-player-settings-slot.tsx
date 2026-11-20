@@ -33,7 +33,7 @@ export function VideoPlayerSettingsSlot() {
       ]}
       settingsBadge={
         quality === '1080' ? (
-          <span className="rounded-[2px] bg-error px-0.5 text-[8px] font-bold text-on-error">
+          <span className="rounded-corner-extra-small bg-error px-0.5 text-label-small-emphasized text-on-error">
             HD
           </span>
         ) : undefined
