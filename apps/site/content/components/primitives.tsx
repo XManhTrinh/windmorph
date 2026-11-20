@@ -337,6 +337,25 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
               <InlineCode>overflow-anchor: none</InlineCode> on the folding parts).
             </li>
             <li>
+              <InlineCode>useReorder</InlineCode> (the engine of a list whose rows a person puts in
+              order: a drag from a row&apos;s handle that the row follows while the rows it passes
+              slide aside, moves by action, a cancel, rows that can&apos;t move, and scrolling near
+              an edge; it has no look and no words of its own, and calls{' '}
+              <InlineCode>onReorder</InlineCode> once a move lands).
+            </li>
+            <li>
+              <InlineCode>usePageHeight</InlineCode> (measures the page shown in a surface whose
+              pages replace each other, in the same commit as the page changes, so the
+              surface&apos;s height springs from the old page&apos;s from the first frame, as the
+              Menu&apos;s submenus in place do).
+            </li>
+            <li>
+              <InlineCode>formatClock</InlineCode> and <InlineCode>formatDurationWords</InlineCode>{' '}
+              (a media&apos;s length as a clock in the locale&apos;s digits, &quot;4:12&quot; or
+              &quot;1:02:03&quot;, and in its words, &quot;4 minutes, 12 seconds&quot;, as{' '}
+              <InlineCode>ListItemVideo</InlineCode> says it).
+            </li>
+            <li>
               <InlineCode>useNearestReveal</InlineCode> (give it the element a React Aria collection
               hook was given, such as a grid that scrolls inside a box of its own: arrow keys then
               bring the next item into view without first centring the whole collection, so the page

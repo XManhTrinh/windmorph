@@ -542,6 +542,7 @@ export {
   ListItemVideo,
   type ListItemAvatarProps,
   type ListItemImageProps,
+  type ListItemVideoLabels,
   type ListItemVideoProps,
 } from './components/list/ListMedia';
 export {
