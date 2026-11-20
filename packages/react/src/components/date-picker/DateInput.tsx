@@ -2,7 +2,7 @@
 
 import { toCalendarDate, type CalendarDate, type DateValue } from '@internationalized/date';
 import { useState, type CSSProperties, type ReactNode, type Ref } from 'react';
-import { useLocale } from 'react-aria';
+import { usePageLocale } from '../../primitives/use-page-locale';
 import type { Density } from '../../tokens/density';
 import { TextField, type TextFieldClassNames } from '../text-field/TextField';
 import { dateFormat, parseDate } from './date-format';
@@ -88,7 +88,9 @@ export function DateInput({
   ref,
   inputRef,
 }: DateInputProps) {
-  const { locale } = useLocale();
+  // The page's: in a region laid out the other way React Aria's is the locale in another script,
+  // which writes `en-GB`'s dates as plain `en`'s, month first.
+  const locale = usePageLocale();
   const format = dateFormat(locale);
   const hint = labels.dateFormatHint ?? format.hint;
   const show = (date: CalendarDate | null) => (date ? format.format(date) : '');

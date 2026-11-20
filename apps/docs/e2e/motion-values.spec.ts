@@ -177,18 +177,34 @@ test.describe('Motion values', () => {
     const bars = page.getByTestId('row-bar');
     expect(await bars.first().evaluate((bar) => bar.getBoundingClientRect().height)).toBe(0);
     await page.getByTestId('row').scrollIntoViewIfNeeded();
-    const firstBar = await record(page, 'row-bar', 'height', [], 120);
-    const heights = await bars.evaluateAll((all) =>
-      all.map((bar) => bar.getBoundingClientRect().height),
+    // The first frame the first bar has risen in, read whole: the last, starting later, hasn't
+    // risen as far, however slow the machine.
+    const heights = await page.evaluate(
+      () =>
+        new Promise<number[]>((resolve, reject) => {
+          const read = () =>
+            [...document.querySelectorAll('[data-testid="row-bar"]')].map(
+              (bar) => bar.getBoundingClientRect().height,
+            );
+          // A bar that never rises fails here, with a reason, not at the test's timeout.
+          const deadline = performance.now() + 10_000;
+          const frame = () => {
+            const now = read();
+            if (now[0]! > 0) resolve(now);
+            else if (performance.now() > deadline) {
+              reject(new Error(`the first bar never rose within 10s: ${now.join(', ')}`));
+            } else requestAnimationFrame(frame);
+          };
+          requestAnimationFrame(frame);
+        }),
     );
-    // A moment in, the first bar has risen further than the last.
-    expect(firstBar.samples.at(-1)!.value).toBeGreaterThan(0);
     expect(heights[0]!).toBeGreaterThan(heights.at(-1)!);
-    await page.waitForTimeout(1000);
-    const settled = await bars.evaluateAll((all) =>
-      all.map((bar) => bar.getBoundingClientRect().height),
-    );
-    expect(settled.every((height) => height > 40)).toBe(true);
+    // Every bar comes to rest at its height.
+    await expect
+      .poll(() =>
+        bars.evaluateAll((all) => all.every((bar) => bar.getBoundingClientRect().height > 40)),
+      )
+      .toBe(true);
     // Scrolled away and back, it doesn't play again.
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.getByTestId('row').scrollIntoViewIfNeeded();

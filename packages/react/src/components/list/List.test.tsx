@@ -1,6 +1,6 @@
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { RouterProvider } from 'react-aria';
+import { I18nProvider, RouterProvider } from 'react-aria';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { labelInNameViolations } from '../../../test/label-in-name';
@@ -12,6 +12,54 @@ import { List, ListItem, type ListItemProps } from './List';
 const Icon = () => <svg data-testid="icon" viewBox="0 0 24 24" />;
 
 describe('List (static)', () => {
+  it('matches typeahead in the page’s language in a tree laid out the other way', async () => {
+    render(
+      <I18nProvider locale="sr-Latn-RS">
+        <div dir="rtl">
+          <List aria-label="Towns" defaultExpandedKeys={['serbia']}>
+            <ListItem
+              key="serbia"
+              childItems={[
+                <ListItem key="cacak">Čačak</ListItem>,
+                <ListItem key="cetinje">Cetinje</ListItem>,
+              ]}
+            >
+              Serbia
+            </ListItem>
+          </List>
+        </div>
+      </I18nProvider>,
+    );
+    screen.getByRole('row', { name: /Serbia/ }).focus();
+    await userEvent.keyboard('c');
+    expect(screen.getByRole('row', { name: /Cetinje/ })).toHaveFocus();
+  });
+
+  it.each([
+    ['a list box', { selectionMode: 'single' as const }, 'option'],
+    ['a grid list', { onAction: () => {} }, 'row'],
+  ])(
+    'matches typeahead in the page’s language in %s laid out the other way',
+    async (_, props, role) => {
+      // Serbian in Latin script tells č from c; a region of the other direction gets a tag in
+      // another script, whose collation doesn't.
+      render(
+        <I18nProvider locale="sr-Latn-RS">
+          <div dir="rtl">
+            <List aria-label="Town" {...props}>
+              <ListItem key="beograd">Beograd</ListItem>
+              <ListItem key="cacak">Čačak</ListItem>
+              <ListItem key="cetinje">Cetinje</ListItem>
+            </List>
+          </div>
+        </I18nProvider>,
+      );
+      screen.getByRole(role, { name: 'Beograd' }).focus();
+      await userEvent.keyboard('c');
+      expect(screen.getByRole(role, { name: 'Cetinje' })).toHaveFocus();
+    },
+  );
+
   it('renders a plain list with Compose padding, lines and colours', async () => {
     const { container } = render(
       <List aria-label="Contacts" data-testid="list" className="w-80">

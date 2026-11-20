@@ -6,6 +6,7 @@ import { axeViolations } from '../../test/axe';
 import { setMediaQueries } from '../../test/setup';
 import { compiledCss } from '../../test/tailwind-classes';
 import { AnimatedNumber } from './AnimatedNumber';
+import { DomDirectionLocale } from './DomDirectionLocale';
 
 const parts = (container: Element) => {
   const root = container.querySelector<HTMLElement>('[data-slot="animated-number"]')!;
@@ -110,6 +111,23 @@ describe('AnimatedNumber', () => {
     expect(parts(container).spoken).toHaveTextContent('1.284,5');
     rerender(<AnimatedNumber value={8.2} format={(value) => `${value.toFixed(1)} min`} />);
     expect(parts(container).spoken).toHaveTextContent('8.2 min');
+  });
+
+  // A region laid out the other way gives React Aria the locale in another script
+  // (`es-Arab-MX`), which formats as plain `es`: 1.234,5 on a page that writes 1,234.5.
+  it('formats in the page’s locale inside a region of the other direction', () => {
+    const { container } = render(
+      <I18nProvider locale="es-MX">
+        <DomDirectionLocale>
+          {(ref) => (
+            <div ref={ref} dir="rtl" style={{ direction: 'rtl' }}>
+              <AnimatedNumber value={1234.5} />
+            </div>
+          )}
+        </DomDirectionLocale>
+      </I18nProvider>,
+    );
+    expect(parts(container).spoken).toHaveTextContent('1,234.5');
   });
 
   it('never shows a figure past the one it moves to', async () => {

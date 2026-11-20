@@ -13,7 +13,6 @@ import {
   mergeProps,
   useFocusRing,
   useLocale,
-  useNumberFormatter,
   useObjectRef,
   useSlider,
   useSliderThumb,
@@ -22,6 +21,7 @@ import {
 import { useSliderState, type SliderState } from 'react-stately';
 import { useLabels } from '../labels/use-labels';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
+import { usePageNumberFormatter } from '../../primitives/use-page-number-formatter';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
@@ -258,7 +258,9 @@ function SliderRoot(props: RootProps) {
     'aria-errormessage'?: string;
   };
 
-  const numberFormatter = useNumberFormatter(formatOptions);
+  // The page's locale: React Aria's, in a region laid out the other way, is the locale in another
+  // script, which writes `es-MX`'s 0.5 as plain `es`'s 0,5.
+  const numberFormatter = usePageNumberFormatter(formatOptions);
   // React Stately works with arrays; a single slider wraps and unwraps its number.
   const wrap = (v: number | [number, number] | undefined) =>
     v === undefined ? undefined : Array.isArray(v) ? v : [v];

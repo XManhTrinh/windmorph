@@ -16,11 +16,12 @@ import {
   type ReactNode,
   type Ref,
 } from 'react';
-import { useCalendar, useDateFormatter, useDialog, useLocale } from 'react-aria';
+import { useCalendar, useDialog, useLocale } from 'react-aria';
 import { useCalendarState, useOverlayTriggerState } from 'react-stately';
 import { useControlledState } from 'react-stately/useControlledState';
 import { NO_DEFAULT_LABELS, useLabels } from '../labels/use-labels';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
+import { usePageDateFormatter } from '../../primitives/use-page-date-formatter';
 import { cn } from '../../utils/cn';
 import {
   ariaFlag,
@@ -441,9 +442,9 @@ function DockedCalendar({
   const styles = dockedDatePickerStyles();
   const grid = datePickerStyles({ docked: true });
   const { swipeProps, slideKey, slideDirection } = useMonthSwipe(state);
-  const shortMonth = useDateFormatter({ month: 'short' });
-  const longMonth = useDateFormatter({ month: 'long' });
-  const yearFormat = useDateFormatter({ year: 'numeric' });
+  const shortMonth = usePageDateFormatter({ month: 'short' });
+  const longMonth = usePageDateFormatter({ month: 'long' });
+  const yearFormat = usePageDateFormatter({ year: 'numeric' });
   const shown = state.focusedDate;
   const at = (date: CalendarDate) => date.toDate(getLocalTimeZone());
   const min = minValue ? toCalendarDate(minValue) : undefined;

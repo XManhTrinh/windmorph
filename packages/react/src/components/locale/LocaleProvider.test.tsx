@@ -1,12 +1,34 @@
 import { act, render, screen } from '@testing-library/react';
 import { CalendarDate, Time } from '@internationalized/date';
+import type { ReactNode } from 'react';
+import { useLocale as useAriaLocale } from 'react-aria';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DateField, LocaleProvider, TimeField, useLocale } from '../../index';
+import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 
 /** Says the locale and direction a component here would use. */
 function Where() {
   const { locale, direction } = useLocale();
   return <p>{`${locale} ${direction}`}</p>;
+}
+
+/** Says the locale `useLocale` gives, its direction and the locale React Aria reads. */
+function Seen({ name }: { name: string }) {
+  const { locale, direction } = useLocale();
+  return <p data-testid={name}>{`${locale} ${direction} ${useAriaLocale().locale}`}</p>;
+}
+
+/** A region laid out in `direction`, as a toolbar or list in it reads it. */
+function Region({ direction, children }: { direction: 'ltr' | 'rtl'; children: ReactNode }) {
+  return (
+    <DomDirectionLocale>
+      {(ref) => (
+        <div ref={ref} dir={direction} style={{ direction }}>
+          {children}
+        </div>
+      )}
+    </DomDirectionLocale>
+  );
 }
 
 const time = (name: string) => screen.getByRole('textbox', { name });
@@ -96,5 +118,33 @@ describe('useLocale', () => {
     expect(screen.getByText('en-US ltr')).toBeInTheDocument();
     browserLanguage('de-DE');
     expect(screen.getByText('de-DE ltr')).toBeInTheDocument();
+  });
+
+  // React Aria reads direction only from a locale's script, so a region laid out the other way
+  // gives it the locale in another script; an app's own formatting there, as the fields', keeps
+  // the page's (`en-Arab-GB` writes plain `en`: Sep 4, 2030 for 4 Sept 2030).
+  it('is the page’s locale inside a region of the other direction, with the region’s direction', () => {
+    render(
+      <LocaleProvider locale="en-GB">
+        <Region direction="rtl">
+          <Seen name="region" />
+          <Region direction="ltr">
+            <Seen name="back" />
+          </Region>
+          <LocaleProvider locale="fr-FR">
+            <Seen name="app" />
+            <Region direction="rtl">
+              <Seen name="app region" />
+            </Region>
+          </LocaleProvider>
+        </Region>
+      </LocaleProvider>,
+    );
+    expect(screen.getByTestId('region')).toHaveTextContent('en-GB rtl en-Arab-GB-u-hc-h23');
+    // A region inside, back in the page's direction, gives React Aria the page's own locale.
+    expect(screen.getByTestId('back')).toHaveTextContent('en-GB ltr en-GB');
+    // An app's own provider inside the region sets the locale for its part, as anywhere.
+    expect(screen.getByTestId('app')).toHaveTextContent('fr-FR ltr fr-FR');
+    expect(screen.getByTestId('app region')).toHaveTextContent('fr-FR rtl fr-Arab-FR');
   });
 });

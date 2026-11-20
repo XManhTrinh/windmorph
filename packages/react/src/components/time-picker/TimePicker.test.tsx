@@ -2,10 +2,12 @@ import { Time } from '@internationalized/date';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
+import { I18nProvider } from 'react-aria';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { setMediaQueries } from '../../../test/setup';
 import { LabelsProvider } from '../labels/LabelsProvider';
+import { DirectionLocale } from '../../primitives/DomDirectionLocale';
 import { TimePicker, TimePickerModeToggle, type TimePickerMode } from './TimePicker';
 
 const SHORT = '(max-height: 567.98px)';
@@ -17,6 +19,26 @@ describe('TimePicker', () => {
     expect(screen.getByTestId('picker')).toHaveAttribute('data-density', '-2');
     rerender(<TimePicker mode="dial" density={-2} data-testid="picker" />);
     expect(screen.getByRole('textbox', { name: 'Hour' })).toHaveClass('h-[80px]');
+  });
+
+  // A region laid out the other way gives React Aria the locale in another script
+  // (`ar-Latn-EG`), whose digits are Latin; the selectors and the dial write the page's.
+  it('writes its digits in the page’s inside a region of the other direction', () => {
+    render(
+      <I18nProvider locale="ar-EG">
+        <DirectionLocale direction="ltr">
+          <TimePicker defaultValue={new Time(14, 5)} hourCycle={12} />
+        </DirectionLocale>
+      </I18nProvider>,
+    );
+    expect(screen.getByRole('textbox', { name: 'Hour' })).toHaveValue('٠٢');
+    expect(screen.getByRole('textbox', { name: 'Minute' })).toHaveValue('٠٥');
+    const dial = screen.getByRole('group', { name: 'Clock' });
+    const numbers = within(dial)
+      .getAllByRole('button')
+      .map((button) => button.textContent);
+    expect(numbers).toContain('١٢');
+    expect(numbers.join('')).not.toMatch(/[0-9]/);
   });
 
   it('shows typeable selectors, AM / PM and a dial of number buttons', async () => {

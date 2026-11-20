@@ -2,9 +2,9 @@
 
 import { useMotionValueEvent } from 'motion/react';
 import { useEffect, useMemo, useRef, useState, type ComponentPropsWithRef } from 'react';
-import { useLocale } from 'react-aria';
 import { useEntrance } from '../motion/use-entrance';
 import { useM3SpringValue } from '../motion/use-m3-spring-value';
+import { usePageLocale } from './use-page-locale';
 
 export interface AnimatedNumberProps extends Omit<ComponentPropsWithRef<'span'>, 'children'> {
   /** The number to show. A new value springs from the one showing. */
@@ -65,7 +65,7 @@ export function AnimatedNumber({
   ref,
   ...props
 }: AnimatedNumberProps) {
-  const { locale } = useLocale();
+  const locale = usePageLocale();
   // The default reads the value as Intl would at three decimals, so a float's leftover (0.1 + 0.2)
   // isn't padded with zeros.
   const decimals = format
