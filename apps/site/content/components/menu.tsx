@@ -10,12 +10,14 @@ const MenuBasic = lazyExample('menu/menu-basic', 'MenuBasic');
 const MenuContext = lazyExample('menu/menu-context', 'MenuContext');
 const MenuInstant = lazyExample('menu/menu-instant', 'MenuInstant');
 const MenuSelection = lazyExample('menu/menu-selection', 'MenuSelection');
+const MenuChoices = lazyExample('menu/menu-choices', 'MenuChoices');
 const MenuSheet = lazyExample('menu/menu-sheet', 'MenuSheet');
 const MenuSubmenu = lazyExample('menu/menu-submenu', 'MenuSubmenu');
 const MenuLayouts = lazyExample('menu/menu-layouts', 'MenuLayouts');
 const MenuContainerPadding = lazyExample('menu/menu-container-padding', 'MenuContainerPadding');
 const MenuDensityExample = lazyExample('menu/menu-density', 'MenuDensity');
 const MenuLinks = lazyExample('menu/menu-links', 'MenuLinks');
+const MenuPlayerSettings = lazyExample('menu/menu-player-settings', 'MenuPlayerSettings');
 
 /** Menu page body: grouped actions, single selection, submenus and a context menu. */
 export async function MenuBody(): Promise<ComponentDoc> {
@@ -46,6 +48,10 @@ export async function MenuBody(): Promise<ComponentDoc> {
   const densityHtml = await highlightSource(densitySource);
   const links = await readExampleSource('menu/menu-links.tsx');
   const linksHtml = await highlightSource(links);
+  const choices = await readExampleSource('menu/menu-choices.tsx');
+  const choicesHtml = await highlightSource(choices);
+  const player = await readExampleSource('menu/menu-player-settings.tsx');
+  const playerHtml = await highlightSource(player);
   return {
     tokens: [menuTokenSet],
     overview: (
@@ -79,12 +85,28 @@ export async function MenuBody(): Promise<ComponentDoc> {
             <MenuSelection />
           </ExampleViewer>
           <ExampleViewer
+            title="Choices beside actions"
+            code={choices}
+            html={choicesHtml}
+            fileName="menu-choices.tsx"
+          >
+            <MenuChoices />
+          </ExampleViewer>
+          <ExampleViewer
             title="Submenus"
             code={submenu}
             html={submenuHtml}
             fileName="menu-submenu.tsx"
           >
             <MenuSubmenu />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Submenus in place, inside a video player"
+            code={player}
+            html={playerHtml}
+            fileName="menu-player-settings.tsx"
+          >
+            <MenuPlayerSettings />
           </ExampleViewer>
           <ExampleViewer
             title="Links and downloads"
@@ -186,6 +208,55 @@ export async function MenuBody(): Promise<ComponentDoc> {
             menu&apos;s content, below a back button (<InlineCode>labels.back</InlineCode>).
           </p>
         </section>
+        <section className="flex flex-col gap-3">
+          <h2 id="submenus-beside-or-in-place" className="text-headline-small text-on-surface">
+            Submenus beside or in place
+          </h2>
+          <p className="text-body-large text-on-surface-variant">
+            By default a submenu opens beside its item without covering it, as M3 shows (
+            <InlineCode>submenuPresentation=&quot;beside&quot;</InlineCode>). Use it for app menus,
+            toolbars and context menus with room around them.
+          </p>
+          <p className="text-body-large text-on-surface-variant">
+            <InlineCode>submenuPresentation=&quot;replace&quot;</InlineCode> shows a submenu in
+            place of the menu instead, on the same surface, below a back button and its item&apos;s
+            label, as a sheet does. Use it for a menu confined to a small surface: a video
+            player&apos;s settings, a card, a narrow panel. The surface keeps its corner and its
+            side of the trigger, and its height follows each page; hovering never opens a page.
+            Escape, the back arrow and the back button go back one page, and Escape on the first
+            page closes the menu. It extends M3, which shows submenus beside their item only.
+          </p>
+          <p className="text-body-large text-on-surface-variant">
+            Pages fade in by default; <InlineCode>submenuTransition=&quot;slide&quot;</InlineCode>{' '}
+            slides each one in 30px from the end edge going forward and from the start edge going
+            back, M3&apos;s forward and backward pattern. On a submenu&apos;s own{' '}
+            <InlineCode>Menu</InlineCode>, <InlineCode>afterSelect=&quot;back&quot;</InlineCode>{' '}
+            makes a choice return to the page that opened it, which shows the new choice, rather
+            than close the menu: right for a settings page whose choice is all it&apos;s for. Space
+            keeps the page open either way, and an action still closes the whole menu.
+          </p>
+        </section>
+        <section className="flex flex-col gap-3">
+          <h2 id="opening-inside-an-element" className="text-headline-small text-on-surface">
+            Opening inside an element
+          </h2>
+          <p className="text-body-large text-on-surface-variant">
+            <InlineCode>portalContainer</InlineCode> opens the menu inside an element instead of{' '}
+            <InlineCode>body</InlineCode>: a player, so the menu opens over the picture, moves with
+            the player and shows in full screen with it, opened before or after. The menu is kept
+            within the element, <InlineCode>containerPadding</InlineCode> from its edges, flipping
+            and shifting inside it, and it&apos;s placed again when the element resizes. It keeps
+            the theme, density and direction of where it&apos;s declared.
+          </p>
+          <p className="text-body-large text-on-surface-variant">
+            Pass the element from a callback ref kept in state, give it{' '}
+            <InlineCode>position: relative</InlineCode>, and keep the trigger inside it or along its
+            edge: a menu can&apos;t move past its trigger, so with the trigger outside it can only
+            be kept within the element sideways. The element must draw its children, so pass the
+            player around a <InlineCode>&lt;video&gt;</InlineCode>, never the video itself. A bottom
+            sheet still opens over the window.
+          </p>
+        </section>
       </>
     ),
     api: (
@@ -213,7 +284,8 @@ export async function MenuBody(): Promise<ComponentDoc> {
             <li>
               Submenus aren&apos;t in Compose. While one is open, the focused menu takes 24px
               corners and the other 8px (the SegmentedMenu active and inactive shapes), as the M3
-              spec describes.
+              spec describes. Shown in place (<InlineCode>submenuPresentation</InlineCode>), only
+              one page shows, so the surface keeps its resting corner.
             </li>
             <li>
               The menu is revealed along one axis from its anchored edge as it fades in, instead of

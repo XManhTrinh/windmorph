@@ -19,7 +19,10 @@ import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { usePageLocale } from '../../primitives/use-page-locale';
 import type { Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
+import { closeOnLoadError } from '../../utils/close-on-load-error';
+import { useDismissWhileLoading } from '../../utils/use-dismiss-while-loading';
 import { onDemand, usePreloadOnIntent } from '../../utils/load-on-demand';
+import { useLoaded } from '../../utils/use-loaded';
 import {
   ariaFlag,
   pickDescriptionAria,
@@ -288,6 +291,17 @@ function TimeFieldInner({
   usePreloadOnIntent(fieldRef, docked ? dockedList.preload : pickerDialog.preload, true);
   const [opened, setOpened] = useState(overlay.isOpen);
   if (overlay.isOpen && !opened) setOpened(true);
+  // A failed load closes the picker, rather than leaving it open over nothing; its next open
+  // tries again.
+  const reportLoadError = closeOnLoadError('TimeField', overlay.close);
+  const dialogIn =
+    useLoaded(pickerDialog, overlay.isOpen && !docked, reportLoadError) !== undefined;
+  const listIn = useLoaded(dockedList, overlay.isOpen && docked, reportLoadError) !== undefined;
+  // Open with nothing in the page yet: Escape, a press outside the field and focus leaving it
+  // close the picker, so its code coming in opens nothing, and the button names no list.
+  const waiting = overlay.isOpen && !(docked ? listIn : dialogIn);
+  // Typing in the text box moves on too, under the modal dialog (the docked list follows it).
+  useDismissWhileLoading(fieldRef, waiting, overlay.close, { closeOnInput: !docked });
 
   const outOfRange = (time: Time) =>
     (min !== undefined && time.compare(min) < 0) || (max !== undefined && time.compare(max) > 0);
@@ -382,7 +396,7 @@ function TimeFieldInner({
             aria-label={labels.openPicker}
             aria-haspopup={docked ? 'listbox' : 'dialog'}
             aria-expanded={overlay.isOpen}
-            {...(docked && overlay.isOpen && { 'aria-controls': listId })}
+            {...(docked && overlay.isOpen && !waiting && { 'aria-controls': listId })}
             disabled={disabled || readOnly}
             className={button}
             onPress={(event) => {

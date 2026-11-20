@@ -8,13 +8,16 @@ import {
   useEffect,
   useId,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
+  type ComponentType,
   type CSSProperties,
   type ElementType,
   type FocusEvent,
   type JSX,
+  type KeyboardEvent as ReactKeyboardEvent,
   type Key,
   type ReactElement,
   type ReactNode,
@@ -29,20 +32,24 @@ import {
   useMenuSection,
   useObjectRef,
   usePopover,
-  useButton,
   useSubmenuTrigger,
   type AriaMenuItemProps,
   type AriaMenuOptions,
   type AriaMenuProps,
   type AriaPopoverProps,
+  type PopoverAria,
   type Placement,
 } from 'react-aria';
 import {
   Item,
   Section,
+  useMultipleSelectionState,
   useSubmenuTriggerState,
   useTreeState,
+  type MultipleSelectionState,
   type Node,
+  type Selection,
+  type SelectionMode,
   type RootMenuTriggerState,
   type SubmenuTriggerState,
   type TreeState,
@@ -60,11 +67,19 @@ import { cn } from '../../utils/cn';
 import { useTypeaheadDelegate } from '../../utils/typeahead';
 import { COMPACT_WINDOW, useMediaQuery } from '../date-picker/use-media-query';
 import { Divider } from '../divider/Divider';
-import { LazyBottomSheet, usePreloadBottomSheet } from '../sheet/lazy-bottom-sheet';
-import { BackIcon } from '../sheet/sheet-icons';
+import {
+  preloadBottomSheet,
+  useBottomSheetLoaded,
+  usePreloadBottomSheet,
+} from '../sheet/lazy-bottom-sheet';
+import { useDismissWhileLoading } from '../../utils/use-dismiss-while-loading';
+import { closeOnLoadError } from '../../utils/close-on-load-error';
+import { onDemand, usePreloadOnIntent } from '../../utils/load-on-demand';
+import { useLoaded } from '../../utils/use-loaded';
+import type { MenuPopoverInPlaceProps, MenuSheetProps } from './menu-in-place';
 import { useRevealEntering } from './use-reveal-entering';
 import { menuOwnWidth, menuStyles, type MenuLayout, type MenuVariant } from './menu-styles';
-import { MenuTriggerContext, type MenuTriggerContextValue } from './menu-trigger';
+import { MenuTriggerContext, triggerMenuProps, type MenuTriggerContextValue } from './menu-trigger';
 
 export {
   ContextMenuTrigger,
@@ -148,11 +163,34 @@ export interface MenuGroupProps {
   'aria-label'?: string;
   /** `MenuItem`s and `SubmenuTrigger`s. */
   children: ReactElement | ReactElement[];
+  /**
+   * A group of choices with a selection of its own, beside the menu's other items: its items
+   * are radio items (`single`) or checkbox items (`multiple`), whatever the menu's own
+   * `selectionMode`, and choosing one never changes another group's. Closing follows the
+   * group's mode, as a whole menu's would: a choice closes the menu (Space keeps it open), a
+   * toggle keeps it open. `none` makes the group's items plain actions that close the menu,
+   * in a selectable menu too.
+   * @default the menu's `selectionMode`
+   */
+  selectionMode?: SelectionMode;
+  /** The group's selected keys (controlled), with `selectionMode`; `'all'` is all its items. */
+  selectedKeys?: AriaMenuProps<object>['selectedKeys'];
+  /** The group's keys selected at first (uncontrolled), with `selectionMode`. */
+  defaultSelectedKeys?: AriaMenuProps<object>['defaultSelectedKeys'];
+  /** Called with the group's selected keys, its own only, when they change. */
+  onSelectionChange?: (keys: Selection) => void;
+  /**
+   * With `selectionMode`: the group's last selected item can be deselected, leaving none.
+   * `false` keeps one of its items selected. @default true
+   */
+  deselectable?: boolean;
 }
 
 /**
  * A group of items (a React Stately collection section): set off by dividers in the
- * `divider` layout, its own surface in the `gap` layout.
+ * `divider` layout, its own surface in the `gap` layout. With `selectionMode`, a group of
+ * choices whose selection is its own, beside the menu's plain actions (M3's menus put a
+ * selectable group beside actions).
  */
 export const MenuGroup = Section as unknown as (props: MenuGroupProps) => JSX.Element;
 
@@ -207,7 +245,10 @@ SubmenuTriggerElement.getCollectionNode = function* getCollectionNode({
  * item, without covering it, on hover, press, Enter, Space or the arrow key pointing away
  * from the menu (Left in right-to-left), and closes with the opposite arrow or Escape.
  * While it's open, the item shows its active (pressed) layer, and the menu holding focus
- * takes rounder corners than the other one.
+ * takes rounder corners than the other one. Shown in place of its menu instead (the root
+ * menu's `submenuPresentation="replace"`, or a bottom sheet), it opens on press, Enter, Space
+ * or that arrow, never on hover, below a back button; the back button, Escape and the
+ * opposite arrow go back.
  *
  * @example
  * <SubmenuTrigger>
@@ -225,7 +266,8 @@ export const SubmenuTrigger = SubmenuTriggerElement as unknown as (
 export interface MenuClassNames {
   /**
    * The menu's surface (the `menu` element): its colour, corners, size and the list that
-   * scrolls. In a sheet it spans the sheet, without a surface of its own.
+   * scrolls. In a sheet it spans the sheet, without a surface of its own. With
+   * `submenuPresentation="replace"`, the surface that holds the pages, around the lists.
    */
   panel?: string;
   /**
@@ -249,6 +291,12 @@ export interface MenuClassNames {
   trailingIcon?: string;
   /** The dividers between groups in the `divider` layout. */
   divider?: string;
+  /** The row above a submenu shown in place of its menu: its back button and its title. */
+  header?: string;
+  /** The back button in that row, which goes back to the menu that opened the submenu. */
+  back?: string;
+  /** The submenu's title in that row: the label of the item that opened it. */
+  title?: string;
 }
 
 export interface MenuProps
@@ -277,14 +325,19 @@ export interface MenuProps
   disabledKeys?: AriaMenuProps<object>['disabledKeys'];
   /** `MenuItem`s, `MenuGroup`s and `SubmenuTrigger`s. */
   children: ReactNode;
-  /** `standard` (surface colours) or `vibrant` (tertiary container). @default "standard" */
+  /**
+   * `standard` (surface colours) or `vibrant` (tertiary container). A submenu shown in place
+   * (in a sheet, or with `submenuPresentation="replace"`) takes the root menu's: a menu's pages
+   * share one variant, so a page never looks different from the one that opened it, and the
+   * same in a popover and in a sheet. @default "standard"
+   */
   variant?: MenuVariant;
   /**
    * How groups are set apart. `divider`: one surface with dividers between groups, which M3
    * recommends on the web and for menus that scroll. `gap`: each group is its own surface,
    * 2px apart; a `gap` menu that has to scroll switches to dividers, since M3 doesn't use
-   * gaps in scrolling menus. A submenu takes its parent's layout and variant unless it
-   * sets its own.
+   * gaps in scrolling menus. A submenu beside its item takes its parent's layout and variant
+   * unless it sets its own; shown in place, it takes the `divider` layout and the root's variant.
    * @default "divider"
    */
   layout?: MenuLayout;
@@ -298,15 +351,17 @@ export interface MenuProps
   density?: Density;
   /**
    * Placement relative to the trigger: a side, then optionally the edge to align with
-   * (`start` / `end` follow the text direction). A submenu always opens beside its item.
+   * (`start` / `end` follow the text direction). A submenu opens beside its item, or in its
+   * place (`submenuPresentation`).
    * @default "bottom-start"
    */
   placement?: MenuPlacement;
   /** Gap between the trigger and the menu, in px (a split button's menu sits 4px away). @default 0 */
   offset?: number;
   /**
-   * The least space kept between the menu and the window's edges, in px. A split button
-   * passes 0, so its menu lines up with the trailing button even at the edge of the screen.
+   * The least space kept between the menu and the window's edges (or the `portalContainer`'s),
+   * in px. A split button passes 0, so its menu lines up with the trailing button even at the
+   * edge of the screen.
    * @default 12
    */
   containerPadding?: number;
@@ -319,13 +374,71 @@ export interface MenuProps
    */
   presentation?: MenuPresentation;
   /**
-   * Words the menu shows in a sheet. Set them on the root menu. A {@link LabelsProvider} sets them
-   * for the whole app.
+   * Where a submenu shows in a popover. `beside`: in a popover of its own next to its item,
+   * without covering it (M3: "Submenus should open next to the parent menu item without
+   * overlapping it"), for app menus, toolbars and context menus with room. `replace`: in place
+   * of the menu, on the same surface, below a back button and its item's label, for a menu
+   * confined to a small surface (a video player's settings, a card, a narrow panel). The
+   * surface keeps its corner and its side of the trigger, and its height follows each page.
+   * `replace` extends M3, which shows submenus beside their item. Set it on the root menu; a
+   * bottom sheet always shows submenus in place.
+   * @default "beside"
+   */
+  submenuPresentation?: MenuSubmenuPresentation;
+  /**
+   * How a submenu shown in place (`submenuPresentation="replace"`, or in a sheet) and the page
+   * it leaves change. `fade`: the page going out goes at once and the one coming in fades in.
+   * `slide`: M3's forward and backward pattern, the page coming in sliding 30px in from the end
+   * edge going forward and from the start edge going back (mirrored in right-to-left) as it
+   * fades in. Under reduced motion only the fade stays; `instant` drops both in a popover (a
+   * sheet has no `instant`: its pages always change with the transition). Set it on the root
+   * menu.
+   * @default "fade"
+   */
+  submenuTransition?: MenuSubmenuTransition;
+  /**
+   * On a submenu's `Menu` (inside a `SubmenuTrigger`): what follows a choice on it, by press or
+   * Enter, in a single-select submenu or a single-choice `MenuGroup` of it. `close`: the whole
+   * menu closes, as in any single-select menu. `back`: only this submenu closes, so the page
+   * that opened it shows again (shown in place) or stays (beside), showing the new choice, with
+   * focus on the item that opened it; for a settings page whose choice is all it's for. Space
+   * keeps the submenu open either way, a toggle in a multi-select submenu never closes it, and
+   * an action (a plain item) still closes the whole menu.
+   * @default "close"
+   */
+  afterSelect?: MenuAfterSelect;
+  /**
+   * The element the menu's popover opens in, instead of `body`: a video player, so the menu
+   * opens over the picture, moves with the player and shows with it in full screen, opened
+   * before or after. The menu is placed against its trigger as before, then kept inside the
+   * element: `containerPadding` from its edges, flipping, shifting and capping its height (the
+   * list scrolls) within it, and placed again when the element resizes. It keeps the theme,
+   * `ThemeScope`, density and direction of where it's declared. Give the element
+   * `position: relative`, keep the trigger inside it or along its edge, and pass the element
+   * from a callback ref kept in state. It must draw its children (not a `<video>`, `<canvas>`
+   * or `<img>`). Submenus beside the menu are kept within it as far as they can shift: in an
+   * element too narrow for one on either side of the menu, a submenu runs past its edge, so
+   * use `submenuPresentation="replace"` for a small element. Popovers only: a bottom sheet
+   * opens over the window (and inside the element in full screen, as every overlay does). The
+   * page's `body` or `<html>` counts as no element: the menu opens in `body`, kept in the
+   * window. Set it on the root menu.
+   */
+  portalContainer?: Element | null;
+  /**
+   * Words the menu shows above a submenu shown in place (in a sheet, or with
+   * `submenuPresentation="replace"`). Set them on the root menu. A {@link LabelsProvider} sets
+   * them for the whole app.
    */
   labels?: Partial<MenuLabels>;
   /**
+   * The icon of the back button above a submenu shown in place of its menu. Set it on the root
+   * menu. @default Material Symbols `arrow_back`, mirrored in right-to-left
+   */
+  backIcon?: ReactElement;
+  /**
    * Open and close with no motion (M3: "In dense products, such as on desktop, menus can
-   * open instantly to reduce motion"). Submenus follow their root menu. Popovers only: a menu
+   * open instantly to reduce motion"), and change pages shown in place with none. Submenus
+   * follow their root menu. Popovers only: a menu
    * shown as a bottom sheet (`presentation="sheet"`, or `auto` on a compact window) keeps the
    * sheet's slide, as M3's and Compose's modal bottom sheets always animate; under reduced
    * motion it fades instead.
@@ -336,12 +449,13 @@ export interface MenuProps
    * Goes with `style` on the menu's outermost element: the box React Aria places against the
    * trigger, or the bottom sheet's outermost element in a sheet. The surface inside keeps
    * its size and its place against the trigger whatever layout class lands here (the box
-   * keeps the menu's own width); style it with `classNames.panel`.
+   * keeps the menu's own width); style it with `classNames.panel`. On a submenu shown in place
+   * (in a sheet, or with `submenuPresentation="replace"`), its page: the back row and its list.
    */
   className?: string;
   /** Classes for each part, by slot. */
   classNames?: MenuClassNames;
-  /** Goes on the menu's outermost element, with `className`. */
+  /** Goes on the menu's outermost element, with `className` (a submenu's page, shown in place). */
   style?: CSSProperties;
   /** Ref to the menu's list, the `role="menu"` element, in a popover or a sheet. */
   ref?: Ref<HTMLDivElement>;
@@ -365,23 +479,37 @@ export type MenuPlacement =
 /** Where a {@link Menu} opens. */
 export type MenuPresentation = 'popover' | 'sheet' | 'auto';
 
+/** Where a {@link Menu}'s submenus show in a popover: beside their item, or in its place. */
+export type MenuSubmenuPresentation = 'beside' | 'replace';
+
+/**
+ * How a {@link Menu}'s pages change when its submenus show in place: a fade, or a slide as it
+ * fades.
+ */
+export type MenuSubmenuTransition = 'fade' | 'slide';
+
+/** What follows a choice on a submenu: the whole menu closes, or only the submenu, going back. */
+export type MenuAfterSelect = 'close' | 'back';
+
 /** Words a {@link Menu} shows. */
 export interface MenuLabels {
   /**
-   * In a sheet, the button above a submenu that goes back to the menu that opened it.
+   * The button above a submenu shown in place (in a sheet, or with
+   * `submenuPresentation="replace"`) that goes back to the menu that opened it.
    * @default "Back"
    */
   back: string;
 }
 
-const DEFAULT_LABELS: MenuLabels = { back: 'Back' };
+export const DEFAULT_LABELS: MenuLabels = { back: 'Back' };
 
 /**
  * M3 Expressive menu: items on one surface with dividers between groups (or on grouped
  * surfaces), standard or vibrant colours, optional single or multiple selection with a
- * selected shape and check, submenus, keyboard navigation and typeahead (React Aria
- * `useMenu`). Must be inside a `MenuTrigger` or `ContextMenuTrigger`; it opens anchored to
- * the trigger in a portal that keeps the surrounding theme and direction.
+ * selected shape and check, submenus beside their item or in its place, keyboard navigation
+ * and typeahead (React Aria `useMenu`). Must be inside a `MenuTrigger` or
+ * `ContextMenuTrigger`; it opens anchored to the trigger in a portal (in `body`, or in
+ * `portalContainer`) that keeps the surrounding theme and direction.
  *
  * @example
  * <MenuTrigger>
@@ -397,18 +525,93 @@ const DEFAULT_LABELS: MenuLabels = { back: 'Back' };
  *   </Menu>
  * </MenuTrigger>
  */
-export function Menu({ presentation = 'popover', instant = false, ...props }: MenuProps) {
+export function Menu({
+  presentation = 'popover',
+  instant = false,
+  submenuPresentation = 'beside',
+  submenuTransition = 'fade',
+  portalContainer,
+  ...props
+}: MenuProps) {
   const trigger = useContext(MenuTriggerContext);
   if (!trigger) throw new Error('[@windmorph/react] <Menu> must be used inside <MenuTrigger>.');
   const compact = useMediaQuery(COMPACT_WINDOW);
   const presence = usePresence(trigger.state.isOpen);
   const asSheet = presentation === 'sheet' || (presentation === 'auto' && compact);
+  const replace = submenuPresentation === 'replace';
+  // The page's `body` or root is the page itself, not an element to keep the menu in: it
+  // would cap the menu at a short page's height and load the container's code for nothing.
+  const container = elementOtherThanPage(portalContainer);
+  const contained = container !== null;
   usePreloadBottomSheet(trigger.triggerRef, asSheet);
-  if (asSheet) return <MenuSheet {...props} trigger={trigger} />;
+  // The sheet, pages in place and a `portalContainer` load their code first: usually in the
+  // browser's first idle period after mount, or as the pointer moves over the trigger or focus
+  // enters it, before the menu opens.
+  usePreloadOnIntent(trigger.triggerRef, preloadMenuInPlace, asSheet || replace || contained);
+  const open = trigger.state.isOpen;
+  // Opening loads the code if it isn't in yet (a sheet's alone, for a sheet); a failed load
+  // closes the menu.
+  const reportLoadError = closeOnLoadError('Menu', trigger.state.close);
+  const sheetIn = useLoaded(menuSheet, asSheet && open, reportLoadError) !== undefined;
+  const inPlaceIn =
+    useLoaded(menuInPlace, (replace || contained) && !asSheet && open, reportLoadError) !==
+    undefined;
+  // A sheet's first open loads the sheet's code with the menu's, not once the menu's is in.
+  useEffect(() => {
+    if (asSheet && open) void preloadBottomSheet().catch(() => undefined);
+  }, [asSheet, open]);
+  const bottomSheetIn = useBottomSheetLoaded();
+  // Open with nothing in the page yet: Escape, a press outside and focus moving on close it,
+  // and the trigger names no menu (`aria-controls`) until one is there.
+  const waiting =
+    open && (asSheet ? !(sheetIn && bottomSheetIn) : (replace || contained) && !inPlaceIn);
+  useDismissWhileLoading(trigger.triggerRef, waiting, trigger.state.close, {
+    // A context menu's trigger is a region whose content takes its own arrows; React Aria
+    // opens a context menu with none.
+    onArrow: trigger.contextMenu ? undefined : (focus) => trigger.state.open(focus),
+    anyPress: trigger.contextMenu,
+    // In a context menu's region, typing or an arrow is the person carrying on there.
+    closeOnInput: trigger.contextMenu,
+    closeOnArrow: trigger.contextMenu,
+    keysFromPage: trigger.contextMenu,
+  });
+  const { setPending } = trigger;
+  useLayoutEffect(() => {
+    setPending?.(waiting);
+    return () => setPending?.(false);
+  }, [setPending, waiting]);
+  // A sheet renders from its first open on, and stays to play its exits; before that nothing.
+  const [sheetOpened, setSheetOpened] = useState(false);
+  if (asSheet && open && !sheetOpened) setSheetOpened(true);
+  // A popover on demand leaves only if it showed open: one closed while its code was loading
+  // showed nothing, so there's nothing to leave, and its code coming in later must not open
+  // it out of sight, where it took focus and ran keys (2026-11-19).
+  const [shownOpen, setShownOpen] = useState(false);
+  if (inPlaceIn && open && !shownOpen) setShownOpen(true);
   // An instant menu leaves at once, without waiting for an exit transition.
-  const isPresent = instant ? trigger.state.isOpen : presence.isPresent;
+  const isPresent = instant ? open : presence.isPresent;
   const isExiting = !instant && presence.isExiting;
+  if (!isPresent && shownOpen) setShownOpen(false);
+  if (asSheet) {
+    if (!sheetIn || !sheetOpened) return null;
+    return <menuSheet.Component {...props} trigger={trigger} transition={submenuTransition} />;
+  }
   if (!isPresent) return null;
+  if (replace || contained) {
+    if (!inPlaceIn || !(open || shownOpen)) return null;
+    return (
+      <menuInPlace.Component
+        {...props}
+        trigger={trigger}
+        instant={instant}
+        replace={replace}
+        transition={submenuTransition}
+        boundary={container}
+        isExiting={isExiting}
+        exitProps={presence.exitProps}
+      />
+    );
+  }
   return (
     <Overlay exiting={isExiting}>
       <MenuPopover
@@ -422,78 +625,38 @@ export function Menu({ presentation = 'popover', instant = false, ...props }: Me
   );
 }
 
-/**
- * The menu in a modal bottom sheet (M3: menus can adapt into bottom sheets on small
- * screens). The sheet is a dialog named like the menu; the menu inside keeps its role,
- * keyboard, typeahead and initial focus, and spans the sheet without a surface of its own.
- * The sheet's code loads on first open (or when the trigger is hovered or focused), so a
- * menu that only opens as a popover doesn't carry it.
- */
-function MenuSheet({
-  trigger,
-  layout: _layout,
-  placement: _placement,
-  offset: _offset,
-  variant = 'standard',
-  labels: labelsProp,
-  className,
-  style,
-  ...props
-}: Omit<MenuProps, 'presentation' | 'instant'> & { trigger: MenuTriggerContextValue }) {
-  const labels = useLabels('Menu', DEFAULT_LABELS, labelsProp);
-  const [container, setContainer] = useState<HTMLDivElement | null>(null);
-  const [activeLevel, setActiveLevel] = useState(0);
-  const menuProps = mergeProps(trigger.menuProps, props);
-  const label = menuProps['aria-label'];
-  const naming =
-    label != null
-      ? { 'aria-label': label }
-      : { 'aria-labelledby': menuProps['aria-labelledby'] ?? '' };
-  return (
-    <LazyBottomSheet
-      {...naming}
-      // A menu sheet opens at its own height (up to the window, the list scrolling inside):
-      // at half the window, a short phone left its last items off-screen, where the arrow
-      // keys could still move focus.
-      skipPartiallyExpanded
-      open={trigger.state.isOpen}
-      onOpenChange={(open) => (open ? trigger.state.open() : trigger.state.close())}
-      className={className}
-      style={style}
-      classNames={props.classNames?.sheet ? { panel: props.classNames.sheet } : undefined}
-    >
-      <div ref={setContainer} className={menuStyles().sheetContent()}>
-        <MenuTreeContext
-          value={{
-            rootState: trigger.state,
-            container,
-            activeLevel,
-            setActiveLevel,
-            layout: 'divider',
-            variant,
-            density: props.density,
-            instant: false,
-            sheet: true,
-            labels,
-          }}
-        >
-          <MenuList
-            {...menuProps}
-            layout="divider"
-            variant={variant}
-            level={0}
-            embedded
-            onClose={trigger.state.close}
-            autoFocus={trigger.state.focusStrategy ?? 'first'}
-          />
-        </MenuTreeContext>
-      </div>
-    </LazyBottomSheet>
-  );
+/** `element`, unless it's the page's `body` or root (or none). */
+function elementOtherThanPage(element: Element | null | undefined): Element | null {
+  if (!element) return null;
+  const page = element.ownerDocument;
+  return element === page.body || element === page.documentElement ? null : element;
 }
 
+/*
+ * A sheet, submenus in place and a `portalContainer` are loaded the first time a menu needs
+ * them (`menu-in-place.tsx`), as the bottom sheet itself is, so a menu whose submenus open beside
+ * it, in `body`, doesn't carry their code. Until the module is in, such a menu renders nothing
+ * (focus stays on its trigger); once it is, the menu opens in the same pass (`onDemand` never
+ * suspends), placed and sized from its first frame.
+ */
+const menuInPlace = onDemand<MenuPopoverInPlaceProps>(() =>
+  import('./menu-in-place').then((module) => module.MenuPopoverInPlace),
+);
+const menuSheet = onDemand<MenuSheetProps>(() =>
+  import('./menu-in-place').then((module) => module.MenuSheet),
+);
+
+/** Starts loading the sheet's, the pages' and the container's code, once (library-internal). */
+export const preloadMenuInPlace = () => Promise.all([menuInPlace.preload(), menuSheet.preload()]);
+
+/** What the menu in a popover or a sheet takes: the root menu's props that pick neither. */
+export type MenuShownProps = Omit<
+  MenuProps,
+  'presentation' | 'instant' | 'submenuPresentation' | 'submenuTransition' | 'portalContainer'
+>;
+
 /** Shared by a menu and its submenus. */
-interface MenuTreeContextValue {
+export interface MenuTreeContextValue {
   rootState: RootMenuTriggerState;
   /** The root popover, which submenus portal into (inside its focus scope, never inert). */
   container: HTMLElement | null;
@@ -504,22 +667,51 @@ interface MenuTreeContextValue {
   layout: MenuLayout;
   variant: MenuVariant;
   density: MenuProps['density'];
-  /** Submenus open and close with no motion too. */
+  /** Submenus open and close with no motion too, and pages change with none. */
   instant: boolean;
   /**
-   * In a sheet, a submenu takes the sheet's place of the menu that opened it, below a back
-   * button, instead of opening beside its item.
+   * Where a submenu shows in place of the menu that opened it, below a back button, instead of
+   * opening beside its item: always in a sheet, and in a popover with
+   * `submenuPresentation="replace"` (`container` then holds the pages). `null` beside. It's
+   * the page of `menu-in-place.tsx`, loaded with such menus.
    */
-  sheet: boolean;
+  page: ComponentType<SubmenuPageProps> | null;
   labels: MenuLabels;
+  /** The root menu's parts, for the row above each page. */
+  classNames: MenuClassNames | undefined;
+  backIcon: ReactElement | undefined;
+  /**
+   * Inside a `portalContainer`: React Aria's boundary for the submenus beside the root menu,
+   * a stand-in for the container in their containing block, the root popover.
+   */
+  boundary: Element | null;
 }
 
-const MenuTreeContext = createContext<MenuTreeContextValue | null>(null);
+export const MenuTreeContext = createContext<MenuTreeContextValue | null>(null);
 
 /** The menu element an item is rendered in (a submenu's parent). */
 const MenuListContext = createContext<RefObject<HTMLDivElement | null> | null>(null);
 
+/** A submenu's items: what follows a choice on it (`afterSelect`), and how it goes back. */
+interface MenuPageContextValue {
+  afterSelect: MenuAfterSelect;
+  /** Closes only this submenu, then focuses the item that opened it. */
+  back: () => void;
+}
+
+const MenuPageContext = createContext<MenuPageContextValue | null>(null);
+
 const subscribeToNothing = () => () => {};
+
+/**
+ * Keys that move focus in a menu (React Aria's) and whose default the browser would also take:
+ * scrolling the nearest element around the menu that scrolls, such as a pane holding its
+ * `portalContainer`, which carried the open menu away (2026-11-18). React Aria leaves it.
+ */
+const FOCUS_MOVING_KEYS = new Set(['Home', 'End', 'PageUp', 'PageDown']);
+
+/** See `MenuPopoverFrame`'s `absolute`. */
+const ABSOLUTE = { position: 'absolute' } as const;
 
 /**
  * React Aria resolves `start` / `end` from its locale context, not the DOM `dir`, so an
@@ -530,36 +722,37 @@ function toPhysicalPlacement(placement: MenuPlacement, direction: string): Place
   return toAriaPlacement(placement, direction === 'rtl');
 }
 
-type ExitProps = ReturnType<typeof usePresence>['exitProps'];
+/**
+ * A placement on `side` of the trigger, keeping its alignment (`bottom left` on `top`:
+ * `top left`).
+ */
+function onSide(placement: Placement, side: string): Placement {
+  const [, align] = placement.split(' ');
+  return (align ? `${side} ${align}` : side) as Placement;
+}
 
-function MenuPopover({
-  trigger,
-  instant,
-  isExiting,
-  exitProps,
-  placement = 'bottom-start',
-  offset = 0,
-  containerPadding = 12,
-  layout = 'divider',
-  variant = 'standard',
-  labels: labelsProp,
-  className,
-  style,
-  ...props
-}: Omit<MenuProps, 'presentation' | 'instant'> & {
-  trigger: MenuTriggerContextValue;
-  instant: boolean;
-  isExiting: boolean;
-  exitProps: ExitProps;
-}) {
-  const labels = useLabels('Menu', DEFAULT_LABELS, labelsProp);
-  const popoverRef = useRef<HTMLDivElement>(null);
-  const [container, setContainer] = useState<HTMLDivElement | null>(null);
-  const setPopover = useCallback((element: HTMLDivElement | null) => {
-    popoverRef.current = element;
-    setContainer(element);
-  }, []);
-  const [activeLevel, setActiveLevel] = useState(0);
+export type ExitProps = ReturnType<typeof usePresence>['exitProps'];
+
+/** Where a menu's popover sits, beyond `placement`, `offset` and `containerPadding`. */
+export interface MenuPopoverPlacing {
+  /** Keeps the popover on this side of its trigger, without flipping (pages in place). */
+  heldSide?: string | null;
+  /** React Aria's boundary, in place of the window (a `portalContainer`'s stand-in). */
+  boundaryElement?: Element | null;
+  /** `false` for one commit places the popover again (a `portalContainer` resized). */
+  shouldUpdatePosition?: boolean;
+}
+
+/**
+ * The trigger's laid-out direction, for the `DirectionLocale` round its menu: React Aria takes
+ * the arrow keys (a submenu's ← and →, the back button's) and `start` / `end` from its locale,
+ * not the DOM's `dir`, so a menu in a right-to-left region of a left-to-right app gets the
+ * page's locale with the region's direction (library-internal: the popovers' and the sheet's in
+ * `menu-in-place.tsx`, which used the app's and opened a page with →, 2026-11-19).
+ */
+export function useMenuLocale(trigger: MenuTriggerContextValue): {
+  direction: 'ltr' | 'rtl';
+} {
   // The DOM is the source of truth for direction; read it like an external store.
   const direction = useSyncExternalStore(
     subscribeToNothing,
@@ -567,24 +760,97 @@ function MenuPopover({
       trigger.triggerRef.current ? getComputedStyle(trigger.triggerRef.current).direction : 'ltr',
     () => 'ltr',
   );
+  return { direction: direction === 'rtl' ? 'rtl' : 'ltr' };
+}
+
+/**
+ * Places a menu's popover against its trigger (React Aria `usePopover`), in the trigger's
+ * laid-out direction, and gives the menu a locale with that direction (library-internal:
+ * shared by the popover below and the one in `menu-in-place.tsx`).
+ */
+export function useMenuPopover(
+  trigger: MenuTriggerContextValue,
+  popoverRef: RefObject<HTMLDivElement | null>,
+  {
+    placement = 'bottom-start',
+    offset = 0,
+    containerPadding = 12,
+  }: Pick<MenuProps, 'placement' | 'offset' | 'containerPadding'>,
+  { heldSide, boundaryElement, shouldUpdatePosition }: MenuPopoverPlacing = {},
+): PopoverAria & { menuDirection: 'ltr' | 'rtl' } {
   // Submenus' arrow keys and placement follow the locale's direction: give it the DOM's.
-  const menuDirection = direction === 'rtl' ? 'rtl' : 'ltr';
-  const {
-    popoverProps,
-    underlayProps,
-    placement: actualPlacement,
-  } = usePopover(
+  const { direction } = useMenuLocale(trigger);
+  const requested = toPhysicalPlacement(placement, direction);
+  const popover = usePopover(
     {
       triggerRef: trigger.triggerRef,
       popoverRef,
-      placement: toPhysicalPlacement(placement, direction),
+      placement: heldSide ? onSide(requested, heldSide) : requested,
+      shouldFlip: !heldSide,
       offset,
       containerPadding,
+      ...(boundaryElement && { boundaryElement }),
+      ...(shouldUpdatePosition === false && { shouldUpdatePosition }),
     },
     trigger.state,
   );
+  return { ...popover, menuDirection: direction };
+}
+
+/** What a menu's tree takes from its popover. */
+export type MenuPopoverTree = Omit<
+  MenuTreeContextValue,
+  'rootState' | 'container' | 'activeLevel' | 'setActiveLevel'
+> & {
+  /** Where submenus go: by default the popover itself (beside), or the pages' element. */
+  container?: HTMLElement | null;
+};
+
+/**
+ * A menu's popover around its content (library-internal: shared by the popover below and the
+ * one in `menu-in-place.tsx`): the underlay, the box React Aria places, the reveal from the
+ * anchored edge, the locale and the menu tree. Tab closes the menu.
+ */
+export function MenuPopoverFrame({
+  trigger,
+  popoverRef,
+  popover: { popoverProps, underlayProps, placement, menuDirection },
+  instant,
+  isExiting,
+  exitProps,
+  className,
+  style,
+  absolute = false,
+  tree,
+  children,
+}: {
+  trigger: MenuTriggerContextValue;
+  popoverRef: RefObject<HTMLDivElement | null>;
+  popover: ReturnType<typeof useMenuPopover>;
+  instant: boolean;
+  isExiting: boolean;
+  exitProps: ExitProps;
+  className: string | undefined;
+  style: CSSProperties | undefined;
+  /**
+   * `position: absolute` from the first placement, as React Aria makes it once placed (in a
+   * `portalContainer`, so its stand-in boundary and the popover count from the same block).
+   */
+  absolute?: boolean;
+  tree: MenuPopoverTree;
+  children: ReactNode;
+}) {
+  const [element, setElement] = useState<HTMLDivElement | null>(null);
+  const setPopover = useCallback(
+    (node: HTMLDivElement | null) => {
+      popoverRef.current = node;
+      setElement(node);
+    },
+    [popoverRef],
+  );
+  const [activeLevel, setActiveLevel] = useState(0);
   const revealRef = useRef<HTMLDivElement>(null);
-  const entering = useRevealEntering(actualPlacement, revealRef);
+  const entering = useRevealEntering(placement, revealRef);
   const close = trigger.state.close;
   // Tab moves on from an open menu and closes it and its submenus (the APG menu button
   // pattern). React Aria's focus scope moves focus past the trigger, or back to it when
@@ -592,16 +858,16 @@ function MenuPopover({
   // scope handles Tab on the document's capture phase and stops it, so this listens on the
   // window's, which comes first.
   useEffect(() => {
-    const view = container?.ownerDocument.defaultView;
-    if (!container || !view) return;
+    const view = element?.ownerDocument.defaultView;
+    if (!element || !view) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Tab' || event.altKey || event.ctrlKey || event.metaKey) return;
-      if (container.contains(container.ownerDocument.activeElement)) close();
+      if (element.contains(element.ownerDocument.activeElement)) close();
     };
     view.addEventListener('keydown', onKeyDown, true);
     return () => view.removeEventListener('keydown', onKeyDown, true);
-  }, [container, close]);
-  const styles = menuStyles();
+  }, [element, close]);
+  const { container = element, ...shared } = tree;
   return (
     <>
       <div {...underlayProps} className="fixed inset-0" />
@@ -610,48 +876,95 @@ function MenuPopover({
         ref={setPopover}
         // React Aria's placement wins over a consumer style's and, through the attribute
         // (styles/utilities.css), over consumer inset classes.
-        style={{ ...style, ...popoverProps.style }}
+        style={{ ...style, ...popoverProps.style, ...(absolute && ABSOLUTE) }}
         data-overlay-placement=""
-        className={styles.popover({ class: cn(menuOwnWidth, className) })}
+        className={menuStyles().popover({ class: cn(menuOwnWidth, className) })}
       >
-        <DismissButton onDismiss={trigger.state.close} />
+        <DismissButton onDismiss={close} />
         <div
           {...exitProps}
           ref={revealRef}
           data-entering={entering || undefined}
           data-exiting={isExiting || undefined}
-          data-placement={actualPlacement ?? undefined}
+          data-placement={placement ?? undefined}
           className={menuStyles({ instant }).reveal()}
         >
           <DirectionLocale direction={menuDirection}>
             <MenuTreeContext
               value={{
+                ...shared,
                 rootState: trigger.state,
                 container,
                 activeLevel,
                 setActiveLevel,
-                layout,
-                variant,
-                density: props.density,
-                instant,
-                sheet: false,
-                labels,
               }}
             >
-              <MenuList
-                {...mergeProps(trigger.menuProps, props)}
-                layout={layout}
-                variant={variant}
-                level={0}
-                onClose={trigger.state.close}
-                autoFocus={trigger.state.focusStrategy ?? 'first'}
-              />
+              {children}
             </MenuTreeContext>
           </DirectionLocale>
         </div>
-        <DismissButton onDismiss={trigger.state.close} />
+        <DismissButton onDismiss={close} />
       </div>
     </>
+  );
+}
+
+/** A menu's popover in `body`, its submenus beside their items. */
+function MenuPopover({
+  trigger,
+  instant,
+  isExiting,
+  exitProps,
+  placement,
+  offset,
+  containerPadding,
+  layout = 'divider',
+  variant = 'standard',
+  labels: labelsProp,
+  backIcon,
+  className,
+  style,
+  ...props
+}: MenuShownProps & {
+  trigger: MenuTriggerContextValue;
+  instant: boolean;
+  isExiting: boolean;
+  exitProps: ExitProps;
+}) {
+  const labels = useLabels('Menu', DEFAULT_LABELS, labelsProp);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const popover = useMenuPopover(trigger, popoverRef, { placement, offset, containerPadding });
+  return (
+    <MenuPopoverFrame
+      trigger={trigger}
+      popoverRef={popoverRef}
+      popover={popover}
+      instant={instant}
+      isExiting={isExiting}
+      exitProps={exitProps}
+      className={className}
+      style={style}
+      tree={{
+        layout,
+        variant,
+        density: props.density,
+        instant,
+        page: null,
+        labels,
+        classNames: props.classNames,
+        backIcon,
+        boundary: null,
+      }}
+    >
+      <MenuList
+        {...mergeProps(triggerMenuProps(trigger, props), props)}
+        layout={layout}
+        variant={variant}
+        level={0}
+        onClose={trigger.state.close}
+        autoFocus={trigger.state.focusStrategy ?? 'first'}
+      />
+    </MenuPopoverFrame>
   );
 }
 
@@ -684,7 +997,7 @@ function toGroups(nodes: Node<object>[]): (Node<object> | Node<object>[])[] {
   return groups;
 }
 
-type MenuListProps = Omit<
+export type MenuListProps = Omit<
   MenuProps,
   'placement' | 'layout' | 'variant' | 'presentation' | 'instant' | 'className' | 'style'
 > &
@@ -694,8 +1007,13 @@ type MenuListProps = Omit<
     /** 0 for the root menu, then one more per submenu. */
     level: number;
     listRef?: RefObject<HTMLDivElement | null>;
-    /** In a sheet: the list spans it, with no surface of its own. */
+    /**
+     * Shown in place of other pages: the list spans their container, with no surface of its
+     * own.
+     */
     embedded?: boolean;
+    /** The first page shown in place: its motion as it shows again (`menuStyles().page()`). */
+    pageClassName?: string;
   };
 
 /**
@@ -717,7 +1035,8 @@ function useHasScrolled(ref: RefObject<HTMLElement | null>, enabled: boolean) {
   return scrolls;
 }
 
-function MenuList({
+/** A menu's list, the `role="menu"` element, in any presentation (library-internal). */
+export function MenuList({
   deselectable = true,
   variant,
   layout: requestedLayout,
@@ -726,6 +1045,8 @@ function MenuList({
   classNames,
   listRef,
   embedded = false,
+  pageClassName,
+  afterSelect: _afterSelect,
   ref: forwardedRef,
   ...allProps
 }: MenuListProps) {
@@ -738,11 +1059,21 @@ function MenuList({
     'MenuItem, MenuGroup and SubmenuTrigger elements',
   );
   const tree = useContext(MenuTreeContext);
+  // The menu's own keys only: see `withoutGroupKeys`. Read in an event, after the commit.
+  const collectionRef = useRef<TreeState<object>['collection'] | null>(null);
+  const { onSelectionChange } = props;
   // M3: "Disabled menu items can receive focus but aren't selectable."
   const state = useTreeState({
     ...(props as AriaMenuProps<object>),
+    ...(onSelectionChange && {
+      onSelectionChange: (keys: Selection) =>
+        onSelectionChange(withoutGroupKeys(keys, collectionRef.current)),
+    }),
     disallowEmptySelection: !deselectable,
     disabledBehavior: 'selection',
+  });
+  useLayoutEffect(() => {
+    collectionRef.current = state.collection;
   });
   const ownRef = useObjectRef(forwardedRef);
   const ref = listRef ?? ownRef;
@@ -759,8 +1090,9 @@ function MenuList({
   const scrolled = useHasScrolled(ref, requestedLayout === 'gap');
   const layout: MenuLayout = scrolled ? 'divider' : requestedLayout;
   const styles = menuStyles({ variant, layout, embedded });
-  // While a submenu is open, the menu holding focus is rounder than the others (M3).
-  const submenuOpen = Boolean(tree && tree.rootState.expandedKeysStack.length > 0);
+  // While a submenu is open beside it, the menu holding focus is rounder than the others (M3);
+  // in place, only one page shows.
+  const submenuOpen = Boolean(tree && !tree.page && tree.rootState.expandedKeysStack.length > 0);
   const shape = !submenuOpen ? undefined : tree?.activeLevel === level ? 'active' : 'inactive';
   const setActive = tree?.setActiveLevel;
 
@@ -771,6 +1103,9 @@ function MenuList({
         onFocus: (event: FocusEvent<HTMLDivElement>) => {
           if (event.currentTarget.contains(event.target)) setActive?.(level);
         },
+        onKeyDown: (event: ReactKeyboardEvent<HTMLDivElement>) => {
+          if (FOCUS_MOVING_KEYS.has(event.key)) event.preventDefault();
+        },
       })}
       ref={ref}
       {...densityAttribute(density)}
@@ -778,7 +1113,7 @@ function MenuList({
       data-variant={variant}
       data-layout={layout}
       data-shape={shape}
-      className={styles.menu({ class: classNames?.panel })}
+      className={styles.menu({ class: cn(pageClassName, classNames?.panel) })}
     >
       <MenuListContext value={ref}>
         {groups.map((group, index) => {
@@ -865,6 +1200,7 @@ function MenuSection({
     heading: section.rendered,
     'aria-label': section['aria-label'],
   });
+  const selectionManager = useGroupSelection(section, state);
   return (
     <div {...itemProps} className={className}>
       {section.rendered && (
@@ -876,6 +1212,7 @@ function MenuSection({
         <MenuItems
           nodes={[...section.childNodes]}
           state={state}
+          selectionManager={selectionManager}
           variant={variant}
           // A heading takes the group's top edge, so the first item doesn't touch it.
           edges={{ ...edges, top: !section.rendered && edges.top }}
@@ -886,6 +1223,136 @@ function MenuSection({
   );
 }
 
+type SelectionManager = TreeState<object>['selectionManager'];
+
+/**
+ * The menu's selection without the keys of its groups that set `selectionMode`, whose items
+ * have a selection of their own. React Stately spells the menu's `'all'` out over the whole
+ * collection as an item is toggled (`getSelectAllKeys`), so a menu selected with `'all'`, or
+ * select-all (Ctrl + A), reported every group's keys too as one of its items was unchecked.
+ */
+function withoutGroupKeys(
+  keys: Selection,
+  collection: TreeState<object>['collection'] | null,
+): Selection {
+  if (keys === 'all' || !collection) return keys;
+  const owned = new Set<Key>();
+  for (const node of collection) {
+    if (node.type !== 'section' || (node.props as MenuGroupProps).selectionMode === undefined) {
+      continue;
+    }
+    for (const child of node.childNodes) owned.add(child.key);
+  }
+  if (![...keys].some((key) => owned.has(key))) return keys;
+  return new Set([...keys].filter((key) => !owned.has(key)));
+}
+
+/**
+ * The keys of a group's items that `'all'` selects: React Stately's `'all'` is every item that
+ * isn't disabled.
+ */
+function groupItemKeys(section: Node<object>, menu: SelectionManager) {
+  const keys = new Set<Node<object>['key']>();
+  for (const node of section.childNodes) {
+    if (node.type === 'item' && !menu.disabledKeys.has(node.key)) keys.add(node.key);
+  }
+  return keys;
+}
+
+/**
+ * What a group's items call on its manager (React Aria's `useMenuItem` and
+ * `useSelectableItem`).
+ */
+const GROUP_MANAGER_METHODS = [
+  'isSelected',
+  'select',
+  'toggleSelection',
+  'replaceSelection',
+  'extendSelection',
+  'canSelectItem',
+  'isDisabled',
+  'isLink',
+  'setFocused',
+  'setFocusedKey',
+] as const;
+
+/**
+ * Development only. A group's manager is built with a class React Stately doesn't export, so a
+ * react-stately release that changed it would break a group's choices quietly (a press that
+ * selects nothing). Fail with the cause instead.
+ */
+function assertGroupManager(manager: SelectionManager, groupState: MultipleSelectionState) {
+  const missing = GROUP_MANAGER_METHODS.filter((name) => typeof manager[name] !== 'function');
+  if (missing.length === 0 && manager.selectionMode === groupState.selectionMode) return;
+  throw new Error(
+    `[@windmorph/react] MenuGroup: the selection manager built for a group's selection ` +
+      (missing.length > 0
+        ? `lacks ${missing.join(', ')}`
+        : `doesn't read the group's selection state`) +
+      `. A group's selection is built on React Stately's own SelectionManager, which this ` +
+      `react-stately version has changed; use the react-stately version @windmorph/react ` +
+      `depends on.`,
+  );
+}
+
+/**
+ * A group's selection manager when it sets `selectionMode` (`none` included, as React Aria
+ * Components' `MenuSection` does: a `none` group's items are plain actions in a selectable
+ * menu): the group's own selection (`useMultipleSelectionState`) with the menu's focus. React
+ * Stately doesn't export its `SelectionManager` class, so the menu manager's own constructor
+ * (its documented `(collection, state)` signature) builds it, from a state whose focus members
+ * are the menu's. `null` for a group without `selectionMode`, whose items use the menu's manager.
+ */
+function useGroupSelection(
+  section: Node<object>,
+  state: TreeState<object>,
+): SelectionManager | null {
+  const group = section.props as MenuGroupProps;
+  const own = useMultipleSelectionState({
+    selectionMode: group.selectionMode ?? 'none',
+    disallowEmptySelection: group.deselectable === false,
+    ...(group.selectedKeys !== undefined && { selectedKeys: group.selectedKeys }),
+    ...(group.defaultSelectedKeys !== undefined && {
+      defaultSelectedKeys: group.defaultSelectedKeys,
+    }),
+    ...(group.onSelectionChange !== undefined && { onSelectionChange: group.onSelectionChange }),
+  });
+  // Only a group that leaves `selectionMode` out follows the menu's.
+  if (group.selectionMode === undefined) return null;
+  const menu = state.selectionManager;
+  const groupState: MultipleSelectionState = {
+    selectionMode: own.selectionMode,
+    selectionBehavior: own.selectionBehavior,
+    setSelectionBehavior: own.setSelectionBehavior,
+    // The manager reads the whole menu's collection, so it would expand `'all'` over every item
+    // in the menu (a toggle reported the other groups' keys): the group's `'all'` is its own items.
+    selectedKeys: own.selectedKeys === 'all' ? groupItemKeys(section, menu) : own.selectedKeys,
+    setSelectedKeys: own.setSelectedKeys,
+    disallowEmptySelection: own.disallowEmptySelection,
+    // Focus is the menu's: a group changes what's selected, never where focus goes.
+    get isFocused() {
+      return menu.isFocused;
+    },
+    setFocused: (focused) => menu.setFocused(focused),
+    get focusedKey() {
+      return menu.focusedKey;
+    },
+    get childFocusStrategy() {
+      return menu.childFocusStrategy;
+    },
+    setFocusedKey: (key, strategy) => menu.setFocusedKey(key, strategy),
+    disabledKeys: menu.disabledKeys,
+    disabledBehavior: menu.disabledBehavior,
+  };
+  const Manager = menu.constructor as new (
+    collection: TreeState<object>['collection'],
+    state: MultipleSelectionState,
+  ) => SelectionManager;
+  const manager = new Manager(state.collection, groupState);
+  if (process.env.NODE_ENV !== 'production') assertGroupManager(manager, groupState);
+  return manager;
+}
+
 /**
  * Items nest their corners inside the container's: an item on an outer edge gets the
  * outer corner less the 4px padding, and every other corner is 4px.
@@ -893,12 +1360,15 @@ function MenuSection({
 function MenuItems({
   nodes,
   state,
+  selectionManager,
   variant,
   edges,
   classNames,
 }: {
   nodes: Node<object>[];
   state: TreeState<object>;
+  /** A selectable group's own manager; the menu's when left out. */
+  selectionManager?: SelectionManager | null;
   variant: MenuVariant;
   edges: Edges;
   classNames?: MenuClassNames;
@@ -907,6 +1377,7 @@ function MenuItems({
     const itemProps: MenuItemViewProps = {
       node,
       state,
+      ...(selectionManager && { selectionManager }),
       variant,
       top: index === 0 && edges.top ? 'outer' : 'plain',
       bottom: index === nodes.length - 1 && edges.bottom ? 'outer' : 'plain',
@@ -923,6 +1394,8 @@ function MenuItems({
 interface MenuItemViewProps {
   node: Node<object>;
   state: TreeState<object>;
+  /** Its group's own selection manager, in a selectable `MenuGroup`. */
+  selectionManager?: SelectionManager;
   variant: MenuVariant;
   top: 'outer' | 'plain';
   bottom: 'outer' | 'plain';
@@ -952,123 +1425,83 @@ function SubmenuItemView(props: MenuItemViewProps) {
     submenuState,
     itemRef,
   );
-  // In a sheet a submenu replaces its menu, so hovering an item doesn't open it.
+  // In place, a submenu replaces its menu, so hovering an item doesn't open it (it would change
+  // the content under the pointer).
   const { isOpen, onHoverChange, ...triggerProps } = submenuTriggerProps;
-  // A sheet's submenu hides the item that opened it, so React Aria's focus on the item when
+  const Page = tree.page;
+  // A choice on a submenu that goes back after one (`afterSelect="back"`) closes only it.
+  const wentBack = useRef(false);
+  const afterSelect = submenu!.props.afterSelect ?? 'close';
+  const closeSubmenu = submenuState.close;
+  // One value while neither changes, so the submenu's items don't re-render with each render
+  // of its item.
+  const page = useMemo<MenuPageContextValue>(
+    () => ({
+      afterSelect,
+      back: () => {
+        wentBack.current = true;
+        closeSubmenu();
+      },
+    }),
+    [afterSelect, closeSubmenu],
+  );
+  // In place, a submenu hides the item that opened it, so React Aria's focus on the item when
   // the submenu closes (← or Escape) finds it hidden. Once the menu shows again, the item
   // takes focus back from the closed submenu (or the back button), unless every menu closed.
+  // After a choice that goes back, the item takes focus too, in place or beside, where focus
+  // is still in the submenu as it leaves.
   const wasOpen = useRef(isOpen);
   useLayoutEffect(() => {
     const closed = wasOpen.current && !isOpen;
     wasOpen.current = isOpen;
+    const afterChoice = closed && wentBack.current;
+    if (closed) wentBack.current = false;
     const item = itemRef.current;
-    if (!closed || !tree.sheet || !tree.rootState.isOpen || !item) return;
+    if (!closed || !(Page || afterChoice) || !tree.rootState.isOpen || !item) return;
     const active = item.ownerDocument.activeElement;
-    if (active == null || active === item.ownerDocument.body) item.focus();
+    const left = active == null || active === item.ownerDocument.body;
+    if (left || (afterChoice && submenuRef.current?.contains(active))) item.focus();
   });
   return (
     <>
       <MenuItemView
         {...props}
-        triggerProps={tree.sheet ? triggerProps : { ...triggerProps, onHoverChange }}
+        triggerProps={Page ? triggerProps : { ...triggerProps, onHoverChange }}
         itemRef={itemRef}
         submenuOpen={isOpen}
       />
-      {tree.sheet ? (
-        <SubmenuSheetPanel
-          state={submenuState}
-          submenuRef={submenuRef}
-          menuProps={submenuProps}
-          submenu={submenu!}
-          title={props.node.rendered}
-        />
-      ) : (
-        <SubmenuPopover
-          state={submenuState}
-          triggerRef={itemRef}
-          submenuRef={submenuRef}
-          menuProps={submenuProps}
-          popoverProps={popoverProps}
-          submenu={submenu!}
-        />
-      )}
+      <MenuPageContext value={page}>
+        {Page ? (
+          <Page
+            state={submenuState}
+            submenuRef={submenuRef}
+            menuProps={submenuProps}
+            submenu={submenu!}
+            title={props.node.rendered}
+          />
+        ) : (
+          <SubmenuPopover
+            state={submenuState}
+            triggerRef={itemRef}
+            submenuRef={submenuRef}
+            menuProps={submenuProps}
+            popoverProps={popoverProps}
+            submenu={submenu!}
+          />
+        )}
+      </MenuPageContext>
     </>
   );
 }
 
-/**
- * A submenu in a sheet (M3 adapts menus into bottom sheets on small screens, where there's
- * no room beside an item): it takes the place of the menu that opened it, which the sheet
- * hides while it's open, below a back button and its item's label. ← (→ in right-to-left),
- * Escape and the back button go back. It's portalled into the sheet after its menu, so the
- * sheet's focus scope covers it.
- */
-function SubmenuSheetPanel({
-  state,
-  submenuRef,
-  menuProps,
-  submenu,
-  title,
-}: Pick<SubmenuPopoverProps, 'state' | 'submenuRef' | 'menuProps' | 'submenu'> & {
+/** What a submenu page in place takes (`menu-in-place.tsx`). */
+export type SubmenuPageProps = Pick<
+  SubmenuPopoverProps,
+  'state' | 'submenuRef' | 'menuProps' | 'submenu'
+> & {
+  /** The label of the item that opened it. */
   title: ReactNode;
-}) {
-  const tree = useContext(MenuTreeContext)!;
-  if (!state.isOpen || !tree.container) return null;
-  const { submenuLevel, ...ariaMenuProps } = menuProps;
-  const own = submenu.props;
-  const variant = own.variant ?? tree.variant;
-  const styles = menuStyles({ variant });
-  return (
-    <Overlay portalContainer={tree.container} disableFocusManagement>
-      <div data-submenu-panel="" className={styles.sheetPanel()}>
-        <div className={styles.sheetHeader()}>
-          <SheetBackButton
-            label={tree.labels.back}
-            onPress={() => state.close()}
-            className={styles.sheetBack()}
-          />
-          <span className={styles.sheetTitle()}>{title}</span>
-        </div>
-        <MenuList
-          {...mergeProps(ariaMenuProps, own)}
-          listRef={submenuRef}
-          layout="divider"
-          variant={variant}
-          density={own.density ?? tree.density}
-          level={submenuLevel + 1}
-          embedded
-          // However it opened (a touch leaves focus on the item, now hidden), focus moves in.
-          autoFocus={state.focusStrategy ?? 'first'}
-        />
-      </div>
-    </Overlay>
-  );
-}
-
-/** The back button above a sheet's submenu: 48px, with an outline focus ring. */
-function SheetBackButton({
-  label,
-  onPress,
-  className,
-}: {
-  label: string;
-  onPress: () => void;
-  className: string;
-}) {
-  const ref = useRef<HTMLButtonElement>(null);
-  const { buttonProps, isPressed } = useButton({ onPress, 'aria-label': label }, ref);
-  const { interactionProps, dataAttributes } = useM3Interaction({ isPressed }, ref);
-  return (
-    <button
-      {...mergeProps(buttonProps, interactionProps)}
-      {...dataAttributes}
-      ref={ref}
-      className={className}
-    >
-      <BackIcon />
-    </button>
-  );
-}
+};
 
 interface SubmenuPopoverProps {
   state: SubmenuTriggerState;
@@ -1120,6 +1553,8 @@ function SubmenuPopoverContent({
       // first item level with the item that opened it.
       offset: 6,
       crossOffset: -4,
+      // Within the root's `portalContainer`, as the root menu is.
+      ...(tree.boundary && { boundaryElement: tree.boundary }),
     },
     state,
   );
@@ -1134,7 +1569,7 @@ function SubmenuPopoverContent({
     <div
       {...positionProps}
       ref={popoverRef}
-      style={{ ...style, ...positionProps.style }}
+      style={{ ...style, ...positionProps.style, ...(tree.boundary && ABSOLUTE) }}
       data-overlay-placement=""
       className={styles.popover({ class: cn(menuOwnWidth, className) })}
     >
@@ -1162,6 +1597,7 @@ function SubmenuPopoverContent({
 function MenuItemView({
   node,
   state,
+  selectionManager = state.selectionManager,
   variant,
   top,
   bottom,
@@ -1175,9 +1611,14 @@ function MenuItemView({
   const props = node.props as SubmenuItemProps;
   const isDisabled = state.disabledKeys.has(node.key);
   // A plain action in a selectable menu (`checkable={false}`) is never checked.
-  const selectable = state.selectionManager.selectionMode !== 'none' && props.checkable !== false;
-  const plainInSelectable = state.selectionManager.selectionMode !== 'none' && !selectable;
-  const multiple = selectable && state.selectionManager.selectionMode === 'multiple';
+  const selectable = selectionManager.selectionMode !== 'none' && props.checkable !== false;
+  const plainInSelectable = selectionManager.selectionMode !== 'none' && !selectable;
+  const multiple = selectable && selectionManager.selectionMode === 'multiple';
+  // On a submenu that goes back after a choice (`afterSelect="back"`), a choice that would close
+  // the menu (press or Enter on a single choice) closes only the submenu; an action still
+  // closes the whole menu, and Space and toggles close nothing.
+  const page = useContext(MenuPageContext);
+  const goesBack = page?.afterSelect === 'back' && selectable && !multiple;
   const {
     menuItemProps: ariaItemProps,
     keyboardShortcutProps,
@@ -1188,12 +1629,14 @@ function MenuItemView({
       ...triggerProps,
       key: node.key,
       'aria-label': props['aria-label'],
+      selectionManager,
       // Disabled items stay focusable (the menu's `disabledBehavior`) but do nothing.
       isDisabled,
       isSelected: plainInSelectable ? false : undefined,
       // M3: multi-select menus stay open until they're dismissed, Enter included; a plain
       // action closes the menu, as in any menu.
       closeOnSelect: multiple ? false : plainInSelectable ? true : undefined,
+      onClose: goesBack ? page.back : undefined,
     },
     state,
     ref,

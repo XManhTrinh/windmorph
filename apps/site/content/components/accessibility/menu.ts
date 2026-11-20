@@ -31,7 +31,7 @@ export const menu: ComponentAccessibility = {
     {
       keys: ['Enter', 'Space'],
       action:
-        'Runs the item (`onAction`) and closes the menu. In a selectable menu it selects the item; a multi-select menu stays open until it is dismissed. On a submenu item it opens the submenu.',
+        'Runs the item (`onAction`); an action closes the menu. In a single-select menu, or a `MenuGroup` with `selectionMode="single"`, both select the item: Enter closes the menu and Space keeps it open; in a submenu with `afterSelect="back"`, Enter closes only the submenu and goes back to its item. In a multi-select menu or group both toggle the item and the menu stays open, Enter included, until it is dismissed. On a submenu item they open the submenu.',
       where: 'In the menu',
     },
     {
@@ -47,13 +47,14 @@ export const menu: ComponentAccessibility = {
     },
     {
       keys: ['Arrow Left'],
-      action: 'Closes the submenu and returns focus to the item that opened it.',
+      action:
+        'Closes the submenu and returns focus to the item that opened it. Shown in place (in a sheet, or with `submenuPresentation="replace"`), it goes back one page.',
       where: 'In a submenu',
     },
     {
       keys: ['Escape'],
       action:
-        'Closes the menu and returns focus to the trigger. In a submenu it closes only the submenu and returns focus to its item, in a popover and in a sheet.',
+        'Closes the menu and returns focus to the trigger. In a submenu it closes only the submenu and returns focus to its item, beside it, in place and in a sheet: one page back at a time, and on the first page it closes the menu.',
       where: 'In the menu',
     },
     {
@@ -62,41 +63,51 @@ export const menu: ComponentAccessibility = {
         'Closes the menu and all its submenus, and moves focus on past the trigger (back to the trigger when nothing follows it).',
       where: 'In the menu',
     },
+    {
+      keys: ['Home', 'End', 'Page Up', 'Page Down'],
+      action:
+        'Move focus within the menu only: a pane around a `portalContainer` never scrolls with them.',
+      where: 'In the menu',
+    },
   ],
   keyboardNotes: [
     'In a right-to-left layout Arrow Left opens a submenu and Arrow Right closes it.',
     'Items in `disabledKeys` take focus as the arrows pass them, as M3 asks, but do nothing. Dividers and group headings never take focus.',
+    'A submenu shown in place opens on Enter, Space, the forward arrow or a press, never on hover, since it would change the content under the pointer. Letters move focus within the page that shows.',
   ],
   screenReader: {
-    role: '`menu` holding `menuitem`s; `menuitemradio` or `menuitemcheckbox` in a single- or multi-select menu. A `MenuGroup` is a `group`. With `presentation="sheet"` the menu sits in a modal bottom sheet, a `dialog` named like the menu.',
-    name: "From a `MenuTrigger`, the menu is named by its trigger's label, and a submenu by the item that opens it. A `ContextMenuTrigger` menu, and a `MenuGroup` without a visible heading, take their own `aria-label`. An item is named by its label and its `description`, in that order, so its name holds the text it shows; an `aria-label` replaces both.",
+    role: '`menu` holding `menuitem`s; `menuitemradio` or `menuitemcheckbox` in a single- or multi-select menu, and in a `MenuGroup` with a `selectionMode` of its own (`single` or `multiple`), beside the menu\'s plain `menuitem` actions. A `MenuGroup` is a `group`. With `presentation="sheet"` the menu sits in a modal bottom sheet, a `dialog` named like the menu.',
+    name: "From a `MenuTrigger`, the menu is named by its own `aria-label` or `aria-labelledby` when it has one (`aria-labelledby` when it has both), else by its trigger's label, in the popover and the bottom sheet alike; a submenu is named by the item that opens it. A `ContextMenuTrigger` menu, and a `MenuGroup` without a visible heading, take their own `aria-label`. An item is named by its label and its `description`, in that order, so its name holds the text it shows; an `aria-label` replaces both.",
     states:
-      'The trigger announces that it opens a menu (`aria-haspopup`) and whether it is open (`aria-expanded`); a context menu target announces neither. Items announce checked (`aria-checked`) in a selectable menu, disabled (`aria-disabled`), and a submenu item announces its submenu (`aria-haspopup="menu"`, `aria-expanded`).',
+      'The trigger announces that it opens a menu (`aria-haspopup`) and whether it is open (`aria-expanded`); a context menu target announces neither. Items announce checked (`aria-checked`) in a selectable menu or a selectable `MenuGroup`, whose choices never change another group\'s, disabled (`aria-disabled`), and a submenu item announces its submenu (`aria-haspopup="menu"`, `aria-expanded`).',
     notes: [
       "An item's `badge` and `shortcut` (shown as a `<kbd>`) are read once, as its accessible description, after its name.",
       "An item with `href` is a real `<a>` that keeps its menu item role, since a menu holds only menu items: Enter follows it as the browser follows a link, and the browser's link menu and modified clicks work on it.",
       'Leading, trailing and selected icons, and the submenu arrow, are decorative and hidden from assistive tech (`aria-hidden`).',
+      "Shown in place, each page is the submenu's own `menu`, named by its item. Above it, the back control is a `button` named by `labels.back` (\"Back\") with the item's label beside it as plain text: it's outside the page's `menu`, since a menu holds only its items, and isn't in the arrow order. Screen-reader users reach it by swiping or with the virtual cursor; keyboard users go back with Escape or the back arrow. Moving focus into a new page announces it, so there's no live announcement.",
       'While the menu is open the rest of the page is hidden from assistive tech.',
     ],
   },
   focus: [
     'Opening the menu focuses its first item, or its last with Arrow Up from the trigger. Focus stays inside the menu while it is open, moving between items with the arrows.',
     "Keyboard focus shows M3's focus indicator inside the item, a 3px `secondary` outline drawn within its edges so the menu's clipping never hides it. Pointer presses show no ring.",
-    'Choosing an item, Escape or a press outside closes the menu and returns focus to the trigger. While the menu is open the trigger keeps its pressed state layer.',
-    "In a sheet, a submenu replaces its menu below a back button (named by `labels.back`), and going back returns focus to the submenu's item.",
+    'Choosing an action, or a single choice (unless with Space), Escape or a press outside closes the menu and returns focus to the trigger; toggling a multi-select item keeps it open, with focus on the item. While the menu is open the trigger keeps its pressed state layer.',
+    'In a sheet, or with `submenuPresentation="replace"`, a submenu replaces its menu below a back button (named by `labels.back`). A new page takes focus however it opened: its first item, or its selected item in a selectable page. Going back returns focus to the item that opened the page, and so does a choice in a submenu with `afterSelect="back"`, beside or in place.',
   ],
   touchTarget: [
-    "Items fill the menu's width (112 to 280px) and are at least 44px tall, M3 Expressive's own menu item height: 4px under the 48px minimum of other controls, and above WCAG 2.5.8's 24px. They are stacked with no gap, so they have no `TouchTarget`, which would reach into the items above and below. Each `density` step takes 4px more off. The back button above a submenu in a sheet is 48px.",
+    "Items fill the menu's width (112 to 280px) and are at least 44px tall, M3 Expressive's own menu item height: 4px under the 48px minimum of other controls, and above WCAG 2.5.8's 24px. They are stacked with no gap, so they have no `TouchTarget`, which would reach into the items above and below. Each `density` step takes 4px more off. The back button above a submenu shown in place is 48px at every density.",
     'For touch, keep `density` at 0, or use `presentation="auto"`, which opens the menu in a bottom sheet on compact windows.',
   ],
   motion: [
     "Under reduced motion the menu only fades: it isn't revealed from its anchored edge. The press ripple appears at full size without growing, and corner morphs (a selected item's, and the menus' while a submenu is open) snap. `instant` turns the open and close motion of a popover menu off entirely; a menu shown as a bottom sheet keeps the sheet's motion.",
+    'Shown in place, the surface springs to each page\'s height (and eases when it shrinks, so it never bounces open again), and the page coming in fades in, or with `submenuTransition="slide"` also slides 30px in from the end edge going forward and the start edge going back. Under reduced motion the height changes at once and the slide drops, while the fade stays; `instant` drops them all.',
   ],
   consumer: [
     'Give an icon-only trigger an `aria-label` (an {@link IconButton} requires one).',
     'Give every `ContextMenuTrigger` menu an `aria-label`, and every `MenuGroup` without a visible heading an `aria-label`.',
     "Make a `ContextMenuTrigger`'s target focusable (a link, a button, or `tabIndex={0}` with a visible focus indicator), so Shift + F10 and the context-menu key can reach it and Escape returns focus to it. Keep every action of the menu available another way too, as context menus are hard to discover.",
-    'Pass `labels` to translate the back button of a sheet.',
+    'Pass `labels` to translate the back button above a submenu shown in place.',
+    'Name an icon-only settings button that opens a menu in a player (`aria-label="Settings"`), and give the `portalContainer` element `position: relative`.',
     'Use `disabledKeys` rather than removing an item when people should still learn it exists.',
   ],
 };

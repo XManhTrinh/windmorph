@@ -33,6 +33,7 @@ import { matchesSearch } from '../../utils/search';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
+import { closeOnLoadError } from '../../utils/close-on-load-error';
 import { renderedDescription } from '../../utils/rendered-description';
 import {
   ariaFlag,
@@ -42,7 +43,12 @@ import {
 } from '../../utils/root-props';
 import { useTypeaheadDelegate } from '../../utils/typeahead';
 import { usePreloadLoadingIndicator } from '../loading-indicator/lazy-loading-indicator';
-import { LazyBottomSheet, usePreloadBottomSheet } from '../sheet/lazy-bottom-sheet';
+import {
+  LazyBottomSheet,
+  useBottomSheetLoaded,
+  usePreloadBottomSheet,
+} from '../sheet/lazy-bottom-sheet';
+import { useDismissWhileLoading } from '../../utils/use-dismiss-while-loading';
 import type { TextFieldVariant } from '../text-field/text-field-styles';
 import { DropdownArrow, FieldShell, fieldState, type FieldShellClassNames } from './field-shell';
 import {
@@ -451,16 +457,26 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
   usePreloadBottomSheet(containerRef, asSheet);
   // A field that takes `loading` (it loads options) preloads the indicator on hover or focus.
   usePreloadLoadingIndicator(containerRef, loading !== undefined);
+  // Open while the sheet's code loads, with nothing in the page yet: Escape, a press outside
+  // and focus moving on close it, and the field names no list (`aria-controls`) until one is.
+  const sheetIn = useBottomSheetLoaded();
+  const waitingForSheet = asSheet && state.isOpen && !sheetIn;
+  useDismissWhileLoading(triggerRef, waitingForSheet, state.close, {
+    onArrow: (focus) => state.open(focus),
+  });
+  const fieldTriggerProps = waitingForSheet
+    ? { ...triggerProps, 'aria-controls': undefined }
+    : triggerProps;
   // `useSelect`'s trigger props are React Aria button props; `useButton` makes them DOM props.
   const { buttonProps } = useButton(
     // A searchable field opens a dialog holding the search and the list (as PhoneField's).
     searchable
       ? {
-          ...triggerProps,
+          ...fieldTriggerProps,
           'aria-haspopup': 'dialog',
           'aria-controls': state.isOpen && !asSheet ? dialogId : undefined,
         }
-      : triggerProps,
+      : fieldTriggerProps,
     triggerRef,
   );
   const { focusProps, isFocusVisible, isFocused } = useFocusRing();
@@ -640,6 +656,8 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
       </FieldShell>
       {asSheet ? (
         <LazyBottomSheet
+          // A failed load closes the field, which tries again on its next open.
+          onLoadError={closeOnLoadError('Select', state.close)}
           // Opens at its own height (up to the window, the list scrolling inside), never half
           // the window, which left the last options off-screen on a short phone.
           skipPartiallyExpanded
