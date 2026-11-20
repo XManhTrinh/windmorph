@@ -1,11 +1,25 @@
 import { render, screen } from '@testing-library/react';
+import { I18nProvider } from 'react-aria';
 import { describe, expect, it } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { DirectionLocale } from '../../primitives/DomDirectionLocale';
 import { Badge, BadgedBox } from './Badge';
 
 const Icon = () => <svg data-testid="icon" viewBox="0 0 24 24" />;
 
 describe('Badge', () => {
+  it('writes its count in the page’s locale inside a region of the other direction', () => {
+    // Mexican Spanish groups thousands; the language in another script doesn't.
+    render(
+      <I18nProvider locale="es-MX">
+        <DirectionLocale direction="rtl">
+          <Badge max={9999}>{1234}</Badge>
+        </DirectionLocale>
+      </I18nProvider>,
+    );
+    expect(screen.getByText('1,234')).toBeInTheDocument();
+  });
+
   it('renders a 6px error dot that announces a new notification', async () => {
     const { container } = render(<Badge data-testid="badge" />);
     const badge = screen.getByTestId('badge');

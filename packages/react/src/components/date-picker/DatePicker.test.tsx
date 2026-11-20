@@ -2,6 +2,7 @@ import { CalendarDate } from '@internationalized/date';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
+import { I18nProvider } from 'react-aria';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { setMediaQueries } from '../../../test/setup';
@@ -39,6 +40,82 @@ describe('DatePicker', () => {
       'data-selected:bg-[var(--_md-comp-date-picker-modal-date-selected-container-color)]',
     );
     expect(await axeViolations(container)).toEqual([]);
+  });
+
+  // In a region laid out the other way React Aria gets the locale in another script
+  // (`en-Arab-GB`, written as plain `en`), so the headline said "Sep 4, 2030".
+  it('writes its headline in the page’s locale inside a region of the other direction', () => {
+    render(
+      <I18nProvider locale="en-GB">
+        <div dir="rtl" style={{ direction: 'rtl' }}>
+          <DatePicker defaultValue={new CalendarDate(2030, 9, 4)} />
+        </div>
+      </I18nProvider>,
+    );
+    expect(screen.getByText('4 Sept 2030')).toHaveClass('text-headline-large');
+  });
+
+  // The tag React Aria gets there (`ar-Latn-EG`) writes Latin digits, so its day numbers were.
+  it('writes its days in the page’s digits inside a region of the other direction', () => {
+    render(
+      <I18nProvider locale="ar-EG">
+        <div dir="ltr" style={{ direction: 'ltr' }}>
+          <DatePicker defaultValue={new CalendarDate(2030, 9, 4)} />
+        </div>
+      </I18nProvider>,
+    );
+    const days = [...document.querySelectorAll('[data-slot="day"]')].map((day) => day.textContent);
+    expect(days).toContain('٤');
+    expect(days.join('')).not.toMatch(/[0-9]/);
+  });
+
+  // React Aria shows only the day part of the date: a whole formatted day is "4日" in Japanese.
+  it('shows only the day’s number, in a locale that writes a day with a word', () => {
+    render(
+      <I18nProvider locale="ja-JP">
+        <DatePicker defaultValue={new CalendarDate(2030, 9, 4)} />
+      </I18nProvider>,
+    );
+    const days = [...document.querySelectorAll('[data-slot="day"]')].map((day) => day.textContent);
+    expect(days).toContain('4');
+    expect(days.join('')).not.toContain('日');
+  });
+
+  // A day's name came from React Aria's tag (`ar-Latn-EG`) with a Latin 4 while it showed ٤, so
+  // the name didn't contain the visible label (WCAG 2.5.3).
+  it('names each day with the digits it shows inside a region of the other direction', () => {
+    render(
+      <I18nProvider locale="ar-EG">
+        <div dir="ltr" style={{ direction: 'ltr' }}>
+          <DatePicker defaultValue={new CalendarDate(2030, 9, 4)} />
+        </div>
+      </I18nProvider>,
+    );
+    const days = [
+      ...document.querySelectorAll<HTMLElement>('[data-slot="day"]:not([data-outside])'),
+    ];
+    expect(days.length).toBeGreaterThan(27);
+    for (const day of days) expect(day.getAttribute('aria-label')).toContain(day.textContent);
+    const fourth = days.find((day) => day.textContent === '٤')!;
+    // React Aria's wording around the date stays: the picked day says it's selected.
+    expect(fourth.getAttribute('aria-label')).not.toMatch(/[0-9]/);
+    expect(fourth).toHaveAttribute('data-selected', 'true');
+  });
+
+  it('names its weekdays in the page’s script inside a region of the other direction', () => {
+    // Serbian in Latin script; the language in another script falls back to Cyrillic.
+    render(
+      <I18nProvider locale="sr-Latn-RS">
+        <div dir="rtl" style={{ direction: 'rtl' }}>
+          <DatePicker defaultValue={new CalendarDate(2030, 9, 4)} />
+        </div>
+      </I18nProvider>,
+    );
+    const weekdays = screen.getAllByRole('columnheader').map((header) => header.textContent);
+    expect(weekdays.length).toBe(7);
+    for (const weekday of weekdays) expect(weekday).toMatch(/^[A-Za-zčćžšđČĆŽŠĐ.]+$/);
+    // The month above the days too.
+    expect(screen.getByText(/^septembar 2030/)).toBeInTheDocument();
   });
 
   it('reads the modal date picker tokens for the headline, picked days and today', () => {
@@ -267,6 +344,66 @@ describe('DateRangePicker', () => {
       'data-[range=middle]:bg-[image:var(--_md-comp-date-picker-modal-range-middle)]',
     );
     expect(await axeViolations(container)).toEqual([]);
+  });
+
+  // A region laid out the other way gives React Aria the locale in another script
+  // (`sr-Arab-RS`), which falls back to Serbian's Cyrillic month and weekday names.
+  it('writes its headline and months in the page’s script inside a region of the other direction', () => {
+    const { container } = render(
+      <I18nProvider locale="sr-Latn-RS">
+        <div dir="rtl" style={{ direction: 'rtl' }}>
+          <DateRangePicker
+            defaultValue={{
+              start: new CalendarDate(2030, 9, 4),
+              end: new CalendarDate(2030, 9, 6),
+            }}
+            min={new CalendarDate(2030, 9, 1)}
+            max={new CalendarDate(2030, 10, 31)}
+          />
+        </div>
+      </I18nProvider>,
+    );
+    // The headline (month and day) and the scrolling list's subheads and weekdays.
+    expect(screen.getByText(/^4\. sep/)).toBeInTheDocument();
+    expect(screen.getAllByText(/^septembar 2030/).length).toBeGreaterThan(0);
+    // React Aria's own announcements, outside the picker, follow its locale.
+    expect(container.textContent).not.toMatch(/[\u0400-\u04FF]/);
+  });
+
+  // A range's first and last days are named "<the range>, <the day>", the range naming both days,
+  // so the day's own date is the last one in the name, written as the page writes it.
+  it('names a range’s ends with their own date in the page’s locale inside a region of the other direction', () => {
+    render(
+      <I18nProvider locale="en-GB">
+        <div dir="rtl" style={{ direction: 'rtl' }}>
+          <DateRangePicker
+            monthLayout="paged"
+            defaultValue={{
+              start: new CalendarDate(2030, 9, 4),
+              end: new CalendarDate(2030, 9, 6),
+            }}
+          />
+        </div>
+      </I18nProvider>,
+    );
+    const named = new Intl.DateTimeFormat('en-GB', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+    for (const [day, date] of [
+      ['4', new Date(2030, 8, 4)],
+      ['6', new Date(2030, 8, 6)],
+    ] as const) {
+      const cell = [...document.querySelectorAll('[data-slot="day"]:not([data-outside])')].find(
+        (element) => element.textContent === day,
+      )!;
+      // The range's words stay React Aria's; the day's own date, last, is the page's.
+      expect(cell.getAttribute('aria-label')).toMatch(
+        new RegExp(`, ${named.format(date)} selected$`),
+      );
+    }
   });
 
   // Compose: while a new range is picked, the headline shows its start and an open end.

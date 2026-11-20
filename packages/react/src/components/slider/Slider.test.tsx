@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { I18nProvider } from 'react-aria';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { RangeSlider, Slider } from './Slider';
@@ -224,6 +225,19 @@ describe('Slider', () => {
     expect(screen.getByRole('slider', { name: 'Sound Volume' })).toBeInTheDocument();
     expect(screen.getByRole('slider', { name: 'Brightness' })).toBeInTheDocument();
     expect(await axeViolations(container)).toEqual([]);
+  });
+
+  // React Aria gets the locale in another script there (`es-Arab-MX`), which formats as plain
+  // `es`: 0,5 on a page that writes 0.5.
+  it('writes its value in the page’s locale inside a region of the other direction', () => {
+    render(
+      <I18nProvider locale="es-MX">
+        <div dir="rtl" style={{ direction: 'rtl' }}>
+          <Slider aria-label="Mix" max={1} step={0.1} defaultValue={0.5} />
+        </div>
+      </I18nProvider>,
+    );
+    expect(screen.getByRole('slider', { name: 'Mix' })).toHaveAttribute('aria-valuetext', '0.5');
   });
 
   it('requires a name in its types', () => {

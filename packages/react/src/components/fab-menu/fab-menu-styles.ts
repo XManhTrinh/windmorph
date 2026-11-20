@@ -73,7 +73,7 @@ export const fabMenuStyles = tv({
     // The FAB "transforms into the close button" (M3): with `openIcon`, both icons share
     // this cell as faces (primitives/icon-faces-styles.ts) and hand over with `iconTransition`.
     icon: [
-      'inline-grid shrink-0 place-items-center [&>svg]:size-full',
+      'inline-grid shrink-0 place-items-center [&>svg]:size-full [&>:only-child:has(>svg)]:size-full',
       'group-data-open/fab-menu:size-[20px]',
       '[transition-property:width,height]',
       '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)]',
@@ -103,7 +103,7 @@ export const fabMenuStyles = tv({
     itemContent:
       'flex h-[56px] min-w-[56px] shrink-0 items-center justify-center gap-[8px] ps-[24px] pe-[24px] font-plain text-title-medium whitespace-nowrap',
     itemIcon:
-      'inline-flex size-[24px] shrink-0 items-center justify-center text-[color:var(--_md-comp-fab-menu-list-item-icon-color)] [&>svg]:size-full',
+      'inline-flex size-[24px] shrink-0 items-center justify-center text-[color:var(--_md-comp-fab-menu-list-item-icon-color)] [&>svg]:size-full [&>:only-child:has(>svg)]:size-full',
     // presentation="menu": a standard Menu 4px from the FAB, on whichever side it opened
     // (the menu list already cancels its own 8px shadow room with -8px).
     // The web menu's 4px gap comes from `offset` on the Menu; this slot is for consumers.

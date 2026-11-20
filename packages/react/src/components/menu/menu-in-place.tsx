@@ -16,7 +16,8 @@ import {
   type ReactElement,
   type ReactNode,
 } from 'react';
-import { I18nProvider, mergeProps, useButton, useLocale } from 'react-aria';
+import { mergeProps, useButton, useLocale } from 'react-aria';
+import { DirectionLocale } from '../../primitives/DomDirectionLocale';
 import { DRAWS_NO_CHILDREN, Overlay } from '../../primitives/Overlay';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { cn } from '../../utils/cn';
@@ -116,7 +117,7 @@ export function MenuSheet({
   const pageDirection = usePageDirection(level, trigger.state.isOpen);
   const menuProps = mergeProps(triggerMenuProps(trigger, props), props);
   // The arrow keys follow the direction around the trigger, as in a popover.
-  const { menuLocale } = useMenuLocale(trigger);
+  const { direction } = useMenuLocale(trigger);
   // The sheet takes the menu's name: its `aria-labelledby` when it has one, which names the
   // menu over an `aria-label` (its own, or the trigger's), else its `aria-label`.
   const labelledBy = menuProps['aria-labelledby'];
@@ -144,7 +145,7 @@ export function MenuSheet({
         data-page-transition={transition}
         className={cn(menuStyles().sheetContent(), menuPageStyles().sheetPages())}
       >
-        <I18nProvider locale={menuLocale}>
+        <DirectionLocale direction={direction}>
           <MenuTreeContext
             value={{
               rootState: trigger.state,
@@ -173,7 +174,7 @@ export function MenuSheet({
               autoFocus={trigger.state.focusStrategy ?? 'first'}
             />
           </MenuTreeContext>
-        </I18nProvider>
+        </DirectionLocale>
       </div>
     </LazyBottomSheet>
   );

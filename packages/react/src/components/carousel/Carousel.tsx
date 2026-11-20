@@ -17,12 +17,13 @@ import {
   type ReactNode,
   type Ref,
 } from 'react';
-import { mergeProps, useLink, useNumberFormatter, useObjectRef, type PressEvent } from 'react-aria';
+import { mergeProps, useLink, useObjectRef, type PressEvent } from 'react-aria';
 import { useLabels } from '../labels/use-labels';
 import {
   useM3Interaction,
   type M3InteractionDataAttributes,
 } from '../../primitives/use-m3-interaction';
+import { usePageNumberFormatter } from '../../primitives/use-page-number-formatter';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 import { isModifierAlone } from '../../utils/modifier-keys';
@@ -289,7 +290,7 @@ export function Carousel({
     'aria-labelledby'?: string;
   };
   const labels = useLabels('Carousel', DEFAULT_LABELS, labelsProp);
-  const numbers = useNumberFormatter();
+  const numbers = usePageNumberFormatter();
   const items = Children.toArray(children).filter(isValidElement);
   const count = items.length;
   const vertical = orientation === 'vertical';

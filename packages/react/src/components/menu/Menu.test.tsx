@@ -9,7 +9,7 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
-import { RouterProvider, UNSAFE_PortalProvider } from 'react-aria';
+import { I18nProvider, RouterProvider, UNSAFE_PortalProvider } from 'react-aria';
 import { Item, useTreeState, type Selection } from 'react-stately';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
@@ -18,6 +18,7 @@ import { setMediaQueries } from '../../../test/setup';
 import { COMPACT_WINDOW } from '../date-picker/use-media-query';
 import { ThemeProvider } from '../../theme/ThemeProvider';
 import { ThemeScope } from '../../theme/ThemeScope';
+import { LocaleProvider } from '../locale/LocaleProvider';
 import { Button } from '../button/Button';
 import { IconButton } from '../icon-button/IconButton';
 import { BottomSheet } from '../sheet/BottomSheet';
@@ -311,6 +312,29 @@ describe('Menu', () => {
     expect(screen.getByRole('menuitem', { name: /Copy/ })).toHaveFocus();
     await userEvent.keyboard('c');
     expect(screen.getByRole('menuitem', { name: /Cut/ })).toHaveFocus();
+  });
+
+  it('matches typeahead in the page’s language, in a region laid out the other way', async () => {
+    // Serbian in Latin script tells č from c; a region of the other direction gets a tag in
+    // another script, whose collation doesn't.
+    render(
+      <I18nProvider locale="sr-Latn-RS">
+        <div dir="rtl">
+          <MenuTrigger>
+            <Button>Town</Button>
+            <Menu aria-label="Town">
+              <MenuItem key="beograd">Beograd</MenuItem>
+              <MenuItem key="cacak">Čačak</MenuItem>
+              <MenuItem key="cetinje">Cetinje</MenuItem>
+            </Menu>
+          </MenuTrigger>
+        </div>
+      </I18nProvider>,
+    );
+    await openMenu('Town');
+    expect(screen.getByRole('menuitem', { name: 'Beograd' })).toHaveFocus();
+    await userEvent.keyboard('c');
+    expect(screen.getByRole('menuitem', { name: 'Cetinje' })).toHaveFocus();
   });
 
   it('closes on Escape', async () => {
@@ -1098,6 +1122,27 @@ describe('Menu', () => {
     await waitFor(() =>
       expect(within(sheet).queryByRole('menu', { name: /^Subtitles/ })).not.toBeInTheDocument(),
     );
+    await waitFor(() => expect(subtitles).toHaveFocus());
+  });
+
+  it('keeps the page’s locale with the region’s direction in a sheet, in right to left', async () => {
+    // A Serbian (Latin) page with a right-to-left region: the sheet's pages take the region's
+    // direction for their keys (← opens a page, → goes back) and keep the page's language.
+    render(
+      <LocaleProvider locale="sr-Latn">
+        <div dir="rtl">
+          <PlayerSettings presentation="sheet" />
+        </div>
+      </LocaleProvider>,
+    );
+    await openMenu('Settings');
+    const sheet = await screen.findByRole('dialog', { name: 'Settings' });
+    const subtitles = within(sheet).getByRole('menuitem', { name: /^Subtitles/ });
+    subtitles.focus();
+    await userEvent.keyboard('{ArrowLeft}');
+    const page = await within(sheet).findByRole('menu', { name: /^Subtitles/ });
+    await waitFor(() => expect(page).toContainElement(document.activeElement as HTMLElement));
+    await userEvent.keyboard('{ArrowRight}');
     await waitFor(() => expect(subtitles).toHaveFocus());
   });
 

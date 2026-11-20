@@ -103,7 +103,7 @@ export const navItemStyles = tv({
     // opacity or clip-path paint in the positioned layer, above plain in-flow content.
     content: 'relative col-start-1 row-start-1 flex min-w-0 items-center justify-center',
     icon: [
-      'inline-grid size-[24px] shrink-0 place-items-center [&>svg]:size-full',
+      'inline-grid size-[24px] shrink-0 place-items-center [&>svg]:size-full [&>:only-child:has(>svg)]:size-full',
       'group-data-disabled/nav:text-on-surface-variant/38',
       // HighlightText on the Highlight pill, kept as painted (no Canvas backplate).
       'forced-colors:group-data-current/nav:text-[HighlightText] forced-colors:group-data-current/nav:forced-color-adjust-none',
@@ -111,11 +111,12 @@ export const navItemStyles = tv({
     ],
     // An icon and its selected variant share one cell and cross-fade.
     iconFace: [
-      'col-start-1 row-start-1 size-full opacity-0 data-shown:opacity-100 [&>svg]:size-full',
+      'col-start-1 row-start-1 size-full opacity-0 data-shown:opacity-100 [&>svg]:size-full [&>:only-child:has(>svg)]:size-full',
       '[transition-property:opacity] duration-(--md-sys-motion-spring-effects-default-duration) ease-(--md-sys-motion-spring-effects-default-easing)',
     ],
     // Holds the icon (or both faces) inside a badge's anchor.
-    iconStack: 'inline-grid size-[24px] place-items-center [&>svg]:size-full',
+    iconStack:
+      'inline-grid size-[24px] place-items-center [&>svg]:size-full [&>:only-child:has(>svg)]:size-full',
     // The expanded rail's badge, 4px after the label (the content gap is 8px).
     badge: 'inline-flex shrink-0 -ms-[4px]',
     // The `BadgedBox` around a badged icon (its root; `classNames.badge` merges in). The

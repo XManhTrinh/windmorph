@@ -15,7 +15,6 @@ import {
   type ReactNode,
 } from 'react';
 import {
-  I18nProvider,
   mergeProps,
   useLocale,
   useObjectRef,
@@ -27,7 +26,7 @@ import {
 import { Item, useTabListState, type Key, type Node, type TabListState } from 'react-stately';
 import { useM3Spring } from '../../motion/use-m3-spring';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
-import { localeWithDirection } from '../../primitives/locale-with-direction';
+import { DirectionLocale } from '../../primitives/DomDirectionLocale';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { FOCUSABLE_DISABLED_OPTIONS } from '../../utils/focusable-disabled';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
@@ -178,13 +177,11 @@ export function Tabs(props: TabsProps) {
   const rootRef = useObjectRef(ref);
   // React Aria takes arrow-key direction from its locale, not the DOM `dir`; follow the
   // direction the tabs are actually laid out in.
-  const { locale, direction: localeDirection } = useLocale();
+  const { direction: localeDirection } = useLocale();
   const [direction, setDirection] = useState(localeDirection);
   useLayoutEffect(() => {
     if (rootRef.current) setDirection(getComputedStyle(rootRef.current).direction as 'ltr' | 'rtl');
   }, [rootRef]);
-  const effectiveLocale =
-    direction === localeDirection ? locale : localeWithDirection(locale, direction);
 
   return (
     <div
@@ -195,13 +192,13 @@ export function Tabs(props: TabsProps) {
       data-variant={props.variant ?? 'primary'}
       className={tabsStyles().root({ class: cn(classNames?.root, className) })}
     >
-      <I18nProvider locale={effectiveLocale}>
+      <DirectionLocale direction={direction}>
         <TabsInner
           {...(ariaProps as Omit<TabsProps, 'className' | 'style' | 'ref'>)}
           classNames={classNames}
           rtl={direction === 'rtl'}
         />
-      </I18nProvider>
+      </DirectionLocale>
     </div>
   );
 }

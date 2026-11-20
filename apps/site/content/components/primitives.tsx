@@ -305,10 +305,16 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
               an entrance: the times a spring of the count passes it, as the FAB menu staggers, so
               any number of items arrives within one spring&apos;s time) and{' '}
               <InlineCode>useEntrance</InlineCode> (plays an entrance once, as an element first
-              comes into view, and never for content on screen as the page hydrates). A delay waits
-              only from rest: a value already moving turns to its new target at once. Under reduced
-              motion a spatial value or list and a number change at once, and an effects value keeps
-              its fade.
+              comes into view, and never for content on screen as the page hydrates; when the page
+              is printed it enters, committed before the print is laid out, and reports itself out
+              of view until the print ends, so what you render from <InlineCode>entered</InlineCode>{' '}
+              prints in its final state). A delay waits only from rest: a value already moving turns
+              to its new target at once. Under reduced motion a spatial value or list and a number
+              change at once, an effects value keeps its fade, and{' '}
+              <InlineCode>useEntrance</InlineCode> is always entered, so nothing waits in its start
+              state to jump in. A print runs no frames, so a mark drawn from a Motion value needs
+              its resting geometry in CSS under <InlineCode>@media print</InlineCode>, as{' '}
+              <InlineCode>AnimatedNumber</InlineCode> prints its final value.
             </li>
             <li>
               <InlineCode>TriggerContext</InlineCode> (an overlay trigger hands its press handler

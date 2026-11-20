@@ -2,9 +2,9 @@
 
 import { useMotionValueEvent } from 'motion/react';
 import { useEffect, useMemo, useRef, useState, type ComponentPropsWithRef } from 'react';
-import { useLocale } from 'react-aria';
 import { useEntrance } from '../motion/use-entrance';
 import { useM3SpringValue } from '../motion/use-m3-spring-value';
+import { usePageLocale } from './use-page-locale';
 
 export interface AnimatedNumberProps extends Omit<ComponentPropsWithRef<'span'>, 'children'> {
   /** The number to show. A new value springs from the one showing. */
@@ -45,7 +45,9 @@ const MOST_DEFAULT_DECIMALS = 3;
  * display (inline, a block, a centred line). It never shows a figure past the one it is moving to
  * (a spring's overshoot is held at the target). It isn't a live region: announcing a change is
  * the app's choice. Under reduced motion it changes at once. In the server's HTML it is the final
- * value.
+ * value, and printed it is the final value too, by CSS alone: a print runs no frames, and one
+ * started from an effect (a print view calling `window.print()`) is laid out before React's next
+ * update, so the moving figure could print where it stood.
  *
  * Counting down inline, a figure wider than the final one runs over what's before it until it
  * narrows; give it room (a cell, a tile's line of its own) where that matters. Inside a link the
@@ -63,7 +65,7 @@ export function AnimatedNumber({
   ref,
   ...props
 }: AnimatedNumberProps) {
-  const { locale } = useLocale();
+  const locale = usePageLocale();
   // The default reads the value as Intl would at three decimals, so a float's leftover (0.1 + 0.2)
   // isn't padded with zeros.
   const decimals = format
@@ -124,14 +126,15 @@ export function AnimatedNumber({
   return (
     <span data-slot="animated-number" {...props} ref={ref} className={className}>
       {/* A box as wide as the final value wherever the root lays it out (inline, a block, a
-          centred line), with the moving figure laid over it. */}
+          centred line), with the moving figure laid over it. In print the final value shows in
+          its place, whatever the figure stands at. */}
       <span ref={boxRef} aria-hidden="true" className="relative inline-grid whitespace-nowrap">
-        <span className="invisible [grid-area:1/1]">{final}</span>
+        <span className="invisible [grid-area:1/1] print:visible">{final}</span>
         {/* Out of the box's sizing, so a longer figure counting down never widens it. */}
         <span
           ref={textRef}
           data-slot="figure"
-          className="absolute top-0 right-0 whitespace-nowrap [grid-area:1/1]"
+          className="absolute top-0 right-0 whitespace-nowrap [grid-area:1/1] print:hidden"
         >
           {firstText}
         </span>

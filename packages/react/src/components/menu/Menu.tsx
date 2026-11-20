@@ -26,9 +26,7 @@ import {
 } from 'react';
 import {
   DismissButton,
-  I18nProvider,
   mergeProps,
-  useLocale,
   useMenu,
   useMenuItem,
   useMenuSection,
@@ -56,8 +54,9 @@ import {
   type SubmenuTriggerState,
   type TreeState,
 } from 'react-stately';
+import { TYPEAHEAD_COLLATION, usePageCollator } from '../../primitives/use-page-collator';
 import { useLabels } from '../labels/use-labels';
-import { localeWithDirection } from '../../primitives/locale-with-direction';
+import { DirectionLocale } from '../../primitives/DomDirectionLocale';
 import { Overlay } from '../../primitives/Overlay';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { usePresence } from '../../primitives/use-presence';
@@ -745,15 +744,14 @@ export interface MenuPopoverPlacing {
 }
 
 /**
- * The trigger's laid-out direction, and the locale to give its menu: React Aria takes the arrow
- * keys (a submenu's ← and →, the back button's) and `start` / `end` from its locale, not the
- * DOM's `dir`, so a menu in a right-to-left region of a left-to-right app gets the same locale
- * with the region's direction (library-internal: the popovers' and the sheet's in
+ * The trigger's laid-out direction, for the `DirectionLocale` round its menu: React Aria takes
+ * the arrow keys (a submenu's ← and →, the back button's) and `start` / `end` from its locale,
+ * not the DOM's `dir`, so a menu in a right-to-left region of a left-to-right app gets the
+ * page's locale with the region's direction (library-internal: the popovers' and the sheet's in
  * `menu-in-place.tsx`, which used the app's and opened a page with →, 2026-11-19).
  */
 export function useMenuLocale(trigger: MenuTriggerContextValue): {
-  direction: string;
-  menuLocale: string;
+  direction: 'ltr' | 'rtl';
 } {
   // The DOM is the source of truth for direction; read it like an external store.
   const direction = useSyncExternalStore(
@@ -762,12 +760,7 @@ export function useMenuLocale(trigger: MenuTriggerContextValue): {
       trigger.triggerRef.current ? getComputedStyle(trigger.triggerRef.current).direction : 'ltr',
     () => 'ltr',
   );
-  const { locale, direction: localeDirection } = useLocale();
-  const menuLocale =
-    direction === localeDirection
-      ? locale
-      : localeWithDirection(locale, direction === 'rtl' ? 'rtl' : 'ltr');
-  return { direction, menuLocale };
+  return { direction: direction === 'rtl' ? 'rtl' : 'ltr' };
 }
 
 /**
@@ -784,9 +777,9 @@ export function useMenuPopover(
     containerPadding = 12,
   }: Pick<MenuProps, 'placement' | 'offset' | 'containerPadding'>,
   { heldSide, boundaryElement, shouldUpdatePosition }: MenuPopoverPlacing = {},
-): PopoverAria & { menuLocale: string } {
+): PopoverAria & { menuDirection: 'ltr' | 'rtl' } {
   // Submenus' arrow keys and placement follow the locale's direction: give it the DOM's.
-  const { direction, menuLocale } = useMenuLocale(trigger);
+  const { direction } = useMenuLocale(trigger);
   const requested = toPhysicalPlacement(placement, direction);
   const popover = usePopover(
     {
@@ -801,7 +794,7 @@ export function useMenuPopover(
     },
     trigger.state,
   );
-  return { ...popover, menuLocale };
+  return { ...popover, menuDirection: direction };
 }
 
 /** What a menu's tree takes from its popover. */
@@ -821,7 +814,7 @@ export type MenuPopoverTree = Omit<
 export function MenuPopoverFrame({
   trigger,
   popoverRef,
-  popover: { popoverProps, underlayProps, placement, menuLocale },
+  popover: { popoverProps, underlayProps, placement, menuDirection },
   instant,
   isExiting,
   exitProps,
@@ -896,7 +889,7 @@ export function MenuPopoverFrame({
           data-placement={placement ?? undefined}
           className={menuStyles({ instant }).reveal()}
         >
-          <I18nProvider locale={menuLocale}>
+          <DirectionLocale direction={menuDirection}>
             <MenuTreeContext
               value={{
                 ...shared,
@@ -908,7 +901,7 @@ export function MenuPopoverFrame({
             >
               {children}
             </MenuTreeContext>
-          </I18nProvider>
+          </DirectionLocale>
         </div>
         <DismissButton onDismiss={close} />
       </div>
@@ -1085,7 +1078,7 @@ export function MenuList({
   const ownRef = useObjectRef(forwardedRef);
   const ref = listRef ?? ownRef;
   // M3 keyboard table: "Letters — Focus moves to the next menu item starting with letter".
-  const keyboardDelegate = useTypeaheadDelegate(state, ref);
+  const keyboardDelegate = useTypeaheadDelegate(state, ref, usePageCollator(TYPEAHEAD_COLLATION));
   const { menuProps } = useMenu(
     // The arrow keys wrap from the last item to the first and back, as M3's menus and the rest
     // of the library's collections do (APG makes it optional).
