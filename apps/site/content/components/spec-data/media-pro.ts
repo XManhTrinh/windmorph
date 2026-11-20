@@ -65,4 +65,38 @@ export const MEDIA_PRO_SPEC: Record<string, ComponentSpecData> = {
       },
     ],
   },
+  'featured-carousel': {
+    covers: [
+      {
+        name: 'Slides with a link and buttons, kept clear of the side arrows',
+        kind: 'use case',
+        examples: ['featured-carousel/featured-carousel-slides'],
+      },
+      {
+        name: 'Moving by itself, with the Pause control (`autoAdvance`)',
+        kind: 'configuration',
+        examples: ['featured-carousel/featured-carousel-auto'],
+      },
+      {
+        name: 'A slide that plays a video (`media`, `useFeaturedCarouselSlide`)',
+        kind: 'use case',
+        examples: ['featured-carousel/featured-carousel-auto'],
+      },
+      {
+        name: 'Loading and failed (`FeaturedCarouselPlaceholder`)',
+        kind: 'configuration',
+        examples: ['featured-carousel/featured-carousel-loading'],
+      },
+    ],
+    extensions: [
+      {
+        item: 'Not an M3 component',
+        note: 'M3’s carousel doesn’t move by itself and has no Previous and Next, indicator or controls inside an item; this one follows the APG’s auto-rotating carousel, with the core carousel’s 28px item corner and words.',
+      },
+      {
+        item: 'Moving by itself within WCAG 2.2.2',
+        note: 'Off unless asked; one Pause control stops the slides and any media in them, keyboard focus or a move by hand stops it until Play, and reduced motion keeps it still.',
+      },
+    ],
+  },
 };

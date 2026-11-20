@@ -577,6 +577,21 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
       <Shape w={20} h={84} fill="high" round="xl" />
     </Row>
   ),
+  'featured-carousel': (
+    <span className="flex flex-col items-center gap-2">
+      <span className="flex items-center gap-1">
+        <span className="block h-14 w-6 rounded-corner-medium bg-secondary-container opacity-60" />
+        <span className="block h-16 w-28 rounded-corner-large bg-tertiary-container" />
+        <span className="block h-14 w-6 rounded-corner-medium bg-secondary-container opacity-60" />
+      </span>
+      <Row gap={1}>
+        <span className="block h-1.5 w-1.5 rounded-full bg-outline" />
+        <span className="block h-1.5 w-5 rounded-full bg-primary" />
+        <span className="block h-1.5 w-1.5 rounded-full bg-outline" />
+        <span className="block h-1.5 w-1.5 rounded-full bg-outline" />
+      </Row>
+    </span>
+  ),
   'media-grid': (
     <span className="grid grid-cols-3 gap-1">
       <Shape w={40} h={40} fill="tertiary" round="sm" />

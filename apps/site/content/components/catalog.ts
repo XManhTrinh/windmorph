@@ -966,6 +966,32 @@ export const COMPONENT_META: ComponentMeta[] = [
     whenNotToUse: 'When every item must be seen at once, use a grid of Cards instead.',
   },
   {
+    slug: 'featured-carousel',
+    title: 'Featured carousel',
+    group: 'Containment & overlays',
+    railGroup: 'containment',
+    summary:
+      'The large carousel at the top of a media or store page: one slide in front with whole slides set back beside it, moved by a swipe, side arrows or keys, and by itself only with a Pause control. Not an M3 component (@windmorph/react-pro).',
+    propsComponents: ['FeaturedCarousel', 'FeaturedCarouselSlide', 'FeaturedCarouselPlaceholder'],
+    hooks: ['useFeaturedCarouselSlide'],
+    playground: 'full',
+    pro: true,
+    related: ['carousel', 'shelf', 'media-viewer'],
+    whenNotToUse:
+      "For M3's browsing row of pictures, use a Carousel; for a row of cards, a Shelf; to look through photos full screen, a Media viewer.",
+    keywords: [
+      'hero',
+      'slideshow',
+      'banner',
+      'carousel',
+      'slider',
+      'featured',
+      'spotlight',
+      'auto-rotating',
+      'rotator',
+    ],
+  },
+  {
     slug: 'media-grid',
     title: 'Media grid',
     group: 'Containment & overlays',

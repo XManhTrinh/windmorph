@@ -1,11 +1,26 @@
 'use client';
 
-import { DurationTag, MediaFrame, Shelf } from '@windmorph/react-pro';
+import {
+  DurationTag,
+  FeaturedCarousel,
+  FeaturedCarouselSlide,
+  MediaFrame,
+  Shelf,
+} from '@windmorph/react-pro';
 import { createElement } from 'react';
 import { loose, type PlaygroundDescriptor } from './shared';
 
 const DurationTagAny = loose(DurationTag);
 const ShelfAny = loose(Shelf);
+const FeaturedCarouselAny = loose(FeaturedCarousel);
+
+/** The carousel preview's slides: a title on one of the theme's tones. */
+const CAROUSEL_SLIDES = [
+  { title: 'City after dark', tone: 'bg-primary-container text-on-primary-container' },
+  { title: 'Harbour lights', tone: 'bg-tertiary-container text-on-tertiary-container' },
+  { title: 'Mountain pass', tone: 'bg-secondary-container text-on-secondary-container' },
+  { title: 'Night market', tone: 'bg-surface-container-highest text-on-surface' },
+];
 
 /** The shelf preview's cards: a picture in one of the theme's tones and a title. */
 const SHELF_TITLES = [
@@ -99,5 +114,55 @@ export const MEDIA_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     codeSlots: { 'aria-label': '"Series"' },
     codeChildren:
       '<a href="/series/harbour">Harbour lights</a>\n<a href="/series/pass">Mountain pass</a>\n<a href="/series/market">Night market</a>',
+  },
+  'featured-carousel': {
+    component: 'FeaturedCarousel',
+    importFrom: '@windmorph/react-pro',
+    notRendered: {
+      FeaturedCarouselSlide:
+        'Each preview slide is one, with its `textValue`; the "Moving by itself" example shows `media`.',
+      FeaturedCarouselPlaceholder:
+        'The loading and failed frame, a server component; the "Loading and failed" example shows it.',
+    },
+    render: (props) =>
+      createElement(
+        'div',
+        { className: 'w-full' },
+        createElement(
+          FeaturedCarouselAny,
+          { ...props, 'aria-label': 'Featured' },
+          CAROUSEL_SLIDES.map((slide) =>
+            createElement(
+              FeaturedCarouselSlide,
+              { key: slide.title, textValue: slide.title },
+              createElement(
+                'div',
+                {
+                  className: `wm-featured-carousel-content flex h-full items-end pb-6 ${slide.tone}`,
+                },
+                createElement('h3', { className: 'text-headline-small' }, slide.title),
+              ),
+            ),
+          ),
+        ),
+      ),
+    defaultProps: { loop: true, autoAdvance: false, arrows: true, indicator: true, maxDots: 20 },
+    surfacedProps: ['autoAdvance', 'loop', 'arrows', 'indicator', 'maxDots'],
+    controlKinds: { autoAdvance: 'boolean' },
+    numberRanges: { maxDots: { min: 1, max: 30, step: 1 } },
+    notControlled: {
+      index: 'The current slide, which the preview’s own arrows, keys and swipes change.',
+      defaultIndex: 'The slide current at first; the preview starts at the first.',
+      paused: 'Whether the Pause control has stopped it, which the preview’s own control changes.',
+      defaultPaused: 'Whether it starts stopped; the preview’s Pause control shows it.',
+      previousIcon: 'A replacement chevron; the preview keeps the carousel’s own.',
+      nextIcon: 'A replacement chevron; the preview keeps the carousel’s own.',
+      pauseIcon: 'A replacement icon; the preview keeps the carousel’s own.',
+      playIcon: 'A replacement icon; the preview keeps the carousel’s own.',
+    },
+    importMembers: ['FeaturedCarouselSlide'],
+    codeSlots: { 'aria-label': '"Featured"' },
+    codeChildren:
+      '<FeaturedCarouselSlide textValue="City after dark">\n  <h3>City after dark</h3>\n</FeaturedCarouselSlide>\n<FeaturedCarouselSlide textValue="Harbour lights">\n  <h3>Harbour lights</h3>\n</FeaturedCarouselSlide>',
   },
 };
