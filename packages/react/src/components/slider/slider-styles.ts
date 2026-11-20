@@ -90,13 +90,13 @@ export const sliderStyles = tv({
       'flex shrink-0 items-center justify-center overflow-hidden',
       'in-data-[tone=active]:text-on-primary in-data-[tone=inactive]:text-on-secondary-container',
       'forced-colors:in-data-[tone=active]:text-[HighlightText]! forced-colors:in-data-[tone=inactive]:text-[CanvasText]!',
-      '[&>svg]:[block-size:var(--m3-slider-icon)] [&>svg]:[inline-size:var(--m3-slider-icon)] [&>svg]:shrink-0',
+      '[&>svg]:[block-size:var(--m3-slider-icon)] [&>svg]:[inline-size:var(--m3-slider-icon)] [&>svg]:shrink-0 [&>:only-child:has(>svg)]:[block-size:var(--m3-slider-icon)] [&>:only-child:has(>svg)]:[inline-size:var(--m3-slider-icon)] [&>:only-child:has(>svg)]:shrink-0',
     ],
     // The start icon, moved to the inactive track while the active one is too short for it.
     movedIcon: [
       'col-start-1 row-start-1 flex shrink-0 items-center justify-center overflow-hidden',
       'text-on-secondary-container forced-colors:forced-color-adjust-none forced-colors:text-[CanvasText]!',
-      '[&>svg]:[block-size:var(--m3-slider-icon)] [&>svg]:[inline-size:var(--m3-slider-icon)] [&>svg]:shrink-0',
+      '[&>svg]:[block-size:var(--m3-slider-icon)] [&>svg]:[inline-size:var(--m3-slider-icon)] [&>svg]:shrink-0 [&>:only-child:has(>svg)]:[block-size:var(--m3-slider-icon)] [&>:only-child:has(>svg)]:[inline-size:var(--m3-slider-icon)] [&>:only-child:has(>svg)]:shrink-0',
     ],
     thumb: [
       'col-start-1 row-start-1 flex [inline-size:4px] [block-size:var(--m3-slider-handle)] cursor-pointer justify-center',
