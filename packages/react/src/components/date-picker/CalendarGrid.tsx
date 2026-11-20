@@ -18,6 +18,7 @@ import {
   useLocale,
 } from 'react-aria';
 import type { CalendarState, RangeCalendarState } from 'react-stately';
+import { usePageDateFormatter } from '../../primitives/use-page-date-formatter';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import type { datePickerStyles } from './date-picker-styles';
 
@@ -54,17 +55,19 @@ export function CalendarGrid({
       : { weekdayStyle: 'narrow' },
     state,
   );
-  const longWeekday = useDateFormatter({ weekday: 'long' });
+  // The weekdays in the page's locale, as the headline and menus: React Aria's are in its own,
+  // which in a region laid out the other way is the locale in another script.
+  const narrowWeekday = usePageDateFormatter({ weekday: 'narrow' });
+  const longWeekday = usePageDateFormatter({ weekday: 'long' });
   const firstDay = startOfWeek(start, locale);
   // Compose always lays out six weeks, so the picker keeps its height between months.
   return (
     <table {...gridProps} className={styles.grid()}>
       <thead className={month ? 'sr-only' : undefined}>
         <tr>
-          {weekDays.map((day, index) => {
-            const name = longWeekday.format(
-              firstDay.add({ days: index }).toDate(getLocalTimeZone()),
-            );
+          {weekDays.map((_, index) => {
+            const day = firstDay.add({ days: index }).toDate(getLocalTimeZone());
+            const name = longWeekday.format(day);
             return (
               <th
                 key={index}
@@ -73,7 +76,7 @@ export function CalendarGrid({
                 title={name}
                 className={styles.weekday({ class: classNames?.weekday })}
               >
-                {day}
+                {narrowWeekday.format(day)}
               </th>
             );
           })}
@@ -131,8 +134,40 @@ function CalendarCell({
     isDisabled,
     isUnavailable,
     isPressed,
-    formattedDate,
   } = useCalendarCell({ date }, state, ref);
+  // The day in the page's digits, as React Aria writes it (its calendar, the state's time zone):
+  // React Aria's own `formattedDate` is in its locale, which in a region laid out the other way
+  // takes the new script's digits (`ar-Latn-EG` writes an Arabic page's days in Latin ones).
+  const dayFormat = usePageDateFormatter({
+    day: 'numeric',
+    timeZone: state.timeZone,
+    calendar: date.calendar.identifier,
+  });
+  // The day's name holds the date as the page writes it, so it contains the day shown (WCAG
+  // 2.5.3). React Aria's wording around it ("Today", "selected", the range) stays: its date,
+  // written with the same options in its own locale, is swapped for the page's.
+  const nameOptions: Intl.DateTimeFormatOptions = {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    era: date.calendar.identifier === 'gregory' && date.era === 'BC' ? 'short' : undefined,
+    timeZone: state.timeZone,
+  };
+  const ariaName = useDateFormatter(nameOptions);
+  const pageName = usePageDateFormatter(nameOptions);
+  const native = date.toDate(state.timeZone);
+  const ariaDate = ariaName.format(native);
+  const label = buttonProps['aria-label'];
+  // The last copy: a range's ends are named "<the range>, <the day>", and the range can hold the
+  // same words.
+  const at = label?.lastIndexOf(ariaDate) ?? -1;
+  const name =
+    label && at >= 0
+      ? label.slice(0, at) + pageName.format(native) + label.slice(at + ariaDate.length)
+      : label;
+  // Only the day part, as React Aria shows it: a whole formatted day is "4日" in Japanese.
+  const day = dayFormat.formatToParts(native).find((part) => part.type === 'day')?.value;
   // Days of the months around this one (the docked picker shows them) can't be chosen.
   const isOutside = isOutsideVisibleRange || !isSameMonth(date, shownMonth);
   const disabled = isDisabled || isUnavailable;
@@ -161,6 +196,7 @@ function CalendarCell({
     >
       <div
         {...mergeProps(buttonProps, interactionProps)}
+        aria-label={name}
         {...dataAttributes}
         ref={ref}
         data-slot="day"
@@ -171,7 +207,7 @@ function CalendarCell({
         data-outside={isOutside || undefined}
         className={styles.day({ class: className })}
       >
-        {formattedDate}
+        {day}
       </div>
     </td>
   );

@@ -215,6 +215,10 @@ export const primitivesChecks = {
       )['aria-labelledby'],
   },
   useScrollRestoration: hook,
+  formatClock: { kind: 'value', run: () => Primitives.formatClock(734, 'en-US') },
+  formatDurationWords: { kind: 'value', run: () => Primitives.formatDurationWords(734, 'en-US') },
+  usePageHeight: hook,
+  useReorder: hook,
   usePresence: hook,
   useTriggerProps: hook,
 } satisfies ExportChecks<typeof Primitives>;

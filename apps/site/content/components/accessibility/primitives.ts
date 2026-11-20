@@ -21,7 +21,7 @@ export const primitives: ComponentAccessibility = {
     },
   ],
   keyboardNotes: [
-    "`DomDirectionLocale` gives React Aria the element's laid-out direction (the same locale with only its script changed), so arrow keys follow an RTL layout while dates and numbers keep the app's language.",
+    "`DomDirectionLocale` gives React Aria the element's laid-out direction (the same locale with its script changed, keeping its hour cycle and calendar; its digits are the new script's, so a React Aria number or date-segment input of your own there reads Latin digits), so arrow keys follow an RTL layout. The components inside still write and read their dates, times and numbers in the page's locale, as `useLocale` gives it to your own formatting; a calendar day's name holds its date as the page writes it, and only React Aria's own words there, such as “selected” around that date or the calendar grid's month name, follow the changed locale.",
   ],
   screenReader: {
     role: '`ButtonBase` is a `button`, a `link` with `href`, or a `div` with `role="button"`. `useM3Interaction` adds no role: it is presentation only. `ErrorText` has the `alert` role, and `FieldErrorIcon` the `img` role.',

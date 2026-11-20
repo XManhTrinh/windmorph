@@ -60,8 +60,9 @@ export interface OverlayProps {
 const NO_BUTTON_SETTINGS = {};
 
 // HTML elements that draw their own content and none of their children (replaced elements and
-// form controls): an overlay put inside one would never show.
-const DRAWS_NO_CHILDREN = new Set([
+// form controls): an overlay put inside one would never show. A menu's `portalContainer` is
+// checked against them too (library-internal).
+export const DRAWS_NO_CHILDREN = new Set([
   'audio',
   'canvas',
   'embed',
@@ -90,11 +91,12 @@ function fullscreenContainer(page: Document): HTMLElement | null {
 const THEME_COLOR_ATTRIBUTES = ['data-theme', 'data-mode', 'data-contrast'] as const;
 
 // The theme attributes an overlay's wrapper needs inside `container`, the element in full screen
-// (2026-11-16): only those that differ from what `container` already inherits, each read from
-// the nearest element carrying it, as `themeAttributesOver` does for a known ancestor theme. So
-// an app's own `:root` values for the system tokens reach an overlay in full screen too; with
-// every attribute on the wrapper, the theme's rules declared the colours again there. `<html>`
-// takes the `ThemeProvider`'s state when it writes it there, since it does so after this render.
+// (2026-11-16) or a container the caller or an app names (2026-11-18): only those that differ
+// from what `container` already inherits, each read from the nearest element carrying it, as
+// `themeAttributesOver` does for a known ancestor theme. So an app's own `:root` values for the
+// system tokens reach an overlay there too; with every attribute on the wrapper, the theme's
+// rules declared the colours again there. `<html>` takes the `ThemeProvider`'s state when it
+// writes it there, since it does so after this render.
 function themeAttributesInside(
   state: ThemeState,
   container: Element,
@@ -216,15 +218,18 @@ export function Overlay({
   const ownContainer = portalContainer ?? getContainer?.() ?? undefined;
   const container = ownContainer ?? fullscreen ?? undefined;
   // In `document.body`, the wrapper carries only what differs from `<html>`, so an app's own
-  // `:root` values for the system tokens reach the overlay too; in the element in full screen,
-  // only what differs from what that element inherits; in a container of the caller's or an
-  // app's, whose theme isn't known, every attribute.
+  // `:root` values for the system tokens reach the overlay too; in an element of the page (a
+  // container of the caller's or an app's, or the element in full screen), only what differs
+  // from what that element inherits (2026-11-18: a container of the caller's or an app's carried
+  // every attribute, so the app's `:root` values never reached a menu opened in its player); in
+  // a container in another document (an iframe's), whose theme isn't known, every attribute.
   const restyled = outerLayer !== undefined;
-  const wrapperTheme = ownContainer
-    ? themeAttributesOver(themed, null, restyled)
-    : fullscreen
-      ? themeAttributesInside(themed, fullscreen, documentTheme, restyled)
-      : themeAttributesOver(themed, documentTheme, restyled);
+  const drawnIn = ownContainer ?? fullscreen;
+  const wrapperTheme = !drawnIn
+    ? themeAttributesOver(themed, documentTheme, restyled)
+    : typeof document !== 'undefined' && drawnIn.ownerDocument === document
+      ? themeAttributesInside(themed, drawnIn, documentTheme, restyled)
+      : themeAttributesOver(themed, null, restyled);
   const scopeId = useId();
   const markerRef = useRef<HTMLSpanElement>(null);
   const scopeRef = useRef<HTMLDivElement>(null);

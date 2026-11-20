@@ -1,8 +1,9 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { RouterProvider } from 'react-aria';
+import { I18nProvider, RouterProvider } from 'react-aria';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { DirectionLocale } from '../../primitives/DomDirectionLocale';
 import { Carousel } from './Carousel';
 
 const reducedMotion = vi.hoisted(() => ({ value: false }));
@@ -49,6 +50,19 @@ describe('Carousel', () => {
       </Carousel>,
     );
     expect(screen.getAllByRole('group')[1]).toHaveAttribute('aria-label', 'Photo 2 / 2');
+  });
+
+  // A region laid out the other way gives React Aria the locale in another script
+  // (`ar-Latn-EG`), whose digits are Latin; the slides' numbers are the page's.
+  it('numbers its slides in the page’s digits inside a region of the other direction', () => {
+    render(
+      <I18nProvider locale="ar-EG">
+        <DirectionLocale direction="ltr">
+          <Carousel aria-label="Photos">{slides(2)}</Carousel>
+        </DirectionLocale>
+      </I18nProvider>,
+    );
+    expect(screen.getAllByRole('group')[1]).toHaveAttribute('aria-label', '٢ of ٢');
   });
 
   it('takes the role descriptions from `labels` too', () => {

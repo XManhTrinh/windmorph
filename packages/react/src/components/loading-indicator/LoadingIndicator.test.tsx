@@ -1,6 +1,8 @@
 import { render, screen, waitFor } from '@testing-library/react';
+import { I18nProvider } from 'react-aria';
 import { describe, expect, it } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { DirectionLocale } from '../../primitives/DomDirectionLocale';
 import { LoadingIndicator } from './LoadingIndicator';
 import {
   determinateFrame,
@@ -143,5 +145,24 @@ describe('LoadingIndicator', () => {
     const box = screen.getByRole('progressbar', { name: 'Default' });
     expect(box).toHaveClass('size-(--m3-loading-indicator-size,48px)');
     expect(box.style.getPropertyValue('--m3-loading-indicator-size')).toBe('');
+  });
+});
+
+// A region laid out the other way gives React Aria the locale in another script (`ar-Latn-EG`),
+// whose digits are Latin; the value is read in the page's.
+describe('LoadingIndicator in a region of the other direction', () => {
+  it('reads its value in the page’s locale', () => {
+    render(
+      <I18nProvider locale="ar-EG">
+        <DirectionLocale direction="ltr">
+          <LoadingIndicator aria-label="Loading" value={0.5} />
+        </DirectionLocale>
+      </I18nProvider>,
+    );
+    const percent = new Intl.NumberFormat('ar-EG', { style: 'percent' }).format(0.5);
+    expect(screen.getByRole('progressbar', { name: 'Loading' })).toHaveAttribute(
+      'aria-valuetext',
+      percent,
+    );
   });
 });

@@ -125,13 +125,22 @@ function Bar({
   return <motion.div data-testid="row-bar" className="w-3 bg-primary" style={{ height: px }} />;
 }
 
-/** Bars that rise one after another, once, as the row first comes into view. */
+/**
+ * Bars that rise one after another, once, as the row first comes into view, and a total that
+ * counts up from 0 as it does. Printed before it's scrolled to, the total shows its final value.
+ */
 export const Entrance: Story = {
   render: () => (
     <div className="flex flex-col gap-4">
       <p className="text-body-medium text-on-surface-variant">Scroll down to the bars.</p>
       <div style={{ height: 1200 }} />
       <Row count={24} />
+      <AnimatedNumber
+        data-testid="row-total"
+        value={1284}
+        from={0}
+        className="text-headline-medium text-on-surface"
+      />
     </div>
   ),
 };

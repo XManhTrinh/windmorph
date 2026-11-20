@@ -4,7 +4,9 @@ import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../test/axe';
 import { setMediaQueries } from '../../test/setup';
+import { compiledCss } from '../../test/tailwind-classes';
 import { AnimatedNumber } from './AnimatedNumber';
+import { DomDirectionLocale } from './DomDirectionLocale';
 
 const parts = (container: Element) => {
   const root = container.querySelector<HTMLElement>('[data-slot="animated-number"]')!;
@@ -53,6 +55,53 @@ describe('AnimatedNumber', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 
+  it('prints its final value, whatever the moving figure shows', async () => {
+    // Never scrolled to, so its entrance waits at `from`, as a number below the fold of a page
+    // printed from an effect (a print view), where no update or frame runs before the print.
+    vi.stubGlobal(
+      'IntersectionObserver',
+      class {
+        constructor(private callback: IntersectionObserverCallback) {}
+        observe() {
+          this.callback(
+            [{ isIntersecting: false, intersectionRatio: 0 } as IntersectionObserverEntry],
+            this as unknown as IntersectionObserver,
+          );
+        }
+        disconnect() {}
+      },
+    );
+    const { container } = render(<AnimatedNumber value={1284} from={0} />);
+    const { box, width, moving } = parts(container);
+    expect(moving).toHaveTextContent(/^0$/);
+    // On screen the final value only sizes the box; in print it shows, and the figure goes.
+    expect(width).toHaveTextContent('1,284');
+    expect(width).toHaveClass('invisible');
+    // The declarations inside the stylesheet's `@media print` blocks for an element's classes.
+    const printRules = async (element: Element) => {
+      const css = await compiledCss([...element.classList]);
+      const rules: string[] = [];
+      for (const { index } of css.matchAll(/@media print\s*\{/g)) {
+        const start = css.indexOf('{', index) + 1;
+        let end = start;
+        for (let depth = 1; depth > 0; end++) {
+          if (css[end] === '{') depth++;
+          else if (css[end] === '}') depth--;
+        }
+        const block = css.slice(start, end - 1);
+        for (const [, property, value] of block.matchAll(/\{\s*([a-z-]+):\s*([^;]+);/g)) {
+          rules.push(`${property}: ${value}`);
+        }
+      }
+      return rules;
+    };
+    expect(await printRules(width)).toEqual(['visibility: visible']);
+    expect(await printRules(moving)).toEqual(['display: none']);
+    // Both stay inside the box assistive technology skips, which reads the final value once.
+    expect(box).toHaveAttribute('aria-hidden', 'true');
+    expect(width.parentElement).toBe(box);
+  });
+
   it('formats in the page’s locale with the value’s own decimals, or by `format`', () => {
     const { container, rerender } = render(
       <I18nProvider locale="de-DE">
@@ -62,6 +111,23 @@ describe('AnimatedNumber', () => {
     expect(parts(container).spoken).toHaveTextContent('1.284,5');
     rerender(<AnimatedNumber value={8.2} format={(value) => `${value.toFixed(1)} min`} />);
     expect(parts(container).spoken).toHaveTextContent('8.2 min');
+  });
+
+  // A region laid out the other way gives React Aria the locale in another script
+  // (`es-Arab-MX`), which formats as plain `es`: 1.234,5 on a page that writes 1,234.5.
+  it('formats in the page’s locale inside a region of the other direction', () => {
+    const { container } = render(
+      <I18nProvider locale="es-MX">
+        <DomDirectionLocale>
+          {(ref) => (
+            <div ref={ref} dir="rtl" style={{ direction: 'rtl' }}>
+              <AnimatedNumber value={1234.5} />
+            </div>
+          )}
+        </DomDirectionLocale>
+      </I18nProvider>,
+    );
+    expect(parts(container).spoken).toHaveTextContent('1,234.5');
   });
 
   it('never shows a figure past the one it moves to', async () => {

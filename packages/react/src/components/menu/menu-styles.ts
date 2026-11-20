@@ -53,6 +53,15 @@ export const persistentScrollbar = [
   'supports-[not_selector(::-webkit-scrollbar)]:[scrollbar-width:thin] supports-[not_selector(::-webkit-scrollbar)]:[scrollbar-color:var(--md-sys-color-outline)_transparent]',
 ];
 
+// Where submenus show in place of the menu that opened them (a bottom sheet, or a popover with
+// `submenuPresentation="replace"`): every page but the last is hidden, the first page (the menu,
+// not portalled) and every earlier submenu page (portalled in after it, in an overlay scope), so
+// nested pages stack the same way. Shared with the pages' own styles (`menu-page-styles.ts`).
+export const menuPageStack = [
+  '[&>:not([data-overlay-scope]):has(~[data-overlay-scope])]:hidden',
+  '[&>[data-overlay-scope]:has(~[data-overlay-scope])>*]:hidden',
+];
+
 /** Variant definitions for {@link Menu} and its parts. */
 /**
  * Keeps a menu's placed box at the menu's own width (`!`, so a consumer's `w-full` or `min-w-*`
@@ -135,20 +144,18 @@ export const menuStyles = tv({
       'group-data-selected/item:grid-cols-[1fr] group-data-selected/item:opacity-100',
     ],
     selectedIconInner: 'overflow-hidden',
-    icon: 'me-[12px] inline-flex size-[20px] shrink-0 items-center justify-center text-[color:var(--_md-comp-menus-menu-item-leading-icon-color)] [&>svg]:size-full',
+    icon: 'me-[12px] inline-flex size-[20px] shrink-0 items-center justify-center text-[color:var(--_md-comp-menus-menu-item-leading-icon-color)] [&>svg]:size-full [&>:only-child:has(>svg)]:size-full',
     text: 'flex min-w-0 flex-1 flex-col',
     description: 'text-body-medium',
     trailing:
-      'ms-auto inline-flex shrink-0 items-center ps-[12px] text-label-small text-[color:var(--_md-comp-menus-menu-item-trailing-icon-color)] [&>svg]:size-[20px]',
+      'ms-auto inline-flex shrink-0 items-center ps-[12px] text-label-small text-[color:var(--_md-comp-menus-menu-item-trailing-icon-color)] [&>svg]:size-[20px] [&>:only-child:has(>svg)]:size-[20px]',
     badge: 'inline-flex shrink-0 items-center ps-[12px]',
     // A menu's place in a bottom sheet. An open submenu's panel follows the menu that opened
     // it (portalled in after it) and hides it, and any panel before it, while it's open.
-    sheetContent: [
-      'flex min-h-0 flex-1 flex-col px-[8px] pb-[16px]',
-      '[&>:not([data-overlay-scope]):has(~[data-overlay-scope])]:hidden',
-      '[&>[data-overlay-scope]:has(~[data-overlay-scope])>*]:hidden',
-    ],
-    // A submenu in a sheet: a back button and its item's label above its list, fading in.
+    sheetContent: ['flex min-h-0 flex-1 flex-col px-[8px] pb-[16px]', ...menuPageStack],
+    // A submenu in a sheet: a back button and its item's label above its list, fading in. Kept
+    // for apps that build on `menuStyles` (it's public): Menu's pages, in a sheet and in place,
+    // now take `menuPageStyles().panel`, which follows `submenuTransition`.
     sheetPanel: [
       'flex min-h-0 flex-1 flex-col opacity-100 starting:opacity-0',
       '[transition-property:opacity]',
@@ -158,7 +165,8 @@ export const menuStyles = tv({
     sheetHeader: 'flex min-h-[48px] shrink-0 items-center gap-[4px] pe-[12px]',
     sheetBack: [
       'inline-flex size-[48px] shrink-0 cursor-pointer items-center justify-center rounded-corner-full',
-      'state-layer focus-ring text-on-surface-variant [&>svg]:size-[24px]',
+      // An app's `backIcon` may be an svg in a wrapper: the wrapper takes the icon's size too.
+      'state-layer focus-ring text-on-surface-variant [&>svg]:size-[24px] [&>:only-child:has(>svg)]:size-[24px]',
     ],
     sheetTitle: 'min-w-0 flex-1 truncate text-title-medium text-on-surface',
   },

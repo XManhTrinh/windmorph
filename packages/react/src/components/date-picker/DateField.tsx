@@ -16,11 +16,12 @@ import {
   type ReactNode,
   type Ref,
 } from 'react';
-import { useCalendar, useDateFormatter, useDialog, useLocale } from 'react-aria';
+import { useCalendar, useDialog, useLocale } from 'react-aria';
 import { useCalendarState, useOverlayTriggerState } from 'react-stately';
 import { useControlledState } from 'react-stately/useControlledState';
 import { NO_DEFAULT_LABELS, useLabels } from '../labels/use-labels';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
+import { usePageDateFormatter } from '../../primitives/use-page-date-formatter';
 import { cn } from '../../utils/cn';
 import {
   ariaFlag,
@@ -34,7 +35,10 @@ import type { Density } from '../../tokens/density';
 import { OptionPopover } from '../select/option-list';
 import type { TextFieldClassNames } from '../text-field/TextField';
 import { LazyTooltip } from '../tooltip/lazy-tooltip';
+import { closeOnLoadError } from '../../utils/close-on-load-error';
+import { useDismissWhileLoading } from '../../utils/use-dismiss-while-loading';
 import { onDemand, usePreloadOnIntent } from '../../utils/load-on-demand';
+import { useLoaded } from '../../utils/use-loaded';
 import { TooltipTrigger } from '../tooltip/tooltip-trigger';
 import { CalendarGrid } from './CalendarGrid';
 import { ChoiceButton, ShortcutIconButton, useMonthSwipe, usePickerKeys } from './calendar-parts';
@@ -287,6 +291,20 @@ function DateFieldInner({
   // then, and if not it opens as it arrives, taking focus as it would have.
   const [compactOpened, setCompactOpened] = useState(compact && overlay.isOpen);
   if (compact && overlay.isOpen && !compactOpened) setCompactOpened(true);
+  // A failed load closes the dialog, rather than leaving it open over nothing; its next open
+  // tries again.
+  const compactIn =
+    useLoaded(
+      compactDialog,
+      compact && overlay.isOpen,
+      closeOnLoadError('DateField', overlay.close),
+    ) !== undefined;
+  // Open with nothing in the page yet: Escape, a press outside the field and focus leaving it
+  // close the dialog, so its code coming in opens nothing.
+  useDismissWhileLoading(fieldRef, compact && overlay.isOpen && !compactIn, overlay.close, {
+    // Typing in the text box moves on too: the full-screen dialog would cover it.
+    closeOnInput: true,
+  });
   const {
     root: rootClassName,
     calendar,
@@ -424,9 +442,9 @@ function DockedCalendar({
   const styles = dockedDatePickerStyles();
   const grid = datePickerStyles({ docked: true });
   const { swipeProps, slideKey, slideDirection } = useMonthSwipe(state);
-  const shortMonth = useDateFormatter({ month: 'short' });
-  const longMonth = useDateFormatter({ month: 'long' });
-  const yearFormat = useDateFormatter({ year: 'numeric' });
+  const shortMonth = usePageDateFormatter({ month: 'short' });
+  const longMonth = usePageDateFormatter({ month: 'long' });
+  const yearFormat = usePageDateFormatter({ year: 'numeric' });
   const shown = state.focusedDate;
   const at = (date: CalendarDate) => date.toDate(getLocalTimeZone());
   const min = minValue ? toCalendarDate(minValue) : undefined;

@@ -61,8 +61,17 @@ export {
   useTriggerProps,
   type TriggerContextValue,
 } from './primitives/TriggerContext';
+export { formatClock, formatDurationWords } from './primitives/format-duration';
+export {
+  useReorder,
+  type ReorderMove,
+  type ReorderOptions,
+  type ReorderResult,
+  type ReorderWhere,
+} from './primitives/use-reorder';
 export { usePresence } from './primitives/use-presence';
 export { useRevealEntering } from './components/menu/use-reveal-entering';
+export { usePageHeight, type PageHeight } from './components/menu/use-page-height';
 export { toAriaPlacement } from './utils/placement';
 export { closedByOverlayOptions } from './utils/closed-by';
 export { DomDirectionLocale, type DomDirectionLocaleProps } from './primitives/DomDirectionLocale';

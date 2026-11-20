@@ -11,14 +11,18 @@ import {
   type ReactNode,
   type Ref,
 } from 'react';
-import { useLocale, useObjectRef } from 'react-aria';
+import { useObjectRef } from 'react-aria';
 import { useOverlayTriggerState } from 'react-stately';
 import { useControlledState } from 'react-stately/useControlledState';
 import { useLabels } from '../labels/use-labels';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
+import { usePageLocale } from '../../primitives/use-page-locale';
 import type { Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
+import { closeOnLoadError } from '../../utils/close-on-load-error';
+import { useDismissWhileLoading } from '../../utils/use-dismiss-while-loading';
 import { onDemand, usePreloadOnIntent } from '../../utils/load-on-demand';
+import { useLoaded } from '../../utils/use-loaded';
 import {
   ariaFlag,
   pickDescriptionAria,
@@ -248,7 +252,9 @@ function TimeFieldInner({
   const invalid = invalidProp ?? ariaFlag(ariaInvalid);
   const required = requiredProp ?? ariaFlag(ariaRequired);
   const readOnly = readOnlyProp ?? ariaFlag(ariaReadonly);
-  const { locale } = useLocale();
+  // The page's, as the date field's: React Aria's, in a region laid out the other way, is the
+  // locale in another script, which writes `fr-CA`'s 15 h 05 as plain `fr`'s 15:05.
+  const locale = usePageLocale();
   const hourCycle = hourCycleProp ?? localeHourCycle(locale);
   const words = useLabels(['TimePicker', 'PickerDialog', 'TimeField'], DEFAULT_LABELS, labelsProp);
   const hint = words.timeFormatHint ?? (hourCycle === 24 ? 'HH:MM' : 'H:MM AM');
@@ -285,6 +291,17 @@ function TimeFieldInner({
   usePreloadOnIntent(fieldRef, docked ? dockedList.preload : pickerDialog.preload, true);
   const [opened, setOpened] = useState(overlay.isOpen);
   if (overlay.isOpen && !opened) setOpened(true);
+  // A failed load closes the picker, rather than leaving it open over nothing; its next open
+  // tries again.
+  const reportLoadError = closeOnLoadError('TimeField', overlay.close);
+  const dialogIn =
+    useLoaded(pickerDialog, overlay.isOpen && !docked, reportLoadError) !== undefined;
+  const listIn = useLoaded(dockedList, overlay.isOpen && docked, reportLoadError) !== undefined;
+  // Open with nothing in the page yet: Escape, a press outside the field and focus leaving it
+  // close the picker, so its code coming in opens nothing, and the button names no list.
+  const waiting = overlay.isOpen && !(docked ? listIn : dialogIn);
+  // Typing in the text box moves on too, under the modal dialog (the docked list follows it).
+  useDismissWhileLoading(fieldRef, waiting, overlay.close, { closeOnInput: !docked });
 
   const outOfRange = (time: Time) =>
     (min !== undefined && time.compare(min) < 0) || (max !== undefined && time.compare(max) > 0);
@@ -379,7 +396,7 @@ function TimeFieldInner({
             aria-label={labels.openPicker}
             aria-haspopup={docked ? 'listbox' : 'dialog'}
             aria-expanded={overlay.isOpen}
-            {...(docked && overlay.isOpen && { 'aria-controls': listId })}
+            {...(docked && overlay.isOpen && !waiting && { 'aria-controls': listId })}
             disabled={disabled || readOnly}
             className={button}
             onPress={(event) => {

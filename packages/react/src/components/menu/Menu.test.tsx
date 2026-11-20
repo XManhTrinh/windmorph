@@ -1,17 +1,42 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  renderHook,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { RouterProvider } from 'react-aria';
-import { describe, expect, it, vi } from 'vitest';
+import { useState } from 'react';
+import { I18nProvider, RouterProvider, UNSAFE_PortalProvider } from 'react-aria';
+import { Item, useTreeState, type Selection } from 'react-stately';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { labelInNameViolations } from '../../../test/label-in-name';
 import { setMediaQueries } from '../../../test/setup';
 import { COMPACT_WINDOW } from '../date-picker/use-media-query';
+import { ThemeProvider } from '../../theme/ThemeProvider';
 import { ThemeScope } from '../../theme/ThemeScope';
+import { LocaleProvider } from '../locale/LocaleProvider';
 import { Button } from '../button/Button';
 import { IconButton } from '../icon-button/IconButton';
 import { BottomSheet } from '../sheet/BottomSheet';
 import { SheetTrigger } from '../sheet/SheetTrigger';
-import { ContextMenuTrigger, Menu, MenuGroup, MenuItem, MenuTrigger, SubmenuTrigger } from './Menu';
+import {
+  ContextMenuTrigger,
+  Menu,
+  MenuGroup,
+  MenuItem,
+  MenuTrigger,
+  preloadMenuInPlace,
+  SubmenuTrigger,
+} from './Menu';
+
+// The sheet, pages in place and a `portalContainer` load on demand (`menu-in-place.test.tsx`
+// covers the load): loaded once here, they open in the same pass as a press, as in the browser
+// once the module is in.
+beforeAll(() => preloadMenuInPlace());
 
 /**
  * Opens a menu from its trigger with the keyboard. (In jsdom a simulated click re-focuses
@@ -23,8 +48,49 @@ async function openMenu(name: string) {
   await userEvent.keyboard('{Enter}');
 }
 
+/**
+ * Hovers a submenu item whose `SubmenuTrigger` has `openDelay={0}` and lets the timer the hover
+ * starts run (it's queued before this one), so a test sees what a hover opens without waiting
+ * out a delay.
+ */
+async function hoverPastOpenDelay(element: Element) {
+  await userEvent.hover(element);
+  await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
+}
+
+/**
+ * jsdom lays nothing out: gives the pages of a menu shown in place a height that grows with each
+ * page open (100px, then 40px a page), so the surface's measured height can change.
+ */
+function measurePages() {
+  const real = window.getComputedStyle.bind(window);
+  return vi.spyOn(window, 'getComputedStyle').mockImplementation((element, pseudo) => {
+    const style = real(element, pseudo);
+    if (!element.hasAttribute('data-page-transition')) return style;
+    const height = `${100 + 40 * element.querySelectorAll('[data-submenu-panel]').length}px`;
+    return new Proxy(style, {
+      get(target, key) {
+        if (key === 'height') return height;
+        const value: unknown = Reflect.get(target, key, target);
+        return typeof value === 'function' ? value.bind(target) : value;
+      },
+    });
+  });
+}
+
 const closed = () =>
   waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument(), { timeout: 1500 });
+
+/**
+ * Whether the menu its trigger opens is still open. A closing menu stays in the page while it
+ * plays its exit, so its presence proves nothing; the trigger's `aria-expanded` turns `false`
+ * as it starts to close. (The open menu hides the trigger from assistive tech.)
+ */
+const expectOpen = (trigger: string) =>
+  expect(screen.getByRole('button', { name: trigger, hidden: true })).toHaveAttribute(
+    'aria-expanded',
+    'true',
+  );
 
 function EditMenu(props: Partial<React.ComponentProps<typeof Menu>>) {
   return (
@@ -248,6 +314,29 @@ describe('Menu', () => {
     expect(screen.getByRole('menuitem', { name: /Cut/ })).toHaveFocus();
   });
 
+  it('matches typeahead in the page’s language, in a region laid out the other way', async () => {
+    // Serbian in Latin script tells č from c; a region of the other direction gets a tag in
+    // another script, whose collation doesn't.
+    render(
+      <I18nProvider locale="sr-Latn-RS">
+        <div dir="rtl">
+          <MenuTrigger>
+            <Button>Town</Button>
+            <Menu aria-label="Town">
+              <MenuItem key="beograd">Beograd</MenuItem>
+              <MenuItem key="cacak">Čačak</MenuItem>
+              <MenuItem key="cetinje">Cetinje</MenuItem>
+            </Menu>
+          </MenuTrigger>
+        </div>
+      </I18nProvider>,
+    );
+    await openMenu('Town');
+    expect(screen.getByRole('menuitem', { name: 'Beograd' })).toHaveFocus();
+    await userEvent.keyboard('c');
+    expect(screen.getByRole('menuitem', { name: 'Cetinje' })).toHaveFocus();
+  });
+
   it('closes on Escape', async () => {
     render(<EditMenu />);
     await openMenu('Edit');
@@ -306,6 +395,7 @@ describe('Menu', () => {
     );
     await openMenu('View');
     await userEvent.click(screen.getByRole('menuitemcheckbox', { name: 'Grid lines' }));
+    expectOpen('View');
     await userEvent.click(screen.getByRole('menuitemcheckbox', { name: 'Rulers' }));
     expect(screen.getByRole('menuitemcheckbox', { name: 'Grid lines' })).toHaveAttribute(
       'aria-checked',
@@ -322,7 +412,284 @@ describe('Menu', () => {
       'aria-checked',
       'false',
     );
-    expect(screen.getByRole('menu')).toBeInTheDocument();
+    expectOpen('View');
+  });
+
+  it('holds a group of choices beside plain actions: the group has a selection of its own', async () => {
+    const onSelectionChange = vi.fn();
+    const onAction = vi.fn();
+    function AccountMenu() {
+      return (
+        <MenuTrigger>
+          <Button>Account</Button>
+          <Menu aria-label="Account" onAction={onAction}>
+            <MenuGroup
+              title="Signed in as"
+              selectionMode="single"
+              defaultSelectedKeys={['alex']}
+              onSelectionChange={onSelectionChange}
+            >
+              <MenuItem key="alex">Alex Morgan</MenuItem>
+              <MenuItem key="studio">Morgan Studio</MenuItem>
+            </MenuGroup>
+            <MenuGroup aria-label="Accounts">
+              <MenuItem key="add">Add an account</MenuItem>
+              <MenuItem key="settings">Settings</MenuItem>
+            </MenuGroup>
+          </Menu>
+        </MenuTrigger>
+      );
+    }
+    const { baseElement } = render(<AccountMenu />);
+    await openMenu('Account');
+    const alex = screen.getByRole('menuitemradio', { name: 'Alex Morgan' });
+    expect(alex).toHaveAttribute('aria-checked', 'true');
+    expect(screen.getByRole('menuitemradio', { name: 'Morgan Studio' })).toHaveAttribute(
+      'aria-checked',
+      'false',
+    );
+    // The actions stay actions: no check, no checked state.
+    const add = screen.getByRole('menuitem', { name: 'Add an account' });
+    expect(add).not.toHaveAttribute('aria-checked');
+    expect(screen.getAllByRole('menuitemradio')).toHaveLength(2);
+    expect(await axeViolations(baseElement)).toEqual([]);
+    // A choice selects within its group and closes the menu, as a single-select menu does.
+    await userEvent.click(screen.getByRole('menuitemradio', { name: 'Morgan Studio' }));
+    expect([...onSelectionChange.mock.calls[0]![0]]).toEqual(['studio']);
+    expect(onAction.mock.calls[0]?.[0]).toBe('studio');
+    await closed();
+    // An action closes the menu without selecting anything. (Uncontrolled, the group starts from
+    // `defaultSelectedKeys` each time the menu opens, as a whole menu's selection does.)
+    await openMenu('Account');
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Settings' }));
+    expect(onAction.mock.lastCall?.[0]).toBe('settings');
+    expect(onSelectionChange).toHaveBeenCalledOnce();
+    await closed();
+  });
+
+  it('keeps each group’s selection apart, controlled or not, and a multiple group open', async () => {
+    const onLayout = vi.fn();
+    function ViewMenu() {
+      const [layout, setLayout] = useState<Selection>(new Set(['grid']));
+      return (
+        <MenuTrigger>
+          <Button>View</Button>
+          <Menu aria-label="View">
+            <MenuGroup
+              title="Layout"
+              selectionMode="single"
+              selectedKeys={layout}
+              deselectable={false}
+              onSelectionChange={(keys) => {
+                onLayout(keys);
+                setLayout(keys);
+              }}
+            >
+              <MenuItem key="grid">Grid</MenuItem>
+              <MenuItem key="list">List</MenuItem>
+            </MenuGroup>
+            <MenuGroup title="Show" selectionMode="multiple" defaultSelectedKeys={['names']}>
+              <MenuItem key="names">Names</MenuItem>
+              <MenuItem key="sizes">Sizes</MenuItem>
+            </MenuGroup>
+            <MenuGroup aria-label="More">
+              <MenuItem key="reset">Reset view</MenuItem>
+            </MenuGroup>
+          </Menu>
+        </MenuTrigger>
+      );
+    }
+    render(<ViewMenu />);
+    await openMenu('View');
+    // A toggle in a multiple group keeps the menu open, Enter included, and leaves the other
+    // group's choice alone.
+    await userEvent.click(screen.getByRole('menuitemcheckbox', { name: 'Sizes' }));
+    expect(screen.getByRole('menuitemcheckbox', { name: 'Sizes' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    expectOpen('View');
+    screen.getByRole('menuitemcheckbox', { name: 'Names' }).focus();
+    await userEvent.keyboard('{Enter}');
+    expect(screen.getByRole('menuitemcheckbox', { name: 'Names' })).toHaveAttribute(
+      'aria-checked',
+      'false',
+    );
+    expectOpen('View');
+    expect(screen.getByRole('menuitemradio', { name: 'Grid' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    expect(onLayout).not.toHaveBeenCalled();
+    // `deselectable={false}`: the chosen layout can't be cleared.
+    await userEvent.click(screen.getByRole('menuitemradio', { name: 'Grid' }));
+    expect(onLayout).not.toHaveBeenCalled();
+    await closed();
+    await openMenu('View');
+    expect(screen.getByRole('menuitemradio', { name: 'Grid' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    // The arrows move across groups as one menu.
+    screen.getByRole('menuitemradio', { name: 'List' }).focus();
+    await userEvent.keyboard('{ArrowDown}');
+    expect(screen.getByRole('menuitemcheckbox', { name: 'Names' })).toHaveFocus();
+    await userEvent.keyboard('{ArrowUp}{Enter}');
+    expect([...onLayout.mock.calls[0]![0]]).toEqual(['list']);
+  });
+
+  it('makes a group with selectionMode="none" plain actions in a selectable menu', async () => {
+    const onSelectionChange = vi.fn();
+    const onAction = vi.fn();
+    render(
+      <MenuTrigger>
+        <Button>Sort</Button>
+        <Menu
+          aria-label="Sort"
+          selectionMode="single"
+          defaultSelectedKeys={['name']}
+          onSelectionChange={onSelectionChange}
+          onAction={onAction}
+        >
+          <MenuGroup title="Sort by">
+            <MenuItem key="name">Name</MenuItem>
+            <MenuItem key="date">Date</MenuItem>
+          </MenuGroup>
+          <MenuGroup aria-label="Actions" selectionMode="none">
+            <MenuItem key="reset">Reset sorting</MenuItem>
+          </MenuGroup>
+        </Menu>
+      </MenuTrigger>,
+    );
+    await openMenu('Sort');
+    expect(screen.getAllByRole('menuitemradio')).toHaveLength(2);
+    const reset = screen.getByRole('menuitem', { name: 'Reset sorting' });
+    expect(reset).not.toHaveAttribute('aria-checked');
+    // Space closes the menu after an action, though it keeps a single-select menu open.
+    reset.focus();
+    await userEvent.keyboard(' ');
+    expect(onAction.mock.lastCall?.[0]).toBe('reset');
+    expect(onSelectionChange).not.toHaveBeenCalled();
+    await closed();
+  });
+
+  it('reports only its own keys from a multiple group with every item selected', async () => {
+    const onShow = vi.fn();
+    const onSort = vi.fn();
+    const onDensity = vi.fn();
+    render(
+      <MenuTrigger>
+        <Button>View</Button>
+        <Menu
+          aria-label="View"
+          selectionMode="single"
+          defaultSelectedKeys={['comfortable']}
+          onSelectionChange={onDensity}
+        >
+          <MenuGroup
+            title="Show"
+            selectionMode="multiple"
+            defaultSelectedKeys="all"
+            onSelectionChange={onShow}
+          >
+            <MenuItem key="names">Names</MenuItem>
+            <MenuItem key="sizes">Sizes</MenuItem>
+            <MenuItem key="dates">Dates</MenuItem>
+          </MenuGroup>
+          <MenuGroup
+            title="Sort by"
+            selectionMode="single"
+            defaultSelectedKeys={['name']}
+            onSelectionChange={onSort}
+          >
+            <MenuItem key="name">Name</MenuItem>
+            <MenuItem key="size">Size</MenuItem>
+          </MenuGroup>
+          <MenuGroup title="Density">
+            <MenuItem key="comfortable">Comfortable</MenuItem>
+            <MenuItem key="compact">Compact</MenuItem>
+          </MenuGroup>
+        </Menu>
+      </MenuTrigger>,
+    );
+    await openMenu('View');
+    await userEvent.click(screen.getByRole('menuitemcheckbox', { name: 'Sizes' }));
+    expect([...onShow.mock.calls[0]![0]].sort()).toEqual(['dates', 'names']);
+    const checked = (role: string, name: string) =>
+      screen.getByRole(role, { name }).getAttribute('aria-checked');
+    expect(checked('menuitemcheckbox', 'Names')).toBe('true');
+    expect(checked('menuitemcheckbox', 'Sizes')).toBe('false');
+    expect(checked('menuitemradio', 'Name')).toBe('true');
+    expect(checked('menuitemradio', 'Size')).toBe('false');
+    expect(checked('menuitemradio', 'Comfortable')).toBe('true');
+    expect(checked('menuitemradio', 'Compact')).toBe('false');
+    expect(onSort).not.toHaveBeenCalled();
+    expect(onDensity).not.toHaveBeenCalled();
+  });
+
+  it("keeps a group's keys out of the menu's own 'all', from its keys or a select-all", async () => {
+    const onSelectionChange = vi.fn();
+    render(
+      <MenuTrigger>
+        <Button>View</Button>
+        <Menu
+          aria-label="View"
+          selectionMode="multiple"
+          defaultSelectedKeys="all"
+          onSelectionChange={onSelectionChange}
+        >
+          <MenuGroup title="Show">
+            <MenuItem key="names">Names</MenuItem>
+            <MenuItem key="sizes">Sizes</MenuItem>
+          </MenuGroup>
+          <MenuGroup aria-label="Actions" selectionMode="none">
+            <MenuItem key="reset">Reset the view</MenuItem>
+          </MenuGroup>
+          <MenuGroup title="Sort by" selectionMode="single" defaultSelectedKeys={['name']}>
+            <MenuItem key="name">Name</MenuItem>
+            <MenuItem key="size">Size</MenuItem>
+          </MenuGroup>
+        </Menu>
+      </MenuTrigger>,
+    );
+    await openMenu('View');
+    await userEvent.click(screen.getByRole('menuitemcheckbox', { name: 'Sizes' }));
+    expect([...onSelectionChange.mock.lastCall![0]]).toEqual(['names']);
+    // A select-all (Ctrl + A) is the menu's own items too, once a toggle spells it out.
+    screen.getByRole('menuitemcheckbox', { name: 'Names' }).focus();
+    await userEvent.keyboard('{Control>}a{/Control}');
+    expect(onSelectionChange.mock.lastCall![0]).toBe('all');
+    await userEvent.click(screen.getByRole('menuitemcheckbox', { name: 'Names' }));
+    expect([...onSelectionChange.mock.lastCall![0]]).toEqual(['sizes']);
+  });
+
+  it('fails loudly in development if the selection manager a group builds changes shape', () => {
+    // A group's manager comes from the menu manager's own constructor, React Stately's
+    // `SelectionManager` (not exported): take a method away from it, as a change would.
+    const { result } = renderHook(() => useTreeState({ children: <Item key="a">A</Item> }));
+    const prototype = Object.getPrototypeOf(result.current.selectionManager) as {
+      select?: unknown;
+    };
+    const select = prototype.select;
+    delete prototype.select;
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      expect(() =>
+        render(
+          <MenuTrigger defaultOpen>
+            <Button>Account</Button>
+            <Menu aria-label="Account">
+              <MenuGroup title="Signed in as" selectionMode="single">
+                <MenuItem key="alex">Alex Morgan</MenuItem>
+              </MenuGroup>
+            </Menu>
+          </MenuTrigger>,
+        ),
+      ).toThrow(/^\[@windmorph\/react\] MenuGroup: the selection manager .* lacks select\. /);
+    } finally {
+      prototype.select = select;
+      error.mockRestore();
+    }
   });
 
   it('disables items, which can still take focus', async () => {
@@ -556,6 +923,48 @@ describe('Menu', () => {
     await closed();
   });
 
+  it('names the menu by its own aria-label or aria-labelledby in the popover and the sheet alike, else by its trigger', async () => {
+    type Naming = { 'aria-label'?: string; 'aria-labelledby'?: string };
+    function Options({
+      naming,
+      presentation,
+    }: {
+      naming: Naming;
+      presentation: 'popover' | 'sheet';
+    }) {
+      return (
+        <>
+          <h2 id="document-heading">Document</h2>
+          <MenuTrigger>
+            <Button>More options</Button>
+            <Menu presentation={presentation} {...naming}>
+              <MenuItem key="rename">Rename</MenuItem>
+              <MenuItem key="share">Share</MenuItem>
+            </Menu>
+          </MenuTrigger>
+        </>
+      );
+    }
+    const cases: [Naming, string][] = [
+      [{ 'aria-label': 'Settings' }, 'Settings'],
+      [{ 'aria-labelledby': 'document-heading' }, 'Document'],
+      // `aria-labelledby` wins over `aria-label`, so the sheet's dialog takes it too.
+      [{ 'aria-label': 'Settings', 'aria-labelledby': 'document-heading' }, 'Document'],
+      [{}, 'More options'],
+    ];
+    for (const presentation of ['popover', 'sheet'] as const) {
+      for (const [naming, name] of cases) {
+        const view = render(<Options naming={naming} presentation={presentation} />);
+        await openMenu('More options');
+        expect(await screen.findByRole('menu', { name })).toBeInTheDocument();
+        if (presentation === 'sheet') {
+          expect(screen.getByRole('dialog', { name })).toBeInTheDocument();
+        }
+        view.unmount();
+      }
+    }
+  });
+
   it('opens in a bottom sheet with presentation="sheet", keeping the menu keyboard', async () => {
     const onAction = vi.fn();
     const { baseElement } = render(<EditMenu presentation="sheet" onAction={onAction} />);
@@ -602,7 +1011,7 @@ describe('Menu', () => {
           labels={{ back: 'Go back' }}
         >
           <MenuItem key="open">Open</MenuItem>
-          <SubmenuTrigger>
+          <SubmenuTrigger openDelay={0}>
             <MenuItem key="share">Share</MenuItem>
             <Menu aria-label="Share" onAction={onAction}>
               <MenuItem key="email">Email</MenuItem>
@@ -615,9 +1024,12 @@ describe('Menu', () => {
     await openMenu('File');
     const sheet = await screen.findByRole('dialog', { name: 'File' });
     const share = within(sheet).getByRole('menuitem', { name: 'Share' });
+    // The pages read which way the last change went, from the first change on, so the menu
+    // itself never comes in as a page as the sheet opens.
+    const pages = within(sheet).getByRole('menu', { name: 'File' }).parentElement!;
+    expect(pages).not.toHaveAttribute('data-page-direction');
     // Hovering doesn't open it: it would replace the menu under the pointer.
-    await userEvent.hover(share);
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await hoverPastOpenDelay(share);
     expect(screen.queryByRole('menu', { name: 'Share' })).not.toBeInTheDocument();
 
     share.focus();
@@ -626,6 +1038,7 @@ describe('Menu', () => {
     await waitFor(() =>
       expect(within(submenu).getByRole('menuitem', { name: 'Email' })).toHaveFocus(),
     );
+    expect(pages).toHaveAttribute('data-page-direction', 'forward');
     // After the menu that opened it, which the sheet's styles hide, below a back button and
     // the item's label; the list spans the sheet like the menu's.
     const panel = submenu.closest('[data-submenu-panel]')!;
@@ -640,6 +1053,9 @@ describe('Menu', () => {
       expect(screen.queryByRole('menu', { name: 'Share' })).not.toBeInTheDocument(),
     );
     await waitFor(() => expect(share).toHaveFocus());
+    expect(root.parentElement).toHaveAttribute('data-page-direction', 'back');
+    // Shown again, the menu comes in as a page does.
+    expect(root.className).toContain('starting:opacity-0');
 
     // So does the back button.
     await userEvent.keyboard('{Enter}');
@@ -659,6 +1075,110 @@ describe('Menu', () => {
       timeout: 1500,
     });
     await waitFor(() => expect(screen.getByRole('button', { name: 'File' })).toHaveFocus());
+  });
+
+  it('goes back one page with Escape on the back button of its sheet', async () => {
+    render(<PlayerSettings presentation="sheet" />);
+    await openMenu('Settings');
+    const sheet = await screen.findByRole('dialog', { name: 'Settings' });
+    within(sheet)
+      .getByRole('menuitem', { name: /^Subtitles/ })
+      .focus();
+    await userEvent.keyboard('{ArrowRight}');
+    const subtitles = await within(sheet).findByRole('menu', { name: /^Subtitles/ });
+    within(sheet).getByRole('button', { name: 'Back' }).focus();
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(subtitles).not.toBeInTheDocument());
+    expect(sheet).toBeInTheDocument();
+    await waitFor(() =>
+      expect(within(sheet).getByRole('menuitem', { name: /^Subtitles/ })).toHaveFocus(),
+    );
+  });
+
+  it('takes its arrow keys from the direction of the page around it, in right to left', async () => {
+    render(
+      <div dir="rtl">
+        <PlayerSettings presentation="sheet" />
+      </div>,
+    );
+    await openMenu('Settings');
+    const sheet = await screen.findByRole('dialog', { name: 'Settings' });
+    const subtitles = within(sheet).getByRole('menuitem', { name: /^Subtitles/ });
+    // → is back in right to left: it opens nothing.
+    subtitles.focus();
+    await userEvent.keyboard('{ArrowRight}');
+    expect(within(sheet).queryByRole('menu', { name: /^Subtitles/ })).not.toBeInTheDocument();
+    // ← opens the page, and → on its items or its back button goes back.
+    await userEvent.keyboard('{ArrowLeft}');
+    const page = await within(sheet).findByRole('menu', { name: /^Subtitles/ });
+    await waitFor(() => expect(page).toContainElement(document.activeElement as HTMLElement));
+    await userEvent.keyboard('{ArrowRight}');
+    await waitFor(() => expect(page).not.toBeInTheDocument());
+    await waitFor(() => expect(subtitles).toHaveFocus());
+    await userEvent.keyboard('{ArrowLeft}');
+    await within(sheet).findByRole('menu', { name: /^Subtitles/ });
+    within(sheet).getByRole('button', { name: 'Back' }).focus();
+    await userEvent.keyboard('{ArrowRight}');
+    await waitFor(() =>
+      expect(within(sheet).queryByRole('menu', { name: /^Subtitles/ })).not.toBeInTheDocument(),
+    );
+    await waitFor(() => expect(subtitles).toHaveFocus());
+  });
+
+  it('keeps the page’s locale with the region’s direction in a sheet, in right to left', async () => {
+    // A Serbian (Latin) page with a right-to-left region: the sheet's pages take the region's
+    // direction for their keys (← opens a page, → goes back) and keep the page's language.
+    render(
+      <LocaleProvider locale="sr-Latn">
+        <div dir="rtl">
+          <PlayerSettings presentation="sheet" />
+        </div>
+      </LocaleProvider>,
+    );
+    await openMenu('Settings');
+    const sheet = await screen.findByRole('dialog', { name: 'Settings' });
+    const subtitles = within(sheet).getByRole('menuitem', { name: /^Subtitles/ });
+    subtitles.focus();
+    await userEvent.keyboard('{ArrowLeft}');
+    const page = await within(sheet).findByRole('menu', { name: /^Subtitles/ });
+    await waitFor(() => expect(page).toContainElement(document.activeElement as HTMLElement));
+    await userEvent.keyboard('{ArrowRight}');
+    await waitFor(() => expect(subtitles).toHaveFocus());
+  });
+
+  it('opens its sheet again with the first page still, after a page went back', async () => {
+    render(
+      <MenuTrigger>
+        <Button>File</Button>
+        <Menu aria-label="File" presentation="sheet" submenuTransition="slide">
+          <MenuItem key="open">Open</MenuItem>
+          <SubmenuTrigger>
+            <MenuItem key="share">Share</MenuItem>
+            <Menu aria-label="Share">
+              <MenuItem key="email">Email</MenuItem>
+            </Menu>
+          </SubmenuTrigger>
+        </Menu>
+      </MenuTrigger>,
+    );
+    await openMenu('File');
+    let sheet = await screen.findByRole('dialog', { name: 'File' });
+    within(sheet).getByRole('menuitem', { name: 'Share' }).focus();
+    await userEvent.keyboard('{ArrowRight}');
+    await within(sheet).findByRole('menu', { name: 'Share' });
+    await userEvent.keyboard('{ArrowLeft}');
+    const pages = within(sheet).getByRole('menu', { name: 'File' }).parentElement!;
+    await waitFor(() => expect(pages).toHaveAttribute('data-page-direction', 'back'));
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument(), {
+      timeout: 1500,
+    });
+    // Opened again, the first page comes in with the sheet, not as a page coming back.
+    await openMenu('File');
+    sheet = await screen.findByRole('dialog', { name: 'File' });
+    expect(within(sheet).getByRole('menu', { name: 'File' }).parentElement).not.toHaveAttribute(
+      'data-page-direction',
+    );
   });
 
   // The menu's own sheet read the state of a sheet trigger around it: inside a sheet that a
@@ -761,6 +1281,528 @@ describe('Menu', () => {
   });
 });
 
+/**
+ * A player's settings menu with its submenus in place: Quality and Subtitles pages, Subtitles
+ * with a page of its own, a "Loop" checkbox group and an action on the first page.
+ */
+function PlayerSettings({
+  onAction,
+  quality: qualityProps,
+  ...props
+}: Partial<React.ComponentProps<typeof Menu>> & {
+  quality?: Partial<React.ComponentProps<typeof Menu>>;
+}) {
+  const [quality, setQuality] = useState<Selection>(new Set(['auto']));
+  const qualityLabel = { auto: 'Auto', '1080': '1080p', '720': '720p' }[
+    [...(quality as Set<string>)][0] as 'auto'
+  ];
+  return (
+    <MenuTrigger>
+      <IconButton icon={<svg />} aria-label="Settings" />
+      <Menu aria-label="Settings" submenuPresentation="replace" onAction={onAction} {...props}>
+        <SubmenuTrigger openDelay={0}>
+          <MenuItem key="quality" description={qualityLabel}>
+            Quality
+          </MenuItem>
+          <Menu
+            selectionMode="single"
+            deselectable={false}
+            selectedKeys={quality}
+            onSelectionChange={setQuality}
+            onAction={onAction}
+            {...qualityProps}
+          >
+            <MenuGroup aria-label="Resolutions">
+              <MenuItem key="auto">Auto</MenuItem>
+              <MenuItem key="1080">1080p</MenuItem>
+              <MenuItem key="720">720p</MenuItem>
+            </MenuGroup>
+            <MenuGroup aria-label="Playback problems" selectionMode="none">
+              <MenuItem key="stats">Show playback stats</MenuItem>
+            </MenuGroup>
+          </Menu>
+        </SubmenuTrigger>
+        <SubmenuTrigger openDelay={0}>
+          <MenuItem key="subtitles">Subtitles</MenuItem>
+          <Menu onAction={onAction}>
+            <MenuItem key="off">Off</MenuItem>
+            <MenuItem key="english">English</MenuItem>
+            <MenuItem key="french">French</MenuItem>
+            <SubmenuTrigger openDelay={0}>
+              <MenuItem key="size">Font size</MenuItem>
+              <Menu onAction={onAction}>
+                <MenuItem key="small">Small</MenuItem>
+                <MenuItem key="large">Large</MenuItem>
+              </Menu>
+            </SubmenuTrigger>
+          </Menu>
+        </SubmenuTrigger>
+        <MenuGroup aria-label="Playback" selectionMode="multiple">
+          <MenuItem key="loop">Loop</MenuItem>
+        </MenuGroup>
+        <MenuGroup aria-label="Help">
+          <MenuItem key="report">Report a problem</MenuItem>
+        </MenuGroup>
+      </Menu>
+    </MenuTrigger>
+  );
+}
+
+/** Opens the settings menu and the page of one of its items with the arrow key. */
+async function openPage(item: string, page = item) {
+  await openMenu('Settings');
+  screen.getByRole('menuitem', { name: new RegExp(`^${item}`) }).focus();
+  await userEvent.keyboard('{ArrowRight}');
+  return screen.findByRole('menu', { name: new RegExp(`^${page}`) });
+}
+
+describe('Menu submenus in place (submenuPresentation="replace")', () => {
+  it('shows a submenu in place of the menu on one surface, below a back button and its label', async () => {
+    render(<PlayerSettings classNames={{ panel: 'app-surface' }} />);
+    await openMenu('Settings');
+    const root = screen.getByRole('menu', { name: 'Settings' });
+    const surface = root.closest('[data-level]')!;
+    expect(surface).toHaveAttribute('data-level', '0');
+    expect(surface).toHaveAttribute('data-tokens', 'md-comp-menus');
+    // `panel` is the surface around the pages; the lists have none of their own.
+    expect(surface).toHaveClass('app-surface');
+    expect(root).not.toHaveClass('app-surface');
+    expect(root).toHaveClass('bg-transparent', 'shadow-none');
+    // Hovering doesn't open it: it would replace the content under the pointer.
+    const quality = screen.getByRole('menuitem', { name: /^Quality/ });
+    await hoverPastOpenDelay(quality);
+    expect(screen.queryByRole('menu', { name: /^Quality/ })).not.toBeInTheDocument();
+
+    await userEvent.click(quality);
+    const page = await screen.findByRole('menu', { name: /^Quality/ });
+    // The same surface, after the menu it hides, below a back button and the item's label.
+    expect(page.closest('[data-level]')).toBe(surface);
+    expect(surface).toHaveAttribute('data-level', '1');
+    const panel = page.closest<HTMLElement>('[data-submenu-panel]')!;
+    expect(root.compareDocumentPosition(panel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(within(panel).getByRole('button', { name: 'Back' })).toBeInTheDocument();
+    expect(panel.firstElementChild).toHaveTextContent('Quality');
+    // Opened by a press, focus moves in, to the selected choice.
+    await waitFor(() =>
+      expect(within(page).getByRole('menuitemradio', { name: 'Auto' })).toHaveFocus(),
+    );
+    expect(await axeViolations(document.body)).toEqual([]);
+  });
+
+  it('keeps typeahead to the page, for a letter the menu under it has too', async () => {
+    render(<PlayerSettings />);
+    const quality = await openPage('Quality');
+    await waitFor(() =>
+      expect(within(quality).getByRole('menuitemradio', { name: 'Auto' })).toHaveFocus(),
+    );
+    // "Show playback stats" here, "Subtitles" on the menu this page hides: a key that reached
+    // that menu would focus its item, out of sight.
+    await userEvent.keyboard('s');
+    expect(within(quality).getByRole('menuitem', { name: 'Show playback stats' })).toHaveFocus();
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: /^Quality/ })).toHaveFocus());
+  });
+
+  it('goes back one page with Escape, the back arrow or the back button, focusing the item', async () => {
+    render(<PlayerSettings />);
+    const subtitles = await openPage('Subtitles');
+    await waitFor(() =>
+      expect(within(subtitles).getByRole('menuitem', { name: 'Off' })).toHaveFocus(),
+    );
+    // Typeahead moves within the page (and keeps to it: see the test below).
+    await userEvent.keyboard('f');
+    expect(within(subtitles).getByRole('menuitem', { name: 'French' })).toHaveFocus();
+    await userEvent.keyboard('f');
+    expect(within(subtitles).getByRole('menuitem', { name: /^Font size/ })).toHaveFocus();
+    // Two pages deep, each way back goes up one level.
+    await userEvent.keyboard('{ArrowRight}');
+    const size = await screen.findByRole('menu', { name: /^Font size/ });
+    await waitFor(() =>
+      expect(within(size).getByRole('menuitem', { name: 'Small' })).toHaveFocus(),
+    );
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(size).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(within(subtitles).getByRole('menuitem', { name: /^Font size/ })).toHaveFocus(),
+    );
+    await userEvent.keyboard('{ArrowLeft}');
+    await waitFor(() => expect(subtitles).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: /^Subtitles/ })).toHaveFocus());
+    await userEvent.keyboard('{Enter}');
+    const again = await screen.findByRole('menu', { name: /^Subtitles/ });
+    await userEvent.click(screen.getByRole('button', { name: 'Back' }));
+    await waitFor(() => expect(again).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: /^Subtitles/ })).toHaveFocus());
+    // On the first page, Escape closes the menu.
+    await userEvent.keyboard('{Escape}');
+    await closed();
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Settings' })).toHaveFocus());
+  });
+
+  it('closes on a choice (Space keeps the page), stays on a toggle, and closes on an action', async () => {
+    const onAction = vi.fn();
+    render(<PlayerSettings onAction={onAction} />);
+    const quality = await openPage('Quality');
+    await waitFor(() =>
+      expect(within(quality).getByRole('menuitemradio', { name: 'Auto' })).toHaveFocus(),
+    );
+    await userEvent.keyboard('{ArrowDown} ');
+    expect(within(quality).getByRole('menuitemradio', { name: '1080p' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    expectOpen('Settings');
+    await userEvent.keyboard('{ArrowDown}{Enter}');
+    await closed();
+    // A toggle in the first page's checkbox group keeps the menu open.
+    await openMenu('Settings');
+    await userEvent.click(screen.getByRole('menuitemcheckbox', { name: 'Loop' }));
+    expectOpen('Settings');
+    // An action from a page closes the whole menu and returns focus to the trigger.
+    screen.getByRole('menuitem', { name: /^Subtitles/ }).focus();
+    await userEvent.keyboard('{ArrowRight}');
+    await screen.findByRole('menu', { name: /^Subtitles/ });
+    await userEvent.keyboard('{ArrowDown}{Enter}');
+    expect(onAction.mock.lastCall?.[0]).toBe('english');
+    await closed();
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Settings' })).toHaveFocus());
+  });
+
+  it('tells the pages which way they changed, from the first change on, and marks a slide', async () => {
+    const { unmount } = render(<PlayerSettings />);
+    await openMenu('Settings');
+    expect(screen.getByRole('menu', { name: 'Settings' }).parentElement).toHaveAttribute(
+      'data-page-transition',
+      'fade',
+    );
+    unmount();
+    render(<PlayerSettings submenuTransition="slide" />);
+    await openMenu('Settings');
+    const pages = screen.getByRole('menu', { name: 'Settings' }).parentElement!;
+    expect(pages).toHaveAttribute('data-page-transition', 'slide');
+    // Opening, the first page comes in with the menu's reveal, not as a page.
+    expect(pages).not.toHaveAttribute('data-page-direction');
+    screen.getByRole('menuitem', { name: /^Quality/ }).focus();
+    await userEvent.keyboard('{ArrowRight}');
+    await screen.findByRole('menu', { name: /^Quality/ });
+    expect(pages).toHaveAttribute('data-page-direction', 'forward');
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(pages).toHaveAttribute('data-page-direction', 'back'));
+  });
+
+  it('goes back after a choice with afterSelect="back", showing the choice on the page it returns to', async () => {
+    const onAction = vi.fn();
+    render(<PlayerSettings onAction={onAction} quality={{ afterSelect: 'back' }} />);
+    const quality = await openPage('Quality');
+    await waitFor(() =>
+      expect(within(quality).getByRole('menuitemradio', { name: 'Auto' })).toHaveFocus(),
+    );
+    // Space chooses and keeps the page.
+    await userEvent.keyboard('{ArrowDown} ');
+    expect(quality).toBeInTheDocument();
+    // Enter chooses and goes back: the item shows the new choice and takes focus.
+    await userEvent.keyboard('{ArrowDown}{Enter}');
+    await waitFor(() => expect(quality).not.toBeInTheDocument());
+    expectOpen('Settings');
+    const item = screen.getByRole('menuitem', { name: /^Quality/ });
+    expect(item).toHaveTextContent('720p');
+    await waitFor(() => expect(item).toHaveFocus());
+    // A press goes back too.
+    await userEvent.keyboard('{Enter}');
+    const again = await screen.findByRole('menu', { name: /^Quality/ });
+    await userEvent.click(within(again).getByRole('menuitemradio', { name: 'Auto' }));
+    await waitFor(() => expect(again).not.toBeInTheDocument());
+    expect(item).toHaveTextContent('Auto');
+    await waitFor(() => expect(item).toHaveFocus());
+    // An action on the page still closes the whole menu.
+    await userEvent.keyboard('{Enter}');
+    const last = await screen.findByRole('menu', { name: /^Quality/ });
+    await userEvent.click(within(last).getByRole('menuitem', { name: 'Show playback stats' }));
+    expect(onAction.mock.lastCall?.[0]).toBe('stats');
+    await closed();
+  });
+
+  it('keeps a multi-select page open on a toggle with afterSelect="back"', async () => {
+    render(<PlayerSettings quality={{ afterSelect: 'back', selectionMode: 'multiple' }} />);
+    const quality = await openPage('Quality');
+    await userEvent.click(within(quality).getByRole('menuitemcheckbox', { name: '1080p' }));
+    await userEvent.keyboard('{Enter}');
+    expect(quality).toBeInTheDocument();
+    expectOpen('Settings');
+  });
+
+  it('closes only the submenu beside its item after a choice with afterSelect="back"', async () => {
+    render(<PlayerSettings submenuPresentation="beside" quality={{ afterSelect: 'back' }} />);
+    const quality = await openPage('Quality');
+    await waitFor(() =>
+      expect(within(quality).getByRole('menuitemradio', { name: 'Auto' })).toHaveFocus(),
+    );
+    await userEvent.keyboard('{ArrowDown}{Enter}');
+    const item = screen.getByRole('menuitem', { name: /^Quality/ });
+    await waitFor(() => expect(item).toHaveFocus());
+    expect(item).toHaveTextContent('1080p');
+    await waitFor(() => expect(quality).not.toBeInTheDocument(), { timeout: 1500 });
+    expectOpen('Settings');
+  });
+
+  it("puts a submenu's className and style on its page, which takes the root menu's variant", async () => {
+    render(
+      <PlayerSettings
+        quality={{ variant: 'vibrant', className: 'app-page', style: { marginTop: 3 } }}
+      />,
+    );
+    const quality = await openPage('Quality');
+    const page = quality.closest<HTMLElement>('[data-submenu-panel]')!;
+    expect(page).toHaveClass('app-page');
+    expect(page).toHaveStyle({ marginTop: '3px' });
+    // One surface, one variant: the root's (the plan's decision 4).
+    expect(page).toHaveAttribute('data-variant', 'standard');
+    expect(quality).toHaveAttribute('data-variant', 'standard');
+  });
+
+  it('goes back one page with Escape or the back arrow on the back button', async () => {
+    render(<PlayerSettings />);
+    await openMenu('Settings');
+    for (const key of ['{Escape}', '{ArrowLeft}']) {
+      screen.getByRole('menuitem', { name: /^Subtitles/ }).focus();
+      await userEvent.keyboard('{ArrowRight}');
+      const subtitles = await screen.findByRole('menu', { name: /^Subtitles/ });
+      const back = within(subtitles.closest<HTMLElement>('[data-submenu-panel]')!).getByRole(
+        'button',
+        { name: 'Back' },
+      );
+      back.focus();
+      await userEvent.keyboard(key);
+      await waitFor(() => expect(subtitles).not.toBeInTheDocument());
+      expectOpen('Settings');
+      await waitFor(() =>
+        expect(screen.getByRole('menuitem', { name: /^Subtitles/ })).toHaveFocus(),
+      );
+    }
+  });
+
+  it('keeps the page, and focus in it, while the menu leaves after an action on it', async () => {
+    const onAction = vi.fn();
+    render(<PlayerSettings onAction={onAction} />);
+    const subtitles = await openPage('Subtitles');
+    await waitFor(() =>
+      expect(within(subtitles).getByRole('menuitem', { name: 'Off' })).toHaveFocus(),
+    );
+    await userEvent.keyboard('{Enter}');
+    expect(onAction.mock.lastCall?.[0]).toBe('off');
+    // Closing, the menu plays its exit with the page it closed from, focus still on its item.
+    expect(screen.getByRole('button', { name: 'Settings', hidden: true })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
+    expect(subtitles).toBeInTheDocument();
+    expect(subtitles.closest('[data-level]')).toHaveAttribute('data-level', '1');
+    expect(document.activeElement).not.toBe(document.body);
+    await closed();
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Settings' })).toHaveFocus());
+  });
+
+  it('closes every page and the menu on Tab', async () => {
+    render(
+      <>
+        <PlayerSettings />
+        <Button>After</Button>
+      </>,
+    );
+    await openPage('Subtitles');
+    await userEvent.keyboard('{Tab}');
+    await closed();
+  });
+
+  it('changes pages with no motion when instant', async () => {
+    const heights = measurePages();
+    try {
+      // Measured, a page change springs to the new page's height...
+      const { unmount } = render(<PlayerSettings />);
+      const springs = await openPage('Quality');
+      await waitFor(() =>
+        expect(springs.closest('[data-level]')).toHaveAttribute('data-paging', 'true'),
+      );
+      unmount();
+      // ...and an instant menu takes it at once.
+      render(<PlayerSettings instant />);
+      const quality = await openPage('Quality');
+      const surface = quality.closest('[data-level]');
+      expect(quality.closest('[data-submenu-panel]')).toHaveClass('[transition-property:none]');
+      await waitFor(() => expect(surface).toHaveStyle({ height: '140px' }));
+      expect(surface).not.toHaveAttribute('data-paging');
+    } finally {
+      heights.mockRestore();
+    }
+    await userEvent.keyboard('{Escape}');
+    expect(screen.getByRole('menu', { name: 'Settings' })).toHaveClass(
+      '[transition-property:none]',
+    );
+  });
+
+  it('leaves a sheet in place as always, and follows submenuPresentation from 600px up with auto', async () => {
+    setMediaQueries({ [COMPACT_WINDOW]: true });
+    const { unmount } = render(
+      <PlayerSettings presentation="auto" submenuPresentation="beside" submenuTransition="slide" />,
+    );
+    const sheetPage = await openPage('Quality');
+    expect(sheetPage.closest('[role="dialog"]')).toBeInTheDocument();
+    expect(sheetPage.closest('[data-submenu-panel]')).toBeInTheDocument();
+    // The sheet's pages slide too.
+    expect(sheetPage.closest('[data-page-transition]')).toHaveAttribute(
+      'data-page-transition',
+      'slide',
+    );
+    unmount();
+    setMediaQueries({ [COMPACT_WINDOW]: false });
+    render(<PlayerSettings presentation="auto" />);
+    const page = await openPage('Quality');
+    expect(screen.queryByRole('dialog')).toBe(null);
+    expect(page.closest('[data-submenu-panel]')).toBeInTheDocument();
+  });
+});
+
+/** A player whose settings menu opens inside it (`portalContainer`), as an app passes it. */
+function Player({
+  menu,
+  scope,
+}: {
+  menu?: Partial<React.ComponentProps<typeof Menu>>;
+  scope?: Partial<React.ComponentProps<typeof ThemeScope>>;
+}) {
+  const [player, setPlayer] = useState<HTMLDivElement | null>(null);
+  return (
+    <div ref={setPlayer} data-testid="player" style={{ position: 'relative' }}>
+      <ThemeScope {...scope}>
+        <MenuTrigger>
+          <IconButton icon={<svg />} aria-label="Settings" />
+          <Menu aria-label="Settings" portalContainer={player} {...menu}>
+            <MenuItem key="quality">Quality</MenuItem>
+            <SubmenuTrigger>
+              <MenuItem key="speed">Playback speed</MenuItem>
+              <Menu>
+                <MenuItem key="normal">Normal</MenuItem>
+                <MenuItem key="fast">1.5×</MenuItem>
+              </Menu>
+            </SubmenuTrigger>
+          </Menu>
+        </MenuTrigger>
+      </ThemeScope>
+    </div>
+  );
+}
+
+describe('Menu in an element (portalContainer)', () => {
+  it('opens inside the element, with only the theme attributes that differ there', async () => {
+    const { unmount } = render(
+      <ThemeProvider defaultTheme="ocean" storage="none">
+        <Player />
+      </ThemeProvider>,
+    );
+    await openMenu('Settings');
+    const player = screen.getByTestId('player');
+    const wrapper = screen.getByRole('menu').closest('[data-overlay-scope]')!;
+    expect(wrapper.parentElement).toBe(player);
+    // Declared where the player's theme is in effect: nothing to write again, so an app's
+    // `:root` values reach it.
+    for (const name of ['data-theme', 'data-mode', 'data-contrast', 'data-motion']) {
+      expect(wrapper).not.toHaveAttribute(name);
+    }
+    unmount();
+    // Declared in another theme and direction than the player's: they go with it.
+    render(
+      <ThemeProvider defaultTheme="ocean" storage="none">
+        <Player scope={{ theme: 'rose', dir: 'rtl' }} />
+      </ThemeProvider>,
+    );
+    await openMenu('Settings');
+    const rose = screen.getByRole('menu').closest('[data-overlay-scope]')!;
+    expect(rose.parentElement).toBe(screen.getByTestId('player'));
+    expect(rose).toHaveAttribute('data-theme', 'rose');
+    expect(rose).toHaveAttribute('dir', 'rtl');
+    expect(rose).not.toHaveAttribute('data-motion');
+  });
+
+  it('keeps the menu, and a submenu beside it, within the element; a portal provider is no boundary', async () => {
+    const { unmount } = render(<Player />);
+    const player = screen.getByTestId('player');
+    // React Aria reads the boundary's box to keep the menu within it.
+    const box = vi.spyOn(player, 'getBoundingClientRect');
+    await openMenu('Settings');
+    expect(box).toHaveBeenCalled();
+    // React Aria measures a stand-in in the page where the player sits in its own coordinates.
+    const standIn = document.querySelector<HTMLElement>('[data-menu-boundary]')!;
+    expect(standIn.parentElement).toBe(document.documentElement);
+    expect(standIn).toHaveAttribute('aria-hidden', 'true');
+    expect(standIn.style.visibility).toBe('hidden');
+    const before = box.mock.calls.length;
+    screen.getByRole('menuitem', { name: 'Playback speed' }).focus();
+    await userEvent.keyboard('{ArrowRight}');
+    await screen.findByRole('menu', { name: 'Playback speed' });
+    expect(box.mock.calls.length).toBeGreaterThan(before);
+    await userEvent.keyboard('{Escape}{Escape}');
+    await closed();
+    expect(standIn).not.toBeInTheDocument();
+    unmount();
+
+    // In an app's portal provider's container, the menu is placed within the window.
+    const provided = document.createElement('div');
+    document.body.append(provided);
+    const providedBox = vi.spyOn(provided, 'getBoundingClientRect');
+    render(
+      <UNSAFE_PortalProvider getContainer={() => provided}>
+        <Player menu={{ portalContainer: null }} />
+      </UNSAFE_PortalProvider>,
+    );
+    await openMenu('Settings');
+    expect(provided).toContainElement(screen.getByRole('menu'));
+    expect(providedBox).not.toHaveBeenCalled();
+    provided.remove();
+  });
+
+  it('moves focus with Home, End, Page Up and Page Down without scrolling what holds the menu', async () => {
+    render(<Player />);
+    await openMenu('Settings');
+    // Their default would scroll a pane around the player, and the menu with it.
+    for (const key of ['End', 'Home', 'PageDown', 'PageUp']) {
+      expect(fireEvent.keyDown(document.activeElement!, { key }), key).toBe(false);
+    }
+    await userEvent.keyboard('{End}');
+    expect(screen.getByRole('menuitem', { name: 'Playback speed' })).toHaveFocus();
+  });
+
+  it('warns in development, once, when the element draws none of its children', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const video = document.createElement('video');
+    document.body.append(video);
+    render(
+      <MenuTrigger>
+        <Button>Speed</Button>
+        <Menu aria-label="Speed" portalContainer={video}>
+          <MenuItem key="normal">Normal</MenuItem>
+        </Menu>
+      </MenuTrigger>,
+    );
+    await openMenu('Speed');
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('a <video> never shows'));
+    // Once per container, however often the menu opens there.
+    await userEvent.keyboard('{Escape}');
+    await closed();
+    await openMenu('Speed');
+    await screen.findByRole('menu', { name: 'Speed' });
+    expect(warn).toHaveBeenCalledTimes(1);
+    warn.mockRestore();
+    video.remove();
+  });
+
+  it('opens a sheet over the window, not in the element', async () => {
+    render(<Player menu={{ presentation: 'sheet' }} />);
+    await openMenu('Settings');
+    const sheet = await screen.findByRole('dialog', { name: 'Settings' });
+    expect(screen.getByTestId('player')).not.toContainElement(sheet);
+  });
+});
+
 describe('Menu classNames', () => {
   it('puts each item part slot on its part', async () => {
     render(
@@ -837,6 +1879,41 @@ describe('Menu classNames', () => {
     // The sheet's outermost element: around the layer that moves the panel.
     expect(sheet.parentElement!.parentElement).toHaveClass('absolute');
     expect(within(sheet).getByRole('menu')).toHaveClass('panel-x');
+  });
+
+  it("puts header, back and title on the row above a submenu's page, with the menu's back icon", async () => {
+    render(
+      <MenuTrigger>
+        <Button>File</Button>
+        <Menu
+          aria-label="File"
+          presentation="sheet"
+          backIcon={<svg data-testid="back-icon" />}
+          classNames={{ header: 'app-header', back: 'app-back', title: 'app-title' }}
+        >
+          <SubmenuTrigger>
+            <MenuItem key="share">Share</MenuItem>
+            <Menu aria-label="Share" classNames={{ title: 'share-title' }}>
+              <MenuItem key="email">Email</MenuItem>
+            </Menu>
+          </SubmenuTrigger>
+        </Menu>
+      </MenuTrigger>,
+    );
+    await openMenu('File');
+    const sheet = await screen.findByRole('dialog', { name: 'File' });
+    within(sheet).getByRole('menuitem', { name: 'Share' }).focus();
+    await userEvent.keyboard('{ArrowRight}');
+    const back = await within(sheet).findByRole('button', { name: 'Back' });
+    expect(back).toHaveClass('app-back');
+    expect(within(back).getByTestId('back-icon')).toBeInTheDocument();
+    const header = back.parentElement!;
+    expect(header).toHaveClass('app-header');
+    expect(within(header).getByText('Share')).toHaveClass('app-title', 'share-title');
+    // The row reads the menu's tokens, as the items do, so `vibrant` and overrides reach it.
+    const page = header.closest('[data-submenu-panel]')!;
+    expect(page).toHaveAttribute('data-tokens', 'md-comp-menus');
+    expect(page).toHaveAttribute('data-variant', 'standard');
   });
 });
 

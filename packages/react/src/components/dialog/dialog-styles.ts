@@ -118,7 +118,7 @@ export const dialogStyles = tv({
       'forced-colors:outline-solid forced-colors:outline-1 forced-colors:outline-[CanvasText]',
     ],
     icon: [
-      'mx-auto inline-flex pb-[16px] [&>svg]:size-[24px]',
+      'mx-auto inline-flex pb-[16px] [&>svg]:size-[24px] [&>:only-child:has(>svg)]:size-[24px]',
       'text-[color:var(--_md-comp-dialog-with-icon-icon-color)]',
     ],
     title: [

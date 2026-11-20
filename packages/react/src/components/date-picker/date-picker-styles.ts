@@ -55,7 +55,7 @@ export const datePickerStyles = tv({
     nav: 'flex h-[56px] shrink-0 items-center justify-between',
     navButtons: 'flex items-center text-on-surface-variant',
     yearButtonIcon: [
-      'inline-flex size-[18px] [&>svg]:size-full',
+      'inline-flex size-[18px] [&>svg]:size-full [&>:only-child:has(>svg)]:size-full',
       '[transition-property:rotate] [transition-duration:var(--md-sys-motion-spring-spatial-default-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing)]',
       'group-data-[years]/picker:rotate-180',
@@ -216,7 +216,7 @@ export const dockedDatePickerStyles = tv({
     group: 'flex items-center text-on-surface-variant',
     menuButton: 'min-w-0 ps-[8px] pe-[4px] text-on-surface-variant',
     menuIcon: [
-      'inline-flex size-[18px] [&>svg]:size-full',
+      'inline-flex size-[18px] [&>svg]:size-full [&>:only-child:has(>svg)]:size-full',
       '[transition-property:rotate] [transition-duration:var(--md-sys-motion-spring-spatial-default-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing)]',
       'data-open:rotate-180',
@@ -232,7 +232,7 @@ export const dockedDatePickerStyles = tv({
       'data-selected:bg-surface-variant',
       'data-disabled:cursor-default data-disabled:text-on-surface/38',
     ],
-    check: 'inline-flex size-[24px] shrink-0 [&>svg]:size-full',
+    check: 'inline-flex size-[24px] shrink-0 [&>svg]:size-full [&>:only-child:has(>svg)]:size-full',
     actions: 'flex shrink-0 items-center justify-end gap-[8px] pt-[4px] pb-[8px]',
   },
 });

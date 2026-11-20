@@ -2038,6 +2038,8 @@ export const COMPONENT_META: ComponentMeta[] = [
       'useEntrance',
       'useKeepPressedInPlace',
       'useNearestReveal',
+      'usePageHeight',
+      'useReorder',
       'useSliderTouchTrack',
       'useScrollRestoration',
       'useScrollKeys',

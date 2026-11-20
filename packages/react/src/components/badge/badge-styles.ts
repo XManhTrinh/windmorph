@@ -63,7 +63,8 @@ export const badgeStyles = tv({
 export const badgedBoxStyles = tv({
   slots: {
     root: 'inline-grid shrink-0 grid-cols-[100%] grid-rows-[100%] align-middle',
-    // A bare SVG anchor gets Compose's default 24px icon size; wrap other sizes.
+    // A bare SVG anchor gets Compose's default 24px icon size. For another size, wrap it in an
+    // element of that size: the anchor leaves a wrapper the size the app gives it.
     anchor: 'col-start-1 row-start-1 flex items-center justify-center [&>svg]:size-[24px]',
     // The zero-size box the badge hangs from; a large badge (its root's `data-size`) hangs
     // further in and lower.

@@ -71,6 +71,47 @@ test.describe('Select visual regression', () => {
 });
 
 test.describe('Select behaviour', () => {
+  test('opened while its sheet loads, Escape and a press outside close it, and it never opens after', async ({
+    page,
+  }) => {
+    const SHEET_CHUNK = /\/BottomSheet-[\w-]+\.js/;
+    let release = () => {};
+    const waiting = new Promise<void>((resolve) => (release = resolve));
+    let asked = () => {};
+    const requested = new Promise<void>((resolve) => (asked = resolve));
+    await page.route(SHEET_CHUNK, async (route) => {
+      asked();
+      await waiting;
+      await route.continue();
+    });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await openStory(page, 'components-select--sheet');
+    const field = page.getByRole('button', { name: /Sort by/ });
+    const open = async () => {
+      await field.focus();
+      await page.keyboard.press('Enter');
+      await expect(field).toHaveAttribute('aria-expanded', 'true');
+      // No list is in the page yet for the field to name.
+      await expect(field).not.toHaveAttribute('aria-controls');
+    };
+    await open();
+    await requested;
+    await page.keyboard.press('Escape');
+    await expect(field).toHaveAttribute('aria-expanded', 'false');
+    await expect(field).toBeFocused();
+    await open();
+    await page.mouse.click(5, 5);
+    await expect(field).toHaveAttribute('aria-expanded', 'false');
+    // The sheet coming in opens nothing.
+    release();
+    await page.waitForResponse(SHEET_CHUNK);
+    await page.evaluate(
+      () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+    );
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(field).toHaveAttribute('aria-expanded', 'false');
+  });
+
   test('a press anywhere on the field opens the menu, under the field and as wide', async ({
     page,
   }) => {

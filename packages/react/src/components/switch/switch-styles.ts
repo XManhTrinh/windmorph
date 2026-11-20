@@ -84,7 +84,7 @@ export const switchStyles = tv({
       'forced-colors:group-data-disabled/control:bg-[GrayText]! forced-colors:group-data-disabled/control:text-[Canvas]!',
       'forced-colors:group-data-disabled/control:control-checked:bg-[Canvas]! forced-colors:group-data-disabled/control:control-checked:text-[GrayText]!',
     ],
-    icon: 'inline-flex size-[16px] items-center justify-center [&>svg]:size-full',
+    icon: 'inline-flex size-[16px] items-center justify-center [&>svg]:size-full [&>:only-child:has(>svg)]:size-full',
   },
   defaultVariants: { kind: 'track' },
 });

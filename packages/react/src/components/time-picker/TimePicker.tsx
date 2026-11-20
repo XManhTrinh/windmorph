@@ -25,12 +25,13 @@ import {
   useFocusVisible,
   useHover,
   useLocale,
-  useNumberFormatter,
 } from 'react-aria';
 import { useControlledState } from 'react-stately/useControlledState';
 import { NO_DEFAULT_LABELS, useLabels } from '../labels/use-labels';
 import { useM3Spring } from '../../motion/use-m3-spring';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
+import { usePageNumberFormatter } from '../../primitives/use-page-number-formatter';
+import { usePageLocale } from '../../primitives/use-page-locale';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
@@ -202,7 +203,7 @@ export function TimePicker({
 }: TimePickerProps) {
   const labels = useLabels('TimePicker', NO_DEFAULT_LABELS, labelsProp);
   const { root: data } = splitRootProps(rest, { wrapper: true });
-  const { locale } = useLocale();
+  const locale = usePageLocale();
   const hourCycle = hourCycleProp ?? localeHourCycle(locale);
   const [time, setTime] = useControlledState(value, defaultValue ?? new Time(12, 0), onChange);
   const [chosenMode] = useControlledState(modeProp, defaultMode, onModeChange);
@@ -212,8 +213,8 @@ export function TimePicker({
   const resolvedLayout = mode === 'input' || fits === 'none' ? 'vertical' : fits;
   const [selection, setSelection] = useState<'hour' | 'minute'>('hour');
   const styles = timePickerStyles({ hourCycle, mode, layout: resolvedLayout });
-  const pad = useNumberFormatter({ minimumIntegerDigits: 2, useGrouping: false });
-  const plain = useNumberFormatter({ useGrouping: false });
+  const pad = usePageNumberFormatter({ minimumIntegerDigits: 2, useGrouping: false });
+  const plain = usePageNumberFormatter({ useGrouping: false });
   const isPm = time.hour >= 12;
   const displayHour = hourCycle === 24 ? time.hour : time.hour % 12 || 12;
   // Two digits on both clocks, as Compose's selector and input show a 12-hour "02"

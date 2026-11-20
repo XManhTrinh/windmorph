@@ -8,6 +8,7 @@ import ts from 'typescript';
 import { describe, expect, it } from 'vitest';
 import { checker, ENTRIES, exportedComponents, program } from '../test/exported-components';
 import {
+  ListItemVideo,
   Autocomplete,
   AutocompleteItem,
   Badge,
@@ -200,6 +201,7 @@ const CASES: Record<string, Case> = {
   FilterChip: { element: <FilterChip onRemove={() => {}}>Vegan</FilterChip> },
   IconButton: { element: <IconButton icon={icon} aria-label="Save" pending /> },
   InputChip: { element: <InputChip onRemove={() => {}}>Sam</InputChip> },
+  ListItemVideo: { element: <ListItemVideo src="/a.jpg" alt="" duration={252} /> },
   Menu: {
     element: (
       <MenuTrigger defaultOpen>

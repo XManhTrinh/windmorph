@@ -157,6 +157,28 @@ describe('DateField (docked date picker)', () => {
     expect(input).toHaveValue('05/03/2030');
   });
 
+  // React Aria reads direction only from a locale's script, so a region laid out the other way
+  // gives it the locale in another script (`en-Arab-GB`), which formats as plain `en`: the
+  // field showed MM/DD/YYYY and read 03/04/2030 as 4 March on an `en-GB` page.
+  it('writes and reads dates in the page’s locale inside a region of the other direction', async () => {
+    const onChange = vi.fn();
+    render(
+      <LocaleProvider locale="en-GB">
+        <div dir="rtl" style={{ direction: 'rtl' }}>
+          <DateField label="Date" onChange={onChange} />
+          <DateField label="Shown" defaultValue={new CalendarDate(2030, 4, 3)} />
+        </div>
+      </LocaleProvider>,
+    );
+    expect(screen.getByRole('textbox', { name: 'Shown' })).toHaveValue('03/04/2030');
+    const input = screen.getByRole('textbox', { name: 'Date' });
+    expect(input).toHaveAccessibleDescription('DD/MM/YYYY');
+    await userEvent.type(input, '03/04/2030');
+    await userEvent.tab();
+    expect(onChange).toHaveBeenLastCalledWith(new CalendarDate(2030, 4, 3));
+    expect(input).toHaveValue('03/04/2030');
+  });
+
   it('closes and saves on Enter', async () => {
     const onChange = vi.fn();
     render(<DateField label="Date" defaultValue={march} onChange={onChange} defaultOpen />);
@@ -204,6 +226,24 @@ describe('DateField (docked date picker)', () => {
     );
     await userEvent.click(within(years).getByRole('radio', { name: '2026' }));
     expect(within(calendar).getByRole('grid')).toHaveAccessibleName(/July 2026/);
+  });
+
+  // A region laid out the other way gives React Aria the locale in another script
+  // (`sr-Arab-RS`), which falls back to Serbian's Cyrillic month names on a Latin-script page.
+  it('names its months in the page’s script inside a region of the other direction', async () => {
+    render(
+      <LocaleProvider locale="sr-Latn-RS">
+        <div dir="rtl" style={{ direction: 'rtl' }}>
+          <DateField label="Date" defaultValue={march} defaultOpen />
+        </div>
+      </LocaleProvider>,
+    );
+    const calendar = screen.getByRole('dialog');
+    const month = within(calendar).getByRole('button', { name: /^mart/ });
+    await userEvent.click(month);
+    const months = within(calendar).getByRole('radiogroup');
+    expect(within(months).getAllByRole('radio')).toHaveLength(12);
+    expect(calendar.textContent).not.toMatch(/[\u0400-\u04FF]/);
   });
 
   it('moves to the month and year menus with Shift+M and Shift+Y', async () => {
