@@ -51,6 +51,7 @@ import { ShelfBody } from './shelf';
 import { FeaturedCarouselBody } from './featured-carousel';
 import { ReorderListBody } from './reorder-list';
 import { VideoPlayerBody } from './video-player';
+import { VideoPlayerSettingsBody } from './video-player-settings';
 import { StatTileBody } from './stat-tile';
 import { MeterBody } from './meter';
 import { LineChartBody } from './line-chart';
@@ -191,6 +192,7 @@ const BODIES: Record<string, ComponentDocLoader> = {
   'featured-carousel': FeaturedCarouselBody,
   'reorder-list': ReorderListBody,
   'video-player': VideoPlayerBody,
+  'video-player-settings': VideoPlayerSettingsBody,
   'stat-tile': StatTileBody,
   meter: MeterBody,
   'line-chart': LineChartBody,

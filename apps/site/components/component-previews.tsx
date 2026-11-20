@@ -668,6 +668,24 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
       </span>
     </span>
   ),
+  'video-player-settings': (
+    <span className="flex h-24 w-40 items-end justify-end rounded-corner-medium bg-inverse-surface p-1.5">
+      <span className="flex w-24 flex-col gap-1.5 rounded-corner-small bg-inverse-on-surface/20 p-2">
+        <span className="flex justify-between">
+          <span className="h-1.5 w-10 rounded-full bg-inverse-on-surface" />
+          <span className="h-1.5 w-5 rounded-full bg-inverse-on-surface/60" />
+        </span>
+        <span className="flex justify-between">
+          <span className="h-1.5 w-8 rounded-full bg-inverse-on-surface" />
+          <span className="h-1.5 w-6 rounded-full bg-inverse-on-surface/60" />
+        </span>
+        <span className="flex justify-between">
+          <span className="h-1.5 w-9 rounded-full bg-inverse-on-surface" />
+          <span className="h-1.5 w-4 rounded-full bg-inverse-primary" />
+        </span>
+      </span>
+    </span>
+  ),
   'shaped-icon': (
     <Row gap={3}>
       <Shape w={40} h={40} fill="primary" round="lg" />

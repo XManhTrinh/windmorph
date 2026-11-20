@@ -181,4 +181,48 @@ export const MEDIA_PRO_SPEC: Record<string, ComponentSpecData> = {
       },
     ],
   },
+  'video-player-settings': {
+    showcaseReason:
+      'It opens inside a video player, or alone in an element you name, so its examples show it in both places rather than a playground of its own.',
+    covers: [
+      {
+        name: "In a player's `settings` slot, with the rows the player fills",
+        kind: 'use case',
+        examples: ['video-player-settings/video-player-settings-slot'],
+      },
+      {
+        name: 'A choice page (`VideoPlayerSettingsChoice`)',
+        kind: 'configuration',
+        examples: [
+          'video-player-settings/video-player-settings-slot',
+          'video-player-settings/video-player-settings-alone',
+        ],
+      },
+      {
+        name: 'Alone, from your own button (`VideoPlayerSettingsTrigger`, `container`)',
+        kind: 'use case',
+        examples: ['video-player-settings/video-player-settings-alone'],
+      },
+      {
+        name: 'The speed page, with a locked preset (`VideoPlayerSettingsSpeed`)',
+        kind: 'configuration',
+        examples: ['video-player-settings/video-player-settings-alone'],
+      },
+      {
+        name: 'A switch, an action and a page of your own',
+        kind: 'configuration',
+        examples: ['video-player-settings/video-player-settings-alone'],
+      },
+    ],
+    extensions: [
+      {
+        item: 'Not an M3 component',
+        note: 'M3’s menus open submenus beside the item and are modal; this panel’s pages take its place at the player’s corner and leave the video playing, with the core `BottomSheet` on phones.',
+      },
+      {
+        item: 'Readable over any picture',
+        note: 'Its fill (72% `scrim`) keeps every word at 4.5:1 over a white frame without the blur, a selected preset’s label included, in every theme and contrast level.',
+      },
+    ],
+  },
 };

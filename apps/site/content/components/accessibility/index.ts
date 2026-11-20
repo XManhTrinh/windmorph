@@ -36,6 +36,7 @@ import { shelf } from './shelf';
 import { featuredCarousel } from './featured-carousel';
 import { reorderList } from './reorder-list';
 import { videoPlayer } from './video-player';
+import { videoPlayerSettings } from './video-player-settings';
 import { statTile } from './stat-tile';
 import { meter } from './meter';
 import { lineChart } from './line-chart';
@@ -132,6 +133,7 @@ export const ACCESSIBILITY: Record<string, ComponentAccessibility> = {
   'featured-carousel': featuredCarousel,
   'reorder-list': reorderList,
   'video-player': videoPlayer,
+  'video-player-settings': videoPlayerSettings,
   'stat-tile': statTile,
   meter: meter,
   'line-chart': lineChart,
