@@ -1,7 +1,8 @@
 /**
  * Measures what each public component costs an app: the gzipped size of its module in the
  * built `dist/` plus every library module it imports statically, directly or not (modules it
- * loads with a dynamic `import()` load only when used, so they're left out). Dependencies (React,
+ * loads with a dynamic `import()` load only when used, so they're left out of it, and measured on
+ * their own by what they add as they load). Dependencies (React,
  * React Aria, Motion, …) are left out: an app shares them between components, and they are
  * not this package's to budget.
  */
@@ -15,6 +16,12 @@ export interface EntrySize {
   exports: string[];
   /** Gzipped bytes of the module and the library modules it imports. */
   gzip: number;
+  /**
+   * For a module a component loads on demand (with `import()`): the module that loads it. Its
+   * size is then what it adds as it loads: it and the library modules it imports that the
+   * loading module doesn't import already.
+   */
+  loadedBy?: string;
 }
 
 /** Every component module's size, keyed by its path in `dist` without `.js`. */
@@ -93,13 +100,54 @@ export function componentEntries(distDir: string): Map<string, string[]> {
   return entries;
 }
 
-/** Every public component module's size, sorted by module path. */
+/**
+ * Dynamic imports (`import("./x.js")`): modules loaded only when the code that imports them
+ * runs.
+ */
+const DYNAMIC_IMPORT = /\bimport\(\s*["'](\.{1,2}\/[^"']+)["']\s*\)/g;
+
+/**
+ * The library modules the component modules load on demand, and the module that loads each,
+ * leaving out those that are component modules themselves (measured as such).
+ */
+export function onDemandEntries(distDir: string, components: string[]): Map<string, string> {
+  const found = new Map<string, string>();
+  const isComponent = new Set(components.map((entry) => `${entry}.js`));
+  for (const component of components) {
+    for (const file of moduleClosure(distDir, `${component}.js`)) {
+      const code = readFileSync(join(distDir, file), 'utf8');
+      for (const [, specifier] of code.matchAll(DYNAMIC_IMPORT)) {
+        const target = relative(distDir, normalize(join(dirname(join(distDir, file)), specifier!)));
+        if (isComponent.has(target) || found.has(target)) continue;
+        found.set(target, file);
+      }
+    }
+  }
+  return found;
+}
+
+/**
+ * Every public component module's size, and what each module they load on demand adds as it
+ * loads, sorted by module path.
+ */
 export function measure(distDir: string): SizeReport {
   const report: SizeReport = {};
-  for (const [entry, exports] of [...componentEntries(distDir)].sort(([a], [b]) =>
-    a.localeCompare(b),
-  )) {
+  const components = [...componentEntries(distDir)].sort(([a], [b]) => a.localeCompare(b));
+  for (const [entry, exports] of components) {
     report[entry] = { exports, gzip: gzipSize(distDir, moduleClosure(distDir, `${entry}.js`)) };
+  }
+  const onDemand = onDemandEntries(
+    distDir,
+    components.map(([entry]) => entry),
+  );
+  for (const [target, loader] of [...onDemand].sort(([a], [b]) => a.localeCompare(b))) {
+    const already = new Set(moduleClosure(distDir, loader));
+    const adds = moduleClosure(distDir, target).filter((file) => !already.has(file));
+    report[target.replace(/\.js$/, '')] = {
+      exports: [],
+      loadedBy: loader.replace(/\.js$/, ''),
+      gzip: gzipSize(distDir, adds),
+    };
   }
   return report;
 }

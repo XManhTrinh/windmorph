@@ -6,11 +6,12 @@
  * - public type declarations do not reference the vendored colour library,
  * - components that open a bottom sheet only in some presentations load it lazily: the sheet
  *   is not among their static imports. ButtonGroup loads its overflow menu the same way, so
- *   Menu is not among its static imports either. Components that show a tooltip of their own
- *   (icon buttons, FABs, the toolbar's FAB, the pickers) load the tooltip on hover or focus,
- *   option lists load their loading indicator only while loading, and buttons only while
- *   pending. DateField loads the
- *   modal date picker it opens on compact windows only there,
+ *   Menu is not among its static imports either, and Menu (and what's built on it) loads its
+ *   pages in place and its `portalContainer` code the same way. Components that show a
+ *   tooltip of their own (icon buttons, FABs, the toolbar's FAB, the pickers) load the
+ *   tooltip on hover or focus, option lists load their loading indicator only while loading,
+ *   and buttons only while pending. DateField loads the modal date picker it opens on compact
+ *   windows only there,
  * - `List` draws its checkboxes, radio buttons and switches from the small modules it shares
  *   with those controls, not from the controls' own modules,
  * - the static shape outlines (`materialShapeMask` and the precomputed `<name>Shape`
@@ -69,6 +70,14 @@ const LAZY_IMPORTS: { component: string; lazy: string }[] = [
   { component: 'components/menu/Menu.js', lazy: 'components/sheet/BottomSheet.js' },
   { component: 'components/select/Select.js', lazy: 'components/sheet/BottomSheet.js' },
   { component: 'components/button-group/ButtonGroup.js', lazy: 'components/menu/Menu.js' },
+  // A menu loads its sheet, its pages in place and its `portalContainer` code only when it uses
+  // them, so a menu whose submenus open beside it, in `body`, doesn't carry them.
+  ...[
+    'components/menu/Menu.js',
+    'components/fab-menu/FabMenu.js',
+    'components/split-button/SplitButton.js',
+    'components/button-group/overflow-menu-list.js',
+  ].map((component) => ({ component, lazy: 'components/menu/menu-in-place.js' })),
   ...[
     'components/icon-button/IconButton.js',
     'components/fab/Fab.js',

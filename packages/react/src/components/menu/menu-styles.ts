@@ -53,6 +53,15 @@ export const persistentScrollbar = [
   'supports-[not_selector(::-webkit-scrollbar)]:[scrollbar-width:thin] supports-[not_selector(::-webkit-scrollbar)]:[scrollbar-color:var(--md-sys-color-outline)_transparent]',
 ];
 
+// Where submenus show in place of the menu that opened them (a bottom sheet, or a popover with
+// `submenuPresentation="replace"`): every page but the last is hidden, the first page (the menu,
+// not portalled) and every earlier submenu page (portalled in after it, in an overlay scope), so
+// nested pages stack the same way. Shared with the pages' own styles (`menu-page-styles.ts`).
+export const menuPageStack = [
+  '[&>:not([data-overlay-scope]):has(~[data-overlay-scope])]:hidden',
+  '[&>[data-overlay-scope]:has(~[data-overlay-scope])>*]:hidden',
+];
+
 /** Variant definitions for {@link Menu} and its parts. */
 /**
  * Keeps a menu's placed box at the menu's own width (`!`, so a consumer's `w-full` or `min-w-*`
@@ -143,12 +152,10 @@ export const menuStyles = tv({
     badge: 'inline-flex shrink-0 items-center ps-[12px]',
     // A menu's place in a bottom sheet. An open submenu's panel follows the menu that opened
     // it (portalled in after it) and hides it, and any panel before it, while it's open.
-    sheetContent: [
-      'flex min-h-0 flex-1 flex-col px-[8px] pb-[16px]',
-      '[&>:not([data-overlay-scope]):has(~[data-overlay-scope])]:hidden',
-      '[&>[data-overlay-scope]:has(~[data-overlay-scope])>*]:hidden',
-    ],
-    // A submenu in a sheet: a back button and its item's label above its list, fading in.
+    sheetContent: ['flex min-h-0 flex-1 flex-col px-[8px] pb-[16px]', ...menuPageStack],
+    // A submenu in a sheet: a back button and its item's label above its list, fading in. Kept
+    // for apps that build on `menuStyles` (it's public): Menu's pages, in a sheet and in place,
+    // now take `menuPageStyles().panel`, which follows `submenuTransition`.
     sheetPanel: [
       'flex min-h-0 flex-1 flex-col opacity-100 starting:opacity-0',
       '[transition-property:opacity]',
