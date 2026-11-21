@@ -37,7 +37,11 @@ export interface ReorderOptions<K extends Key = Key> {
   threshold?: number;
   /** How near a scroller's edge it starts to scroll while dragging, in px. @default 48 */
   scrollEdge?: number;
-  /** The slide of rows changing place (a CSS transition's duration and easing); none: at once. */
+  /**
+   * The slide of rows changing place (a CSS transition's duration and easing); none: at once.
+   * The hook doesn't read reduced motion: pass a duration that resolves to 0 there (a motion
+   * token does), or leave the slide out.
+   */
   slide?: { duration: string; easing: string };
 }
 
@@ -266,15 +270,19 @@ export function useReorder<K extends Key>({
     const current = drag.current;
     const list = listRef.current;
     if (!current || !list) return;
-    // Rows still sliding from a move end their slide where it lands: the boxes are measured in
-    // place, and a row grabbed mid-slide follows the pointer at once, not on the slide's
-    // duration. Only the slide's inline transition goes; a row's own transitions stay.
+    // Rows still sliding from a move end their slide where it lands, so the boxes are measured
+    // in place and a row grabbed mid-slide follows the pointer at once. Clearing the inline
+    // transition alone doesn't stop a running one (the computed `all 0s` still matches
+    // `translate`): `none` does, and the layout read below takes the rows where they land.
+    // Then the inline transition goes, so a row's own transitions (a lift's shadow) stay.
+    const sliding: HTMLElement[] = [];
     for (const key of latest.current.keys) {
       const row = rowOf(list, key);
       const stop = row && slideListeners.get(row);
       if (!row || !stop) continue;
       stop();
-      row.style.transition = '';
+      row.style.transition = 'none';
+      sliding.push(row);
     }
     const scroller = scrollerOf(list);
     const listTop = list.getBoundingClientRect().top;
@@ -282,6 +290,7 @@ export function useReorder<K extends Key>({
       const box = rowOf(list, key)?.getBoundingClientRect();
       return { top: (box?.top ?? 0) - listTop, height: box?.height ?? 0 };
     });
+    for (const row of sliding) row.style.transition = '';
     const a = current.boxes[0];
     const b = current.boxes[1];
     current.gap = a && b ? Math.max(0, b.top - (a.top + a.height)) : 0;
