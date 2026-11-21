@@ -7,7 +7,7 @@ import type { DateFieldLabels } from './components/date-picker/DateField';
 import type { DatePickerLabels } from './components/date-picker/DatePicker';
 import type { PickerDialogLabels } from './components/date-picker/PickerDialog';
 import type { DialogHeaderLabels } from './components/dialog/Dialog';
-import type { ListItemVideoLabels } from './components/list/ListMedia';
+import type { ListItemVideoLabels } from './components/list/ListItemVideo';
 import type { MenuLabels } from './components/menu/Menu';
 import type { PullToRefreshLabels } from './components/pull-to-refresh/PullToRefresh';
 import type { SearchFieldLabels } from './components/search/SearchField';
