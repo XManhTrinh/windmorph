@@ -23,8 +23,8 @@ import { tv, type VariantProps } from '../../utils/tv';
  *
  * Leading images are 56dp squares and video thumbnails 100 × 56dp (small) or 114 × 64dp
  * (large), all with 8dp corners; avatars are 40dp circles in `primary-container`
- * (`ListMedia.tsx`). The item grows to fit them. Expandable items indent their nested items
- * 16dp per level and end with a chevron that turns over on the fast spatial spring; their
+ * (`ListMedia.tsx`, `ListItemVideo.tsx`). The item grows to fit them. Expandable items indent
+ * their nested items 16dp per level and end with a chevron that turns over on the fast spatial spring; their
  * nested items open and close their height on the default spatial spring while fading on
  * the default effects spring (only the fade under reduced motion). Dividers (standard lists) are 1px of
  * `outline-variant` on the item's bottom edge, full width or 16dp in from each side, drawn
