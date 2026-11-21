@@ -1,6 +1,6 @@
 # Menu: a group of choices beside plain actions
 
-Status: **approved 2026-11-18** (selection on `MenuGroup`, for 0.2.11).
+Status: **approved 2026-11-18**, **built** (merged in #99, 2026-11-20, for 0.2.11): `MenuGroup` takes `selectionMode`, `selectedKeys` / `defaultSelectedKeys`, `onSelectionChange` and `deselectable`, as below, with the checks listed.
 
 ## The gap
 

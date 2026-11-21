@@ -1,6 +1,6 @@
 # Plan: a media's length, formatted once
 
-Status: **approved 2026-11-19**, with Windmorph Pro's `DurationTag` plan. Building.
+Status: **approved 2026-11-19**, with Windmorph Pro's `DurationTag` plan. **Built** (2026-11-19, merged in #105 for 0.2.11): `formatClock` and `formatDurationWords` in `@windmorph/react/primitives`, `ListItemVideo`'s `duration` in seconds with `labels.duration`. `ListItemVideo` has its own module since 2026-11-21, so lists of images and avatars don't load the formatting.
 
 ## Goal
 
