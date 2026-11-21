@@ -54,8 +54,15 @@ export interface ReorderResult<K extends Key = Key> {
     'data-dragged'?: true;
     style?: CSSProperties;
   };
-  /** Props for a row's handle: the drag starts from it. */
-  handleProps: (key: K) => { onPointerDown: (event: ReactPointerEvent<HTMLElement>) => void };
+  /**
+   * Props for a row's handle: the drag starts from it. Its `style` holds `touch-action: none`,
+   * since only CSS stops a finger on the handle from scrolling the page instead of dragging; merge
+   * it with the handle's own style.
+   */
+  handleProps: (key: K) => {
+    onPointerDown: (event: ReactPointerEvent<HTMLElement>) => void;
+    style: CSSProperties;
+  };
   /** Moves a row by action. */
   move: (key: K, where: ReorderWhere) => void;
   /** Whether that move leads somewhere. */
@@ -103,6 +110,22 @@ function scrollerOf(element: HTMLElement): HTMLElement | null {
 
 const scrollTop = (scroller: HTMLElement | null, element: HTMLElement) =>
   scroller ? scroller.scrollTop : (element.ownerDocument.defaultView?.scrollY ?? 0);
+
+const HANDLE_STYLE: CSSProperties = { touchAction: 'none' };
+
+/**
+ * Whether a slide's duration is none at all (`0s`, `0ms`, or a `var()` that resolves to one), read
+ * on the row so a token set on it or above counts. No `transitionend` follows such a transition.
+ */
+function isInstant(row: HTMLElement, duration: string): boolean {
+  const computed = row.ownerDocument.defaultView?.getComputedStyle(row);
+  const resolved = duration.replace(
+    /var\(\s*(--[\w-]+)\s*(?:,([^)]*))?\)/g,
+    (_, name: string, fallback?: string) =>
+      computed?.getPropertyValue(name).trim() || fallback?.trim() || '',
+  );
+  return /^\s*[+-]?0*\.?0*m?s\s*$/.test(resolved) && /\d/.test(resolved);
+}
 
 /** The keys with one moved from `from` to `to`. */
 function moved<K>(keys: readonly K[], from: number, to: number): K[] {
@@ -287,7 +310,7 @@ export function useReorder<K extends Key>({
         if (from < 0 || !movable(key)) return;
         const window = event.currentTarget.ownerDocument.defaultView;
         if (!window) return;
-        // No text is selected and no touch scrolls while the handle is held.
+        // No text is selected while the handle is held (`style` stops touch scrolling).
         event.preventDefault();
         const { min, max } = range(from);
         drag.current = {
@@ -343,6 +366,7 @@ export function useReorder<K extends Key>({
           stopListening.current = () => undefined;
         };
       },
+      style: HANDLE_STYLE,
     }),
     [keys, movable, range, threshold, lift, follow],
   );
@@ -378,7 +402,8 @@ export function useReorder<K extends Key>({
       const was = places.get(key);
       if (!row || was === undefined) continue;
       const delta = was - row.getBoundingClientRect().top;
-      if (Math.abs(delta) < 0.5 || !motion) continue;
+      // No slide, or one of no length (no `transitionend` would clear it): it's there at once.
+      if (Math.abs(delta) < 0.5 || !motion || isInstant(row, motion.duration)) continue;
       row.style.transition = 'none';
       row.style.translate = `0 ${delta}px`;
       // Read once, so the browser takes the starting place before the slide.
