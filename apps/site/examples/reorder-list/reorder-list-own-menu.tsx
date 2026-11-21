@@ -47,7 +47,7 @@ export function ReorderListOwnMenu() {
       className="w-full max-w-md"
       moveMenu={false}
       handlePlacement="end"
-      onReorder={(keys) => setOrder(keys as string[])}
+      onReorder={(keys) => setOrder(keys)}
     >
       {order.map((id) => {
         const link = LINKS.find((item) => item.id === id)!;

@@ -22,7 +22,7 @@ export function ReorderListSteps() {
     <ReorderList
       aria-label="Recipe steps"
       className="w-full max-w-md"
-      onReorder={(keys) => setOrder(keys as string[])}
+      onReorder={(keys) => setOrder(keys)}
     >
       {order.map((id) => {
         const step = STEPS.find((item) => item.id === id)!;

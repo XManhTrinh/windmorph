@@ -86,8 +86,10 @@ export async function ReorderListBody(): Promise<ComponentDoc> {
             <li>
               The order is yours (controlled only): <InlineCode>onReorder(keys, move)</InlineCode>{' '}
               is called once a move lands, with every key in the new order and the{' '}
-              <InlineCode>&#123; key, from, to &#125;</InlineCode> of the move. Give the old order
-              back to refuse it, and the row slides back.
+              <InlineCode>&#123; key, from, to &#125;</InlineCode> of the move. Keys come back as
+              strings, as React keeps them (a key <InlineCode>7</InlineCode> is{' '}
+              <InlineCode>&quot;7&quot;</InlineCode>). Give the old order back to refuse it, and the
+              row slides back.
             </li>
             <li>
               Focus stays with the moved row&apos;s handle (or your own control in it) and the row
