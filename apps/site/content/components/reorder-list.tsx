@@ -109,8 +109,11 @@ export async function ReorderListBody(): Promise<ComponentDoc> {
             </li>
             <li>
               <InlineCode>handlePlacement=&quot;end&quot;</InlineCode> puts the handle at the
-              row&apos;s end. The lifted row carries <InlineCode>data-dragged</InlineCode>, and rows
-              of a disabled list <InlineCode>data-disabled</InlineCode>.
+              row&apos;s end. The lifted row carries <InlineCode>data-dragged</InlineCode>, a row
+              just dropped or put back <InlineCode>data-dropped</InlineCode> for its first frame in
+              place (the lifted look it fades from: style it as you style{' '}
+              <InlineCode>data-dragged</InlineCode>), and rows of a disabled list{' '}
+              <InlineCode>data-disabled</InlineCode>.
             </li>
           </ul>
         </section>
