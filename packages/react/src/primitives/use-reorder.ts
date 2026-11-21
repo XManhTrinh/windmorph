@@ -157,24 +157,56 @@ function splitList(value: string): string[] {
   return parts.filter(Boolean);
 }
 
+/** The inline transition longhands, kept one by one: an app may set only some of them. */
+const TRANSITION_LONGHANDS = [
+  'transition-property',
+  'transition-duration',
+  'transition-timing-function',
+  'transition-delay',
+  'transition-behavior',
+] as const;
+type InlineTransition = Record<(typeof TRANSITION_LONGHANDS)[number], string>;
+
+/** The row's inline transition as it is now (the app's, or none). */
+function readInline(row: HTMLElement): InlineTransition {
+  return Object.fromEntries(
+    TRANSITION_LONGHANDS.map((name) => [name, row.style.getPropertyValue(name)]),
+  ) as InlineTransition;
+}
+
+/** Puts back an inline transition read by {@link readInline}, longhand by longhand. */
+function restoreInline(row: HTMLElement, inline: InlineTransition) {
+  row.style.removeProperty('transition');
+  for (const name of TRANSITION_LONGHANDS) {
+    if (inline[name]) row.style.setProperty(name, inline[name]);
+  }
+}
+
 /**
  * The row's own transitions (its classes' and the app's inline one, a running slide set
- * aside), written out, or '' when it has none. A slide is added to them, never put in their place, so a row's own
- * fades (a lifted row's shadow going) still run while it slides.
+ * aside), written out, or '' when it has none. A slide is added to them, never put in their
+ * place, so a row's own fades (a lifted row's shadow going) still run while it slides.
  */
-function ownTransition(row: HTMLElement, inline: string): string {
-  row.style.transition = inline;
+function ownTransition(row: HTMLElement, inline: InlineTransition): string {
+  restoreInline(row, inline);
   const computed = row.ownerDocument.defaultView?.getComputedStyle(row);
   if (!computed) return '';
   const properties = splitList(computed.transitionProperty);
   const durations = splitList(computed.transitionDuration);
   const easings = splitList(computed.transitionTimingFunction);
   const delays = splitList(computed.transitionDelay);
+  const behaviors = splitList(computed.getPropertyValue('transition-behavior'));
   const entries = properties.flatMap((property, index) => {
     const duration = durations[index % durations.length] ?? '0s';
     const delay = delays[index % delays.length] ?? '0s';
     if (property === 'none' || (/^0m?s$/.test(duration) && /^0m?s$/.test(delay))) return [];
-    return [`${property} ${duration} ${easings[index % easings.length] ?? 'ease'} ${delay}`];
+    const easing = easings[index % easings.length] ?? 'ease';
+    // A discrete transition (`display`, `content-visibility`) keeps its `allow-discrete`.
+    const discrete =
+      behaviors.length && behaviors[index % behaviors.length] === 'allow-discrete'
+        ? ' allow-discrete'
+        : '';
+    return [`${property} ${duration} ${easing} ${delay}${discrete}`];
   });
   return entries.join(', ');
 }
@@ -183,7 +215,7 @@ function ownTransition(row: HTMLElement, inline: string): string {
  * Each sliding row's way to drop its slide listener, and the inline transition it had before
  * (an app's own, or none), put back when the slide ends.
  */
-const slides = new WeakMap<HTMLElement, { stop: () => void; inline: string }>();
+const slides = new WeakMap<HTMLElement, { stop: () => void; inline: InlineTransition }>();
 
 /**
  * The engine of a list whose rows a person puts in order (docs/plans/list-reorder.md): a drag
@@ -318,7 +350,7 @@ export function useReorder<K extends Key>({
     // transition alone doesn't stop a running one (the computed `all 0s` still matches
     // `translate`): `none` does, and the layout read below takes the rows where they land.
     // Then the inline transition goes, so a row's own transitions (a lift's shadow) stay.
-    const sliding: [HTMLElement, string][] = [];
+    const sliding: [HTMLElement, InlineTransition][] = [];
     for (const key of latest.current.keys) {
       const row = rowOf(list, key);
       const slide = row && slides.get(row);
@@ -333,7 +365,7 @@ export function useReorder<K extends Key>({
       const box = rowOf(list, key)?.getBoundingClientRect();
       return { top: (box?.top ?? 0) - listTop, height: box?.height ?? 0 };
     });
-    for (const [row, inline] of sliding) row.style.transition = inline;
+    for (const [row, inline] of sliding) restoreInline(row, inline);
     const a = current.boxes[0];
     const b = current.boxes[1];
     current.gap = a && b ? Math.max(0, b.top - (a.top + a.height)) : 0;
@@ -473,7 +505,7 @@ export function useReorder<K extends Key>({
       // starts. (Its `transitioncancel` arrives after the new slide has begun, so a slide is
       // never ended on a cancel, or the new one would jump.)
       const active = slides.get(row);
-      const inline = active ? active.inline : row.style.transition;
+      const inline = active ? active.inline : readInline(row);
       active?.stop();
       // The row's own transitions keep running (a drop's shadow fading out); only `translate`
       // is held still while the row takes its starting place, then slides.
@@ -493,7 +525,7 @@ export function useReorder<K extends Key>({
       };
       const clear = (event: TransitionEvent) => {
         if (event.target !== row || event.propertyName !== 'translate') return;
-        row.style.transition = inline;
+        restoreInline(row, inline);
         stop();
       };
       row.addEventListener('transitionend', clear);
