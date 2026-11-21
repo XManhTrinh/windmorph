@@ -40,17 +40,18 @@ const THEME_NAME = /^[a-z][a-z0-9-]*$/;
 const includes = <T extends string>(list: readonly T[], value: unknown): value is T =>
   typeof value === 'string' && (list as readonly string[]).includes(value);
 
-/** Serialises a theme state for a cookie or localStorage value. */
-export function serializeThemeState(state: ThemeState): string {
-  return encodeURIComponent(
-    new URLSearchParams({
-      theme: state.theme,
-      mode: state.mode,
-      contrast: state.contrast,
-      motion: state.motion,
-      density: String(state.density),
-    }).toString(),
-  );
+/**
+ * Serialises a theme state for a cookie or localStorage value. A dimension left out isn't
+ * written, so the stored value falls back to the default for it.
+ */
+export function serializeThemeState(state: Partial<ThemeState>): string {
+  const params = new URLSearchParams();
+  if (state.theme !== undefined) params.set('theme', state.theme);
+  if (state.mode !== undefined) params.set('mode', state.mode);
+  if (state.contrast !== undefined) params.set('contrast', state.contrast);
+  if (state.motion !== undefined) params.set('motion', state.motion);
+  if (state.density !== undefined) params.set('density', String(state.density));
+  return encodeURIComponent(params.toString());
 }
 
 /**

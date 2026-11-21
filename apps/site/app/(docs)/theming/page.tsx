@@ -267,10 +267,12 @@ export default async function ThemingPage() {
           <InlineCode>windmorph-theme</InlineCode>), read with{' '}
           <InlineCode>useSyncExternalStore</InlineCode> so there is no hydration mismatch, and
           written only once the selection changes, so a visitor who picks nothing gets no cookie.
-          The browser&apos;s saved selection is applied right after hydration; with a streaming
-          server, read the cookie there and pass every value as a <InlineCode>default*</InlineCode>{' '}
-          prop (see No theme flash), since a theme change after hydration makes React render the
-          Suspense boundaries still streaming on the client.{' '}
+          Only the person&apos;s own choices are stored: a dimension the app controls keeps the
+          value stored for it, so an app can force a mode for a while and the visitor&apos;s own
+          comes back when it stops. The browser&apos;s saved selection is applied right after
+          hydration; with a streaming server, read the cookie there and pass every value as a{' '}
+          <InlineCode>default*</InlineCode> prop (see No theme flash), since a theme change after
+          hydration makes React render the Suspense boundaries still streaming on the client.{' '}
           <InlineCode>applyToDocument</InlineCode> (default true) writes the{' '}
           <InlineCode>data-*</InlineCode> attributes to <InlineCode>&lt;html&gt;</InlineCode>.
         </p>
