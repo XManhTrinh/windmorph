@@ -92,6 +92,11 @@ export async function ReorderListBody(): Promise<ComponentDoc> {
               row slides back.
             </li>
             <li>
+              A key repeated across arrays or fragments still works: each row keeps its own place
+              and <InlineCode>onReorder</InlineCode> gives back the keys as written, while a
+              development warning names the repeated key so the app can make it unique.
+            </li>
+            <li>
               Focus stays with the moved row&apos;s handle (or your own control in it) and the row
               stays in view. A row that leaves while focus is in it hands focus to the row that took
               its place, else the one before, else the list.
