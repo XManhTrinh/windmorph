@@ -12,7 +12,11 @@ export function readStoredTheme(storage: ThemeStorage, key: string): string | nu
   return null;
 }
 
-export function writeStoredTheme(storage: ThemeStorage, key: string, state: ThemeState): void {
+export function writeStoredTheme(
+  storage: ThemeStorage,
+  key: string,
+  state: Partial<ThemeState>,
+): void {
   const value = serializeThemeState(state);
   try {
     if (storage === 'cookie') {

@@ -82,7 +82,9 @@ export interface ThemeProviderProps {
    * Where the selection is remembered. Use `"cookie"` (default) with
    * `getThemeFromCookies` or `ThemeScript` for flash-free server rendering. Nothing is written
    * until the selection changes from the one the page loaded with, so a visitor who never
-   * picks a setting gets no cookie.
+   * picks a setting gets no cookie. Only the person's own choices are stored: a dimension the
+   * app controls (`mode="dark"` for a while) keeps the value stored for it, so their choice is
+   * back when the app lets go.
    *
    * The browser's saved selection is applied right after hydration. When it differs from
    * what the server rendered, React renders any Suspense boundary still streaming (a Next.js
@@ -305,6 +307,31 @@ export function ThemeProvider({
     };
   }, [isHydrated, applyToDocument, state]);
 
+  // What's stored is the person's own selection: a dimension the app controls keeps the value
+  // stored for it (or none), so an app can set one for a while without overwriting their choice.
+  const persisted = useMemo<Partial<ThemeState>>(
+    () => ({
+      theme: themeProp === undefined ? theme : stored.theme,
+      mode: modeProp === undefined ? mode : stored.mode,
+      contrast: contrastProp === undefined ? contrast : stored.contrast,
+      motion: motionProp === undefined ? motion : stored.motion,
+      density: densityProp === undefined ? density : stored.density,
+    }),
+    [
+      themeProp,
+      modeProp,
+      contrastProp,
+      motionProp,
+      densityProp,
+      theme,
+      mode,
+      contrast,
+      motion,
+      density,
+      stored,
+    ],
+  );
+
   // Stored only once the selection changes from the one the page loaded with (the stored one,
   // or the defaults): a preference is remembered when someone sets it, and a visit that sets
   // nothing leaves no cookie behind.
@@ -312,12 +339,12 @@ export function ThemeProvider({
   const changed = useRef(false);
   useEffect(() => {
     if (!isHydrated || storage === 'none') return;
-    const serialized = serializeThemeState(state);
+    const serialized = serializeThemeState(persisted);
     loaded.current ??= serialized;
     if (!changed.current && serialized === loaded.current) return;
     changed.current = true;
-    writeStoredTheme(storage, storageKey, state);
-  }, [isHydrated, storage, storageKey, state]);
+    writeStoredTheme(storage, storageKey, persisted);
+  }, [isHydrated, storage, storageKey, persisted]);
 
   const setTheme = useCallback(
     (next: string) => {

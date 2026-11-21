@@ -150,6 +150,43 @@ describe('ThemeProvider', () => {
     write.mockRestore();
   });
 
+  it("never stores a mode the app controls, and keeps the person's own", async () => {
+    const saved = serializeThemeState({ ...DEFAULT_THEME_STATE, mode: 'light' });
+    document.cookie = `windmorph-theme=${saved}; max-age=60; path=/`;
+    const stored = () => decodeURIComponent(decodeURIComponent(document.cookie));
+    function App({ mode }: { mode?: 'dark' }) {
+      return (
+        <ThemeProvider {...(mode ? { mode } : {})}>
+          <ThemeControls />
+        </ThemeProvider>
+      );
+    }
+    const { rerender } = render(<App />);
+    rerender(<App mode="dark" />);
+    expect(html).toHaveAttribute('data-mode', 'dark');
+    expect(stored()).toContain('mode=light');
+    // A change the person makes is stored, with their own mode beside it.
+    await userEvent.click(screen.getByRole('button', { name: 'dense' }));
+    expect(stored()).toContain('density=-2');
+    expect(stored()).toContain('mode=light');
+    rerender(<App />);
+    expect(html).toHaveAttribute('data-mode', 'light');
+  });
+
+  it('leaves a controlled dimension out when nothing was stored for it', async () => {
+    const write = vi.spyOn(document, 'cookie', 'set');
+    render(
+      <ThemeProvider mode="dark">
+        <ThemeControls />
+      </ThemeProvider>,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'ocean' }));
+    const written = decodeURIComponent(decodeURIComponent(String(write.mock.lastCall?.[0])));
+    expect(written).toContain('theme=ocean');
+    expect(written).not.toContain('mode=');
+    write.mockRestore();
+  });
+
   it('restores the stored selection on mount', () => {
     document.cookie = `windmorph-theme=${serializeThemeState({ theme: 'forest', mode: 'light', contrast: 'high', motion: 'standard', density: -3 })}`;
     render(
