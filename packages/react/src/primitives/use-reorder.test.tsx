@@ -247,7 +247,19 @@ describe('useReorder', () => {
     const row = screen.getAllByRole('listitem')[3]!;
     expect(row.dataset.reorderKey).toBe('a');
     expect(row.style.transition).toBe('translate 200ms linear');
-    fireEvent.transitionEnd(row);
+    fireEvent.transitionEnd(row, { propertyName: 'translate' });
+    expect(row.style.transition).toBe('');
+  });
+
+  it("keeps the slide through a child's transition, and ends it when the slide is cut short", () => {
+    render(<List slide={{ duration: '200ms', easing: 'linear' }} />);
+    fireEvent.click(screen.getByRole('button', { name: 'bottom a' }));
+    const row = screen.getAllByRole('listitem')[3]!;
+    const handle = row.querySelector('button')!;
+    fireEvent.transitionEnd(handle, { propertyName: 'background-color' });
+    fireEvent.transitionEnd(row, { propertyName: 'opacity' });
+    expect(row.style.transition).toBe('translate 200ms linear');
+    fireEvent(row, Object.assign(new Event('transitioncancel'), { propertyName: 'translate' }));
     expect(row.style.transition).toBe('');
   });
 

@@ -410,11 +410,16 @@ export function useReorder<K extends Key>({
       void row.offsetHeight;
       row.style.transition = `translate ${motion.duration} ${motion.easing}`;
       row.style.translate = '';
-      const clear = () => {
+      // Only the row's own slide ends it: a child's transition (a state layer's fade) bubbles
+      // here too. A slide cut short fires `transitioncancel` instead, which ends it as well.
+      const clear = (event: TransitionEvent) => {
+        if (event.target !== row || event.propertyName !== 'translate') return;
         row.style.transition = '';
         row.removeEventListener('transitionend', clear);
+        row.removeEventListener('transitioncancel', clear);
       };
       row.addEventListener('transitionend', clear);
+      row.addEventListener('transitioncancel', clear);
     }
   });
 
