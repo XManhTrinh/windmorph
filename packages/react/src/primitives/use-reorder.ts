@@ -266,6 +266,16 @@ export function useReorder<K extends Key>({
     const current = drag.current;
     const list = listRef.current;
     if (!current || !list) return;
+    // Rows still sliding from a move end their slide where it lands: the boxes are measured in
+    // place, and a row grabbed mid-slide follows the pointer at once, not on the slide's
+    // duration. Only the slide's inline transition goes; a row's own transitions stay.
+    for (const key of latest.current.keys) {
+      const row = rowOf(list, key);
+      const stop = row && slideListeners.get(row);
+      if (!row || !stop) continue;
+      stop();
+      row.style.transition = '';
+    }
     const scroller = scrollerOf(list);
     const listTop = list.getBoundingClientRect().top;
     current.boxes = latest.current.keys.map((key) => {

@@ -277,6 +277,17 @@ describe('useReorder', () => {
     expect(row.style.transition).toBe('');
   });
 
+  it('follows the pointer at once when a row still sliding from a move is grabbed', () => {
+    render(<List slide={{ duration: '1000ms', easing: 'linear' }} />);
+    fireEvent.click(screen.getByRole('button', { name: 'bottom a' }));
+    const row = screen.getAllByRole('listitem')[3]!;
+    expect(row.style.transition).toBe('translate 1000ms linear');
+    press('a', ROW * 3 + 10);
+    moveTo(ROW * 3 - 30);
+    expect(row).toHaveAttribute('data-dragged', 'true');
+    expect(row.style.transition).toBe('');
+  });
+
   it('leaves no transition behind for a slide of no length, written out or through a variable', () => {
     for (const [slide, rowStyle] of [
       [{ duration: '0s', easing: 'linear' }, undefined],
