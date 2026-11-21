@@ -73,14 +73,17 @@ const order = () => screen.getAllByRole('listitem').map((row) => row.dataset.reo
 const handle = (key: string) => screen.getByRole('button', { name: `Move ${key}` });
 
 /** jsdom lays nothing out: each row is ROW px tall, in its place in the list. */
+function layout(element: HTMLElement): DOMRect {
+  const row = element.closest('li');
+  if (element.tagName === 'UL' || !row) return new DOMRect(0, 0, 300, ROW * 4);
+  const index = Array.from(row.parentElement!.children).indexOf(row);
+  return new DOMRect(0, index * ROW, 300, ROW);
+}
 beforeEach(() => {
   vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
     this: HTMLElement,
   ) {
-    const row = this.closest('li');
-    if (this.tagName === 'UL' || !row) return new DOMRect(0, 0, 300, ROW * 4);
-    const index = Array.from(row.parentElement!.children).indexOf(row);
-    return new DOMRect(0, index * ROW, 300, ROW);
+    return layout(this);
   });
   vi.stubGlobal('requestAnimationFrame', () => 0);
   vi.stubGlobal('cancelAnimationFrame', () => undefined);
@@ -277,15 +280,45 @@ describe('useReorder', () => {
     expect(row.style.transition).toBe('');
   });
 
-  it('follows the pointer at once when a row still sliding from a move is grabbed', () => {
+  it('ends a slide in progress before measuring, when a row still sliding is grabbed', () => {
     render(<List slide={{ duration: '1000ms', easing: 'linear' }} />);
     fireEvent.click(screen.getByRole('button', { name: 'bottom a' }));
     const row = screen.getAllByRole('listitem')[3]!;
     expect(row.style.transition).toBe('translate 1000ms linear');
+    // What each row's inline transition was when it was measured for the drag.
+    const measuredWith: string[] = [];
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      if (this === row) measuredWith.push(this.style.transition);
+      return layout(this);
+    });
     press('a', ROW * 3 + 10);
     moveTo(ROW * 3 - 30);
     expect(row).toHaveAttribute('data-dragged', 'true');
+    // `none` stops a running transition (an empty value wouldn't): the box is where it lands.
+    expect(measuredWith).toContain('none');
+    expect(measuredWith).not.toContain('translate 1000ms linear');
     expect(row.style.transition).toBe('');
+  });
+
+  it("adds the slide to a row's own transitions, and gives them back when it ends", () => {
+    render(
+      <List
+        slide={{ duration: '200ms', easing: 'linear' }}
+        rowStyle={{
+          transitionProperty: 'box-shadow',
+          transitionDuration: '300ms',
+          transitionTimingFunction: 'ease',
+          transitionDelay: '0s',
+        }}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'bottom a' }));
+    const row = screen.getAllByRole('listitem')[3]!;
+    expect(row.style.transition).toBe('box-shadow 300ms ease 0s, translate 200ms linear');
+    fireEvent.transitionEnd(row, { propertyName: 'translate' });
+    expect(row.style.transition).not.toContain('translate');
   });
 
   it('leaves no transition behind for a slide of no length, written out or through a variable', () => {

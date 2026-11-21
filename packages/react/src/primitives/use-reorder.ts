@@ -37,7 +37,11 @@ export interface ReorderOptions<K extends Key = Key> {
   threshold?: number;
   /** How near a scroller's edge it starts to scroll while dragging, in px. @default 48 */
   scrollEdge?: number;
-  /** The slide of rows changing place (a CSS transition's duration and easing); none: at once. */
+  /**
+   * The slide of rows changing place (a CSS transition's duration and easing); none: at once.
+   * The hook doesn't read reduced motion: pass a duration that resolves to 0 there (a motion
+   * token does), or leave the slide out.
+   */
   slide?: { duration: string; easing: string };
 }
 
@@ -135,8 +139,51 @@ function moved<K>(keys: readonly K[], from: number, to: number): K[] {
   return next;
 }
 
-/** Each sliding row's way to drop its slide listeners, so a new slide can start clean. */
-const slideListeners = new WeakMap<HTMLElement, () => void>();
+/** Splits a computed list value at its top-level commas (an easing holds commas of its own). */
+function splitList(value: string): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let start = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    const char = value[index];
+    if (char === '(') depth += 1;
+    else if (char === ')') depth -= 1;
+    else if (char === ',' && depth === 0) {
+      parts.push(value.slice(start, index).trim());
+      start = index + 1;
+    }
+  }
+  parts.push(value.slice(start).trim());
+  return parts.filter(Boolean);
+}
+
+/**
+ * The row's own transitions (its classes' and the app's inline one, a running slide set
+ * aside), written out, or '' when it has none. A slide is added to them, never put in their place, so a row's own
+ * fades (a lifted row's shadow going) still run while it slides.
+ */
+function ownTransition(row: HTMLElement, inline: string): string {
+  row.style.transition = inline;
+  const computed = row.ownerDocument.defaultView?.getComputedStyle(row);
+  if (!computed) return '';
+  const properties = splitList(computed.transitionProperty);
+  const durations = splitList(computed.transitionDuration);
+  const easings = splitList(computed.transitionTimingFunction);
+  const delays = splitList(computed.transitionDelay);
+  const entries = properties.flatMap((property, index) => {
+    const duration = durations[index % durations.length] ?? '0s';
+    const delay = delays[index % delays.length] ?? '0s';
+    if (property === 'none' || (/^0m?s$/.test(duration) && /^0m?s$/.test(delay))) return [];
+    return [`${property} ${duration} ${easings[index % easings.length] ?? 'ease'} ${delay}`];
+  });
+  return entries.join(', ');
+}
+
+/**
+ * Each sliding row's way to drop its slide listener, and the inline transition it had before
+ * (an app's own, or none), put back when the slide ends.
+ */
+const slides = new WeakMap<HTMLElement, { stop: () => void; inline: string }>();
 
 /**
  * The engine of a list whose rows a person puts in order (docs/plans/list-reorder.md): a drag
@@ -266,15 +313,19 @@ export function useReorder<K extends Key>({
     const current = drag.current;
     const list = listRef.current;
     if (!current || !list) return;
-    // Rows still sliding from a move end their slide where it lands: the boxes are measured in
-    // place, and a row grabbed mid-slide follows the pointer at once, not on the slide's
-    // duration. Only the slide's inline transition goes; a row's own transitions stay.
+    // Rows still sliding from a move end their slide where it lands, so the boxes are measured
+    // in place and a row grabbed mid-slide follows the pointer at once. Clearing the inline
+    // transition alone doesn't stop a running one (the computed `all 0s` still matches
+    // `translate`): `none` does, and the layout read below takes the rows where they land.
+    // Then the inline transition goes, so a row's own transitions (a lift's shadow) stay.
+    const sliding: [HTMLElement, string][] = [];
     for (const key of latest.current.keys) {
       const row = rowOf(list, key);
-      const stop = row && slideListeners.get(row);
-      if (!row || !stop) continue;
-      stop();
-      row.style.transition = '';
+      const slide = row && slides.get(row);
+      if (!row || !slide) continue;
+      slide.stop();
+      row.style.transition = 'none';
+      sliding.push([row, slide.inline]);
     }
     const scroller = scrollerOf(list);
     const listTop = list.getBoundingClientRect().top;
@@ -282,6 +333,7 @@ export function useReorder<K extends Key>({
       const box = rowOf(list, key)?.getBoundingClientRect();
       return { top: (box?.top ?? 0) - listTop, height: box?.height ?? 0 };
     });
+    for (const [row, inline] of sliding) row.style.transition = inline;
     const a = current.boxes[0];
     const b = current.boxes[1];
     current.gap = a && b ? Math.max(0, b.top - (a.top + a.height)) : 0;
@@ -420,26 +472,32 @@ export function useReorder<K extends Key>({
       // A row moved again mid-slide: the slide it leaves stops listening before the new one
       // starts. (Its `transitioncancel` arrives after the new slide has begun, so a slide is
       // never ended on a cancel, or the new one would jump.)
-      slideListeners.get(row)?.();
-      row.style.transition = 'none';
+      const active = slides.get(row);
+      const inline = active ? active.inline : row.style.transition;
+      active?.stop();
+      // The row's own transitions keep running (a drop's shadow fading out); only `translate`
+      // is held still while the row takes its starting place, then slides.
+      const own = ownTransition(row, inline);
+      const withOwn = (translate: string) => (own ? `${own}, ${translate}` : translate);
+      row.style.transition = own ? withOwn('translate 0s') : 'none';
       row.style.translate = `0 ${delta}px`;
       // Read once, so the browser takes the starting place before the slide.
       void row.offsetHeight;
-      row.style.transition = `translate ${motion.duration} ${motion.easing}`;
+      row.style.transition = withOwn(`translate ${motion.duration} ${motion.easing}`);
       row.style.translate = '';
       // Only the row's own slide ends it: a child's transition (a state layer's fade) bubbles
       // here too.
       const stop = () => {
         row.removeEventListener('transitionend', clear);
-        slideListeners.delete(row);
+        slides.delete(row);
       };
       const clear = (event: TransitionEvent) => {
         if (event.target !== row || event.propertyName !== 'translate') return;
-        row.style.transition = '';
+        row.style.transition = inline;
         stop();
       };
       row.addEventListener('transitionend', clear);
-      slideListeners.set(row, stop);
+      slides.set(row, { stop, inline });
     }
   });
 
