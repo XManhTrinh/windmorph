@@ -302,6 +302,25 @@ describe('useReorder', () => {
     expect(row.style.transition).toBe('');
   });
 
+  it("adds the slide to a row's own transitions, and gives them back when it ends", () => {
+    render(
+      <List
+        slide={{ duration: '200ms', easing: 'linear' }}
+        rowStyle={{
+          transitionProperty: 'box-shadow',
+          transitionDuration: '300ms',
+          transitionTimingFunction: 'ease',
+          transitionDelay: '0s',
+        }}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'bottom a' }));
+    const row = screen.getAllByRole('listitem')[3]!;
+    expect(row.style.transition).toBe('box-shadow 300ms ease 0s, translate 200ms linear');
+    fireEvent.transitionEnd(row, { propertyName: 'translate' });
+    expect(row.style.transition).not.toContain('translate');
+  });
+
   it('leaves no transition behind for a slide of no length, written out or through a variable', () => {
     for (const [slide, rowStyle] of [
       [{ duration: '0s', easing: 'linear' }, undefined],
