@@ -251,7 +251,7 @@ describe('useReorder', () => {
     expect(row.style.transition).toBe('');
   });
 
-  it("keeps the slide through a child's transition, and ends it when the slide is cut short", () => {
+  it("keeps the slide through a child's transition, or another property's", () => {
     render(<List slide={{ duration: '200ms', easing: 'linear' }} />);
     fireEvent.click(screen.getByRole('button', { name: 'bottom a' }));
     const row = screen.getAllByRole('listitem')[3]!;
@@ -259,7 +259,21 @@ describe('useReorder', () => {
     fireEvent.transitionEnd(handle, { propertyName: 'background-color' });
     fireEvent.transitionEnd(row, { propertyName: 'opacity' });
     expect(row.style.transition).toBe('translate 200ms linear');
+  });
+
+  it("keeps a second slide when the first one, cut short by it, is cancelled, and drops the first slide's listener", () => {
+    render(<List slide={{ duration: '200ms', easing: 'linear' }} />);
+    fireEvent.click(screen.getByRole('button', { name: 'bottom a' }));
+    const row = screen.getAllByRole('listitem')[3]!;
+    const removed = vi.spyOn(row, 'removeEventListener');
+    fireEvent.click(screen.getByRole('button', { name: 'top a' }));
+    expect(screen.getAllByRole('listitem')[0]).toBe(row);
+    expect(removed).toHaveBeenCalledWith('transitionend', expect.any(Function));
+    expect(row.style.transition).toBe('translate 200ms linear');
+    // The first slide's cancel arrives after the second has started.
     fireEvent(row, Object.assign(new Event('transitioncancel'), { propertyName: 'translate' }));
+    expect(row.style.transition).toBe('translate 200ms linear');
+    fireEvent.transitionEnd(row, { propertyName: 'translate' });
     expect(row.style.transition).toBe('');
   });
 

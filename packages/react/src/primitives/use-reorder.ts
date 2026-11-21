@@ -135,6 +135,9 @@ function moved<K>(keys: readonly K[], from: number, to: number): K[] {
   return next;
 }
 
+/** Each sliding row's way to drop its slide listeners, so a new slide can start clean. */
+const slideListeners = new WeakMap<HTMLElement, () => void>();
+
 /**
  * The engine of a list whose rows a person puts in order (docs/plans/list-reorder.md): a drag
  * from a row's handle that the row itself follows while the rows it passes slide out of its way,
@@ -404,6 +407,10 @@ export function useReorder<K extends Key>({
       const delta = was - row.getBoundingClientRect().top;
       // No slide, or one of no length (no `transitionend` would clear it): it's there at once.
       if (Math.abs(delta) < 0.5 || !motion || isInstant(row, motion.duration)) continue;
+      // A row moved again mid-slide: the slide it leaves stops listening before the new one
+      // starts. (Its `transitioncancel` arrives after the new slide has begun, so a slide is
+      // never ended on a cancel, or the new one would jump.)
+      slideListeners.get(row)?.();
       row.style.transition = 'none';
       row.style.translate = `0 ${delta}px`;
       // Read once, so the browser takes the starting place before the slide.
@@ -411,15 +418,18 @@ export function useReorder<K extends Key>({
       row.style.transition = `translate ${motion.duration} ${motion.easing}`;
       row.style.translate = '';
       // Only the row's own slide ends it: a child's transition (a state layer's fade) bubbles
-      // here too. A slide cut short fires `transitioncancel` instead, which ends it as well.
+      // here too.
+      const stop = () => {
+        row.removeEventListener('transitionend', clear);
+        slideListeners.delete(row);
+      };
       const clear = (event: TransitionEvent) => {
         if (event.target !== row || event.propertyName !== 'translate') return;
         row.style.transition = '';
-        row.removeEventListener('transitionend', clear);
-        row.removeEventListener('transitioncancel', clear);
+        stop();
       };
       row.addEventListener('transitionend', clear);
-      row.addEventListener('transitioncancel', clear);
+      slideListeners.set(row, stop);
     }
   });
 
