@@ -115,7 +115,7 @@ Tailwind utility names:
 | Corners      | `rounded-corner-<name>` (`rounded-corner-full`, `rounded-corner-medium`, …)                                                                                                                                                   |
 | Elevation    | `shadow-elevation-0` … `shadow-elevation-5`                                                                                                                                                                                   |
 | Springs      | `ease-m3-<family>-<speed>` and `duration-m3-<family>-<speed>`; legacy curves are `ease-m3-emphasized`, …                                                                                                                      |
-| Variants     | `medium:` / `expanded:` / `large:` / `xlarge:`; `dark:` follows `data-mode` (including `system`); `motion-standard:`                                                                                                          |
+| Variants     | `medium:` / `expanded:` / `large:` / `xlarge:`; `dark:` follows the nearest `data-mode` (including `system`; scopes nested up to three deep, 2026-11-22); `motion-standard:`                                                                                                          |
 
 ### Component tokens (`--md-comp-*`, 2026-10-14)
 
