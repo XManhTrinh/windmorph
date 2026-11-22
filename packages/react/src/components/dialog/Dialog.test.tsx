@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest';
@@ -77,6 +77,44 @@ describe('Dialog', () => {
       </Dialog>,
     );
     await waitFor(() => expect(screen.getByRole('alertdialog', { name: 'Notice' })).toHaveFocus());
+  });
+
+  it('focuses its first control when a virtual click opened it (Space on a native checkbox)', async () => {
+    function Switched() {
+      const [open, setOpen] = useState(false);
+      return (
+        <>
+          {/* A control of React Aria's on the page, so it tracks how the page was used. */}
+          <Button>Elsewhere</Button>
+          <label>
+            <input
+              type="checkbox"
+              checked={open}
+              onChange={(event) => setOpen(event.target.checked)}
+            />
+            Lock
+          </label>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTitle>Set a code</DialogTitle>
+            <DialogContent>
+              <input aria-label="Code" />
+            </DialogContent>
+            <DialogActions>
+              <Button variant="text" onPress={() => setOpen(false)}>
+                Cancel
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </>
+      );
+    }
+    render(<Switched />);
+    const box = screen.getByRole('checkbox', { name: 'Lock' });
+    box.focus();
+    // Space on a native input fires the browser's own click, with no `detail`: React Aria
+    // reads it as a screen reader's virtual click and defers its own focus move.
+    fireEvent.click(box, { detail: 0 });
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Code' })).toHaveFocus());
   });
 
   it('has no dangling description without DialogContent', async () => {

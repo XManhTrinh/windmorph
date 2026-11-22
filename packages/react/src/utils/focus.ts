@@ -50,20 +50,3 @@ export function firstTabbable(
 ): HTMLElement | null {
   return tabbables(root, skip)[0] ?? null;
 }
-
-/**
- * Moves initial focus from a dialog's panel to its first interactive element (M3: "focus
- * should automatically land on the first interactive element"). React Aria's `useDialog`
- * focuses the panel itself unless something inside took focus (`autoFocus`), so this only
- * acts while the panel holds focus. A scrolling region marked `data-scrollable` is
- * focusable for the keyboard but isn't a control, so it's skipped. `pick` can hand focus to
- * another element in place of that first one (a dialog's least destructive action).
- */
-export function focusFirstInteractive(
-  panel: HTMLElement | null,
-  pick: (first: HTMLElement) => HTMLElement = (first) => first,
-) {
-  if (!panel || panel.ownerDocument.activeElement !== panel) return;
-  const first = firstTabbable(panel, (el) => el.hasAttribute('data-scrollable'));
-  if (first) pick(first).focus();
-}
