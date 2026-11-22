@@ -302,6 +302,13 @@ export default async function ThemingPage() {
           or a <InlineCode>label</InlineCode>, <InlineCode>as=&quot;span&quot;</InlineCode> renders
           a <InlineCode>span</InlineCode> that does everything the same.
         </p>
+        <p className="text-body-large text-on-surface-variant">
+          The <InlineCode>dark:</InlineCode> variant follows the nearest scope with a mode, its{' '}
+          <InlineCode>system</InlineCode> read from the device: inside a light scope on a dark page
+          it doesn&apos;t apply, and inside a dark scope within that light one it does again. That
+          holds for scopes nested up to three deep, which covers a page, a scope and an overlay or
+          card inside it.
+        </p>
         <CodeBlock code={SCOPE_SNIPPET} html={scopeHtml} lang="tsx" title="ThemeScope" />
       </section>
 

@@ -69,13 +69,115 @@
   initial-value: 1;
 }
 
-/* `dark:` follows `data-mode`, including `system`. */
+/*
+ * `dark:` follows the nearest part with a `data-mode` (the page, a ThemeScope, an overlay's
+ * layer), `system` read from the device: a light scope on a dark page is light, and a dark scope
+ * inside it dark again. Descendant selectors can't stop at the nearest part, so each rule is one
+ * chain of parts, outermost first, ending in a dark one with no light one below it: a dark part;
+ * a dark part in a light one; a dark part in a light one in a dark one. Parts nested deeper than
+ * that take their outer pattern. (`@scope` would reach any depth, but Tailwind nests it inside
+ * the utility's rule, where it doesn't match, and Firefox has it only from 146.) Specificity
+ * stays a class's.
+ */
 @custom-variant dark {
-  &:where([data-mode='dark'], [data-mode='dark'] *) {
-    @slot;
-  }
   @media (prefers-color-scheme: dark) {
-    &:where([data-mode='system'], [data-mode='system'] *) {
+    &:where(
+        :where([data-mode='dark'], [data-mode='system']),
+        :where([data-mode='dark'], [data-mode='system']) *
+      ):not(
+        :where(
+          :where([data-mode='dark'], [data-mode='system']) :where([data-mode='light']),
+          :where([data-mode='dark'], [data-mode='system']) :where([data-mode='light']) *
+        )
+      ) {
+      @slot;
+    }
+    &:where(
+        :where([data-mode='light']) :where([data-mode='dark'], [data-mode='system']),
+        :where([data-mode='light']) :where([data-mode='dark'], [data-mode='system']) *
+      ):not(
+        :where(
+          :where([data-mode='light'])
+            :where([data-mode='dark'], [data-mode='system'])
+            :where([data-mode='light']),
+          :where([data-mode='light'])
+            :where([data-mode='dark'], [data-mode='system'])
+            :where([data-mode='light'])
+            *
+        )
+      ) {
+      @slot;
+    }
+    &:where(
+        :where([data-mode='dark'], [data-mode='system'])
+          :where([data-mode='light'])
+          :where([data-mode='dark'], [data-mode='system']),
+        :where([data-mode='dark'], [data-mode='system'])
+          :where([data-mode='light'])
+          :where([data-mode='dark'], [data-mode='system'])
+          *
+      ):not(
+        :where(
+          :where([data-mode='dark'], [data-mode='system'])
+            :where([data-mode='light'])
+            :where([data-mode='dark'], [data-mode='system'])
+            :where([data-mode='light']),
+          :where([data-mode='dark'], [data-mode='system'])
+            :where([data-mode='light'])
+            :where([data-mode='dark'], [data-mode='system'])
+            :where([data-mode='light'])
+            *
+        )
+      ) {
+      @slot;
+    }
+  }
+  @media not (prefers-color-scheme: dark) {
+    &:where(:where([data-mode='dark']), :where([data-mode='dark']) *):not(
+        :where(
+          :where([data-mode='dark']) :where([data-mode='light'], [data-mode='system']),
+          :where([data-mode='dark']) :where([data-mode='light'], [data-mode='system']) *
+        )
+      ) {
+      @slot;
+    }
+    &:where(
+        :where([data-mode='light'], [data-mode='system']) :where([data-mode='dark']),
+        :where([data-mode='light'], [data-mode='system']) :where([data-mode='dark']) *
+      ):not(
+        :where(
+          :where([data-mode='light'], [data-mode='system'])
+            :where([data-mode='dark'])
+            :where([data-mode='light'], [data-mode='system']),
+          :where([data-mode='light'], [data-mode='system'])
+            :where([data-mode='dark'])
+            :where([data-mode='light'], [data-mode='system'])
+            *
+        )
+      ) {
+      @slot;
+    }
+    &:where(
+        :where([data-mode='dark'])
+          :where([data-mode='light'], [data-mode='system'])
+          :where([data-mode='dark']),
+        :where([data-mode='dark'])
+          :where([data-mode='light'], [data-mode='system'])
+          :where([data-mode='dark'])
+          *
+      ):not(
+        :where(
+          :where([data-mode='dark'])
+            :where([data-mode='light'], [data-mode='system'])
+            :where([data-mode='dark'])
+            :where([data-mode='light'], [data-mode='system']),
+          :where([data-mode='dark'])
+            :where([data-mode='light'], [data-mode='system'])
+            :where([data-mode='dark'])
+            :where([data-mode='light'], [data-mode='system'])
+            *
+        )
+      ) {
       @slot;
     }
   }
