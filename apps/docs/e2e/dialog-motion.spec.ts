@@ -83,6 +83,13 @@ const focusInside = (page: Page, role: Target['role']) =>
 
 const closeFrames = async (page: Page, target: Target, duration = 400) => {
   await focusInside(page, target.role);
+  // The stories open on an in-page click, which React Aria reads as a virtual one: first focus
+  // then shows, and a first control with a tooltip (full screen's Close) opens it. Escape
+  // closes that tooltip first (WCAG 1.4.13), so it's dismissed before the dialog's exit.
+  if ((await page.locator('[role=tooltip]').count()) > 0) {
+    await page.keyboard.press('Escape');
+    await expect(page.locator('[role=tooltip]')).toHaveCount(0);
+  }
   return sampleMotion(page, {
     act: { key: 'Escape' },
     started: '[data-exiting]',
