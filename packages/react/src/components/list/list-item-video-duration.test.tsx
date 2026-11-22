@@ -3,7 +3,7 @@ import { renderToString } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { LabelsProvider } from '../labels/LabelsProvider';
 import { LocaleProvider } from '../locale/LocaleProvider';
-import { ListItemVideo } from './ListMedia';
+import { ListItemVideo } from './ListItemVideo';
 
 describe('ListItemVideo duration', () => {
   it('shows a string and reads it as written', () => {

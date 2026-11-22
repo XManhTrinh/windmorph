@@ -1,6 +1,6 @@
 # Plan: putting a list's rows in order
 
-Status: **approved 2026-11-19**, with Windmorph Pro's `ReorderList` plan. Step 1 building.
+Status: **approved 2026-11-19**, with Windmorph Pro's `ReorderList` plan. **Step 1 built** (2026-11-19, merged in #105 for 0.2.11): `useReorder` in `@windmorph/react/primitives`, as its API below, with the handle's `touch-action: none` in `handleProps().style` and a slide of no length skipped (2026-11-21). Step 2, the core `List`'s reorder, waits for its own plan after the release.
 
 ## Goal
 

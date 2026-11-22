@@ -2,7 +2,8 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { List, ListItem } from './List';
-import { ListItemAvatar, ListItemImage, ListItemVideo } from './ListMedia';
+import { ListItemVideo } from './ListItemVideo';
+import { ListItemAvatar, ListItemImage } from './ListMedia';
 
 const Icon = () => <svg data-testid="fallback" viewBox="0 0 24 24" />;
 

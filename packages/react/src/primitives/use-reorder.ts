@@ -37,7 +37,11 @@ export interface ReorderOptions<K extends Key = Key> {
   threshold?: number;
   /** How near a scroller's edge it starts to scroll while dragging, in px. @default 48 */
   scrollEdge?: number;
-  /** The slide of rows changing place (a CSS transition's duration and easing); none: at once. */
+  /**
+   * The slide of rows changing place (a CSS transition's duration and easing); none: at once.
+   * The hook doesn't read reduced motion: pass a duration that resolves to 0 there (a motion
+   * token does), or leave the slide out.
+   */
   slide?: { duration: string; easing: string };
 }
 
@@ -54,8 +58,15 @@ export interface ReorderResult<K extends Key = Key> {
     'data-dragged'?: true;
     style?: CSSProperties;
   };
-  /** Props for a row's handle: the drag starts from it. */
-  handleProps: (key: K) => { onPointerDown: (event: ReactPointerEvent<HTMLElement>) => void };
+  /**
+   * Props for a row's handle: the drag starts from it. Its `style` holds `touch-action: none`,
+   * since only CSS stops a finger on the handle from scrolling the page instead of dragging; merge
+   * it with the handle's own style.
+   */
+  handleProps: (key: K) => {
+    onPointerDown: (event: ReactPointerEvent<HTMLElement>) => void;
+    style: CSSProperties;
+  };
   /** Moves a row by action. */
   move: (key: K, where: ReorderWhere) => void;
   /** Whether that move leads somewhere. */
@@ -104,6 +115,22 @@ function scrollerOf(element: HTMLElement): HTMLElement | null {
 const scrollTop = (scroller: HTMLElement | null, element: HTMLElement) =>
   scroller ? scroller.scrollTop : (element.ownerDocument.defaultView?.scrollY ?? 0);
 
+const HANDLE_STYLE: CSSProperties = { touchAction: 'none' };
+
+/**
+ * Whether a slide's duration is none at all (`0s`, `0ms`, or a `var()` that resolves to one), read
+ * on the row so a token set on it or above counts. No `transitionend` follows such a transition.
+ */
+function isInstant(row: HTMLElement, duration: string): boolean {
+  const computed = row.ownerDocument.defaultView?.getComputedStyle(row);
+  const resolved = duration.replace(
+    /var\(\s*(--[\w-]+)\s*(?:,([^)]*))?\)/g,
+    (_, name: string, fallback?: string) =>
+      computed?.getPropertyValue(name).trim() || fallback?.trim() || '',
+  );
+  return /^\s*[+-]?0*\.?0*m?s\s*$/.test(resolved) && /\d/.test(resolved);
+}
+
 /** The keys with one moved from `from` to `to`. */
 function moved<K>(keys: readonly K[], from: number, to: number): K[] {
   const next = keys.slice();
@@ -111,6 +138,84 @@ function moved<K>(keys: readonly K[], from: number, to: number): K[] {
   next.splice(to, 0, key as K);
   return next;
 }
+
+/** Splits a computed list value at its top-level commas (an easing holds commas of its own). */
+function splitList(value: string): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let start = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    const char = value[index];
+    if (char === '(') depth += 1;
+    else if (char === ')') depth -= 1;
+    else if (char === ',' && depth === 0) {
+      parts.push(value.slice(start, index).trim());
+      start = index + 1;
+    }
+  }
+  parts.push(value.slice(start).trim());
+  return parts.filter(Boolean);
+}
+
+/** The inline transition longhands, kept one by one: an app may set only some of them. */
+const TRANSITION_LONGHANDS = [
+  'transition-property',
+  'transition-duration',
+  'transition-timing-function',
+  'transition-delay',
+  'transition-behavior',
+] as const;
+type InlineTransition = Record<(typeof TRANSITION_LONGHANDS)[number], string>;
+
+/** The row's inline transition as it is now (the app's, or none). */
+function readInline(row: HTMLElement): InlineTransition {
+  return Object.fromEntries(
+    TRANSITION_LONGHANDS.map((name) => [name, row.style.getPropertyValue(name)]),
+  ) as InlineTransition;
+}
+
+/** Puts back an inline transition read by {@link readInline}, longhand by longhand. */
+function restoreInline(row: HTMLElement, inline: InlineTransition) {
+  row.style.removeProperty('transition');
+  for (const name of TRANSITION_LONGHANDS) {
+    if (inline[name]) row.style.setProperty(name, inline[name]);
+  }
+}
+
+/**
+ * The row's own transitions (its classes' and the app's inline one, a running slide set
+ * aside), written out, or '' when it has none. A slide is added to them, never put in their
+ * place, so a row's own fades (a lifted row's shadow going) still run while it slides.
+ */
+function ownTransition(row: HTMLElement, inline: InlineTransition): string {
+  restoreInline(row, inline);
+  const computed = row.ownerDocument.defaultView?.getComputedStyle(row);
+  if (!computed) return '';
+  const properties = splitList(computed.transitionProperty);
+  const durations = splitList(computed.transitionDuration);
+  const easings = splitList(computed.transitionTimingFunction);
+  const delays = splitList(computed.transitionDelay);
+  const behaviors = splitList(computed.getPropertyValue('transition-behavior'));
+  const entries = properties.flatMap((property, index) => {
+    const duration = durations[index % durations.length] ?? '0s';
+    const delay = delays[index % delays.length] ?? '0s';
+    if (property === 'none' || (/^0m?s$/.test(duration) && /^0m?s$/.test(delay))) return [];
+    const easing = easings[index % easings.length] ?? 'ease';
+    // A discrete transition (`display`, `content-visibility`) keeps its `allow-discrete`.
+    const discrete =
+      behaviors.length && behaviors[index % behaviors.length] === 'allow-discrete'
+        ? ' allow-discrete'
+        : '';
+    return [`${property} ${duration} ${easing} ${delay}${discrete}`];
+  });
+  return entries.join(', ');
+}
+
+/**
+ * Each sliding row's way to drop its slide listener, and the inline transition it had before
+ * (an app's own, or none), put back when the slide ends.
+ */
+const slides = new WeakMap<HTMLElement, { stop: () => void; inline: InlineTransition }>();
 
 /**
  * The engine of a list whose rows a person puts in order (docs/plans/list-reorder.md): a drag
@@ -240,12 +345,27 @@ export function useReorder<K extends Key>({
     const current = drag.current;
     const list = listRef.current;
     if (!current || !list) return;
+    // Rows still sliding from a move end their slide where it lands, so the boxes are measured
+    // in place and a row grabbed mid-slide follows the pointer at once. Clearing the inline
+    // transition alone doesn't stop a running one (the computed `all 0s` still matches
+    // `translate`): `none` does, and the layout read below takes the rows where they land.
+    // Then the inline transition goes, so a row's own transitions (a lift's shadow) stay.
+    const sliding: [HTMLElement, InlineTransition][] = [];
+    for (const key of latest.current.keys) {
+      const row = rowOf(list, key);
+      const slide = row && slides.get(row);
+      if (!row || !slide) continue;
+      slide.stop();
+      row.style.transition = 'none';
+      sliding.push([row, slide.inline]);
+    }
     const scroller = scrollerOf(list);
     const listTop = list.getBoundingClientRect().top;
     current.boxes = latest.current.keys.map((key) => {
       const box = rowOf(list, key)?.getBoundingClientRect();
       return { top: (box?.top ?? 0) - listTop, height: box?.height ?? 0 };
     });
+    for (const [row, inline] of sliding) restoreInline(row, inline);
     const a = current.boxes[0];
     const b = current.boxes[1];
     current.gap = a && b ? Math.max(0, b.top - (a.top + a.height)) : 0;
@@ -287,7 +407,7 @@ export function useReorder<K extends Key>({
         if (from < 0 || !movable(key)) return;
         const window = event.currentTarget.ownerDocument.defaultView;
         if (!window) return;
-        // No text is selected and no touch scrolls while the handle is held.
+        // No text is selected while the handle is held (`style` stops touch scrolling).
         event.preventDefault();
         const { min, max } = range(from);
         drag.current = {
@@ -343,6 +463,7 @@ export function useReorder<K extends Key>({
           stopListening.current = () => undefined;
         };
       },
+      style: HANDLE_STYLE,
     }),
     [keys, movable, range, threshold, lift, follow],
   );
@@ -378,18 +499,37 @@ export function useReorder<K extends Key>({
       const was = places.get(key);
       if (!row || was === undefined) continue;
       const delta = was - row.getBoundingClientRect().top;
-      if (Math.abs(delta) < 0.5 || !motion) continue;
-      row.style.transition = 'none';
+      // No slide, or one of no length (no `transitionend` would clear it): it's there at once.
+      if (Math.abs(delta) < 0.5 || !motion || isInstant(row, motion.duration)) continue;
+      // A row moved again mid-slide: the slide it leaves stops listening before the new one
+      // starts. (Its `transitioncancel` arrives after the new slide has begun, so a slide is
+      // never ended on a cancel, or the new one would jump.)
+      const active = slides.get(row);
+      const inline = active ? active.inline : readInline(row);
+      active?.stop();
+      // The row's own transitions keep running (a drop's shadow fading out); only `translate`
+      // is held still while the row takes its starting place, then slides.
+      const own = ownTransition(row, inline);
+      const withOwn = (translate: string) => (own ? `${own}, ${translate}` : translate);
+      row.style.transition = own ? withOwn('translate 0s') : 'none';
       row.style.translate = `0 ${delta}px`;
       // Read once, so the browser takes the starting place before the slide.
       void row.offsetHeight;
-      row.style.transition = `translate ${motion.duration} ${motion.easing}`;
+      row.style.transition = withOwn(`translate ${motion.duration} ${motion.easing}`);
       row.style.translate = '';
-      const clear = () => {
-        row.style.transition = '';
+      // Only the row's own slide ends it: a child's transition (a state layer's fade) bubbles
+      // here too.
+      const stop = () => {
         row.removeEventListener('transitionend', clear);
+        slides.delete(row);
+      };
+      const clear = (event: TransitionEvent) => {
+        if (event.target !== row || event.propertyName !== 'translate') return;
+        restoreInline(row, inline);
+        stop();
       };
       row.addEventListener('transitionend', clear);
+      slides.set(row, { stop, inline });
     }
   });
 

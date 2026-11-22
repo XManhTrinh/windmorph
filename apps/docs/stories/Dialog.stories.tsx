@@ -15,6 +15,7 @@ import {
   RadioGroup,
   Select,
   SelectItem,
+  Switch,
   TextField,
 } from '@windmorph/react';
 import { useState } from 'react';
@@ -855,3 +856,34 @@ export const FirstField: Story = {
     </div>
   ),
 };
+
+function LockSwitch() {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Switch checked={open} onCheckedChange={setOpen}>
+        App lock
+      </Switch>
+      <Dialog role="alertdialog" open={open} onOpenChange={setOpen}>
+        <DialogTitle>Set a code</DialogTitle>
+        <DialogContent>
+          <TextField label="Code" variant="outlined" />
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" onPress={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button variant="text" onPress={() => setOpen(false)}>
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+}
+
+/**
+ * Opened by a switch: Space on its native input is a click with no `detail`, which React
+ * Aria treats as a screen reader's, so focus reaches the first field once the dialog is in.
+ */
+export const OpenedBySwitch: Story = { render: () => <LockSwitch /> };

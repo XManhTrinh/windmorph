@@ -539,12 +539,14 @@ export {
 export {
   ListItemAvatar,
   ListItemImage,
-  ListItemVideo,
   type ListItemAvatarProps,
   type ListItemImageProps,
+} from './components/list/ListMedia';
+export {
+  ListItemVideo,
   type ListItemVideoLabels,
   type ListItemVideoProps,
-} from './components/list/ListMedia';
+} from './components/list/ListItemVideo';
 export {
   listMediaStyles,
   listStyles,

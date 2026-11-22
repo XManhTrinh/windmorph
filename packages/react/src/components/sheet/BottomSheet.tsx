@@ -31,7 +31,7 @@ import { TriggerContext } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
 import { closedByOverlayOptions, type ClosedBy } from '../../utils/closed-by';
 import { cn } from '../../utils/cn';
-import { focusFirstInteractive } from '../../utils/focus';
+import { useFirstFocus } from '../../utils/use-first-focus';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 import { useThemeScope } from '../../theme/context';
 import { IconButton } from '../icon-button/IconButton';
@@ -292,7 +292,7 @@ function ModalBottomSheet({
   const { dialogProps } = useDialog(props as AriaDialogProps, panelRef);
   // Initial focus goes to the first interactive element (the drag handle, when there is one;
   // M3), as in a Dialog, not to the panel.
-  useEffect(() => focusFirstInteractive(panelRef.current), [panelRef]);
+  useFirstFocus(panelRef);
   const styles = bottomSheetStyles();
   return (
     <>

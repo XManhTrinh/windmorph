@@ -39,7 +39,8 @@ import {
 import { usePresence } from '../../primitives/use-presence';
 import { closedByOverlayOptions, type ClosedBy } from '../../utils/closed-by';
 import { cn } from '../../utils/cn';
-import { focusFirstInteractive, tabbables } from '../../utils/focus';
+import { tabbables } from '../../utils/focus';
+import { useFirstFocus } from '../../utils/use-first-focus';
 import { useWarnOnce } from '../../utils/warn-once';
 import { DensityZeroButtons } from '../button/DensityZeroButtons';
 import { IconButton } from '../icon-button/IconButton';
@@ -462,7 +463,7 @@ function DialogModal({
   // dialog", not on the panel `useDialog` focuses. A scrolling `DialogContent` is focusable
   // (so the keyboard can scroll it) but isn't a control. When that element is one of the
   // actions, focus goes to the least destructive one (`leastDestructiveAction`).
-  useEffect(() => focusFirstInteractive(panelRef.current, leastDestructiveAction), [panelRef]);
+  useFirstFocus(panelRef, leastDestructiveAction);
 
   const hasIcon = fullScreen !== 'always' && icon !== undefined && icon !== null;
   const bottomBar = fullScreen !== 'never' && !headerAction;

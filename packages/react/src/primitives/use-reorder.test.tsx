@@ -1,20 +1,35 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { useRef, useState } from 'react';
+import { useRef, useState, type CSSProperties } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useReorder, type ReorderMove, type ReorderWhere } from './use-reorder';
+import {
+  useReorder,
+  type ReorderMove,
+  type ReorderOptions,
+  type ReorderWhere,
+} from './use-reorder';
 
 const ROW = 40;
 
 function List({
   initial = ['a', 'b', 'c', 'd'],
+  keys: given,
   fixed = [] as string[],
   onReorder,
+  onDragChange,
+  slide,
+  rowStyle,
 }: {
   initial?: string[];
+  /** The app's own order, when it changes it from outside. */
+  keys?: string[];
   fixed?: string[];
   onReorder?: (keys: string[], move: ReorderMove<string>) => void;
+  onDragChange?: ReorderOptions<string>['onDragChange'];
+  slide?: ReorderOptions<string>['slide'];
+  rowStyle?: CSSProperties;
 }) {
-  const [keys, setKeys] = useState(initial);
+  const [own, setKeys] = useState(initial);
+  const keys = given ?? own;
   const listRef = useRef<HTMLUListElement>(null);
   const reorder = useReorder({
     keys,
@@ -24,12 +39,14 @@ function List({
       onReorder?.(next, move);
       setKeys(next);
     },
+    ...(onDragChange ? { onDragChange } : {}),
+    ...(slide ? { slide } : {}),
   });
   return (
     <>
       <ul ref={listRef}>
         {keys.map((key) => (
-          <li key={key} {...reorder.itemProps(key)}>
+          <li key={key} {...reorder.itemProps(key)} {...(rowStyle ? { style: rowStyle } : {})}>
             <button type="button" {...reorder.handleProps(key)}>
               Move {key}
             </button>
@@ -56,14 +73,17 @@ const order = () => screen.getAllByRole('listitem').map((row) => row.dataset.reo
 const handle = (key: string) => screen.getByRole('button', { name: `Move ${key}` });
 
 /** jsdom lays nothing out: each row is ROW px tall, in its place in the list. */
+function layout(element: HTMLElement): DOMRect {
+  const row = element.closest('li');
+  if (element.tagName === 'UL' || !row) return new DOMRect(0, 0, 300, ROW * 4);
+  const index = Array.from(row.parentElement!.children).indexOf(row);
+  return new DOMRect(0, index * ROW, 300, ROW);
+}
 beforeEach(() => {
   vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
     this: HTMLElement,
   ) {
-    const row = this.closest('li');
-    if (this.tagName === 'UL' || !row) return new DOMRect(0, 0, 300, ROW * 4);
-    const index = Array.from(row.parentElement!.children).indexOf(row);
-    return new DOMRect(0, index * ROW, 300, ROW);
+    return layout(this);
   });
   vi.stubGlobal('requestAnimationFrame', () => 0);
   vi.stubGlobal('cancelAnimationFrame', () => undefined);
@@ -178,5 +198,162 @@ describe('useReorder', () => {
     expect(order()).toEqual(['a', 'b', 'c', 'd']);
     fireEvent.click(screen.getByRole('button', { name: 'down b' }));
     expect(order()).toEqual(['a', 'c', 'b', 'd']);
+  });
+
+  it('gives the handle touch-action: none, so a finger on it drags instead of scrolling', () => {
+    render(<List />);
+    expect(handle('a').style.touchAction).toBe('none');
+  });
+
+  it('cancels a drag when the app changes the keys under it', () => {
+    const onDragChange = vi.fn();
+    const onReorder = vi.fn();
+    const { rerender } = render(
+      <List keys={['a', 'b', 'c', 'd']} onDragChange={onDragChange} onReorder={onReorder} />,
+    );
+    press('a', 20);
+    moveTo(20 + ROW * 2);
+    expect(screen.getByTestId('dragged')).toHaveTextContent('a');
+    rerender(<List keys={['a', 'b', 'c']} onDragChange={onDragChange} onReorder={onReorder} />);
+    expect(screen.getByTestId('dragged')).toBeEmptyDOMElement();
+    expect(onDragChange).toHaveBeenLastCalledWith(expect.objectContaining({ phase: 'cancel' }));
+    release();
+    expect(onReorder).not.toHaveBeenCalled();
+  });
+
+  it('scrolls the window while the pointer is near its edge, up near the top and down near the foot', () => {
+    const frames: FrameRequestCallback[] = [];
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+      frames.push(callback);
+      return frames.length;
+    });
+    const scrollBy = vi.spyOn(window, 'scrollBy').mockImplementation(() => undefined);
+    const runFrame = () => act(() => frames.shift()?.(0));
+    render(<List />);
+    press('b', ROW + 20);
+    moveTo(window.innerHeight - 4);
+    runFrame();
+    expect(scrollBy).toHaveBeenLastCalledWith(0, expect.any(Number));
+    expect(scrollBy.mock.lastCall![1]).toBeGreaterThan(0);
+    moveTo(4);
+    runFrame();
+    expect(scrollBy.mock.lastCall![1]).toBeLessThan(0);
+    const calls = scrollBy.mock.calls.length;
+    moveTo(window.innerHeight / 2);
+    runFrame();
+    expect(scrollBy).toHaveBeenCalledTimes(calls);
+  });
+
+  it('slides each row that changed place from where it was (FLIP), and clears the slide when it ends', () => {
+    render(<List slide={{ duration: '200ms', easing: 'linear' }} />);
+    fireEvent.click(screen.getByRole('button', { name: 'bottom a' }));
+    const row = screen.getAllByRole('listitem')[3]!;
+    expect(row.dataset.reorderKey).toBe('a');
+    expect(row.style.transition).toBe('translate 200ms linear');
+    fireEvent.transitionEnd(row, { propertyName: 'translate' });
+    expect(row.style.transition).toBe('');
+  });
+
+  it("keeps the slide through a child's transition, or another property's", () => {
+    render(<List slide={{ duration: '200ms', easing: 'linear' }} />);
+    fireEvent.click(screen.getByRole('button', { name: 'bottom a' }));
+    const row = screen.getAllByRole('listitem')[3]!;
+    const handle = row.querySelector('button')!;
+    fireEvent.transitionEnd(handle, { propertyName: 'background-color' });
+    fireEvent.transitionEnd(row, { propertyName: 'opacity' });
+    expect(row.style.transition).toBe('translate 200ms linear');
+  });
+
+  it("keeps a second slide when the first one, cut short by it, is cancelled, and drops the first slide's listener", () => {
+    render(<List slide={{ duration: '200ms', easing: 'linear' }} />);
+    fireEvent.click(screen.getByRole('button', { name: 'bottom a' }));
+    const row = screen.getAllByRole('listitem')[3]!;
+    const removed = vi.spyOn(row, 'removeEventListener');
+    fireEvent.click(screen.getByRole('button', { name: 'top a' }));
+    expect(screen.getAllByRole('listitem')[0]).toBe(row);
+    expect(removed).toHaveBeenCalledWith('transitionend', expect.any(Function));
+    expect(row.style.transition).toBe('translate 200ms linear');
+    // The first slide's cancel arrives after the second has started.
+    fireEvent(row, Object.assign(new Event('transitioncancel'), { propertyName: 'translate' }));
+    expect(row.style.transition).toBe('translate 200ms linear');
+    fireEvent.transitionEnd(row, { propertyName: 'translate' });
+    expect(row.style.transition).toBe('');
+  });
+
+  it('ends a slide in progress before measuring, when a row still sliding is grabbed', () => {
+    render(<List slide={{ duration: '1000ms', easing: 'linear' }} />);
+    fireEvent.click(screen.getByRole('button', { name: 'bottom a' }));
+    const row = screen.getAllByRole('listitem')[3]!;
+    expect(row.style.transition).toBe('translate 1000ms linear');
+    // What each row's inline transition was when it was measured for the drag.
+    const measuredWith: string[] = [];
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      if (this === row) measuredWith.push(this.style.transition);
+      return layout(this);
+    });
+    press('a', ROW * 3 + 10);
+    moveTo(ROW * 3 - 30);
+    expect(row).toHaveAttribute('data-dragged', 'true');
+    // `none` stops a running transition (an empty value wouldn't): the box is where it lands.
+    expect(measuredWith).toContain('none');
+    expect(measuredWith).not.toContain('translate 1000ms linear');
+    expect(row.style.transition).toBe('');
+  });
+
+  it("adds the slide to a row's own transitions, and gives them back when it ends", () => {
+    render(
+      <List
+        slide={{ duration: '200ms', easing: 'linear' }}
+        rowStyle={{
+          transitionProperty: 'box-shadow',
+          transitionDuration: '300ms',
+          transitionTimingFunction: 'ease',
+          transitionDelay: '0s',
+        }}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'bottom a' }));
+    const row = screen.getAllByRole('listitem')[3]!;
+    expect(row.style.transition).toBe('box-shadow 300ms ease 0s, translate 200ms linear');
+    fireEvent.transitionEnd(row, { propertyName: 'translate' });
+    expect(row.style.transition).not.toContain('translate');
+  });
+
+  it('leaves no transition behind for a slide of no length, written out or through a variable', () => {
+    for (const [slide, rowStyle] of [
+      [{ duration: '0s', easing: 'linear' }, undefined],
+      [{ duration: 'var(--slide)', easing: 'linear' }, { '--slide': '0ms' } as CSSProperties],
+    ] as const) {
+      const { unmount } = render(<List slide={slide} {...(rowStyle ? { rowStyle } : {})} />);
+      fireEvent.click(screen.getByRole('button', { name: 'bottom a' }));
+      const row = screen.getAllByRole('listitem')[3]!;
+      expect(row.dataset.reorderKey).toBe('a');
+      expect(row.style.transition).toBe('');
+      unmount();
+    }
+  });
+
+  it('removes its window listeners and its frame when it unmounts mid-drag', () => {
+    const added = vi.spyOn(window, 'addEventListener');
+    const removed = vi.spyOn(window, 'removeEventListener');
+    const cancelFrame = vi.fn();
+    vi.stubGlobal('cancelAnimationFrame', cancelFrame);
+    const { unmount } = render(<List />);
+    press('a', 20);
+    moveTo(20 + ROW);
+    const types = (spy: typeof added) =>
+      spy.mock.calls
+        .map(([type]) => type)
+        .filter((type) =>
+          ['pointermove', 'pointerup', 'pointercancel', 'blur', 'keydown', 'contextmenu'].includes(
+            type,
+          ),
+        );
+    expect(types(added)).toHaveLength(6);
+    unmount();
+    expect(types(removed).sort()).toEqual(types(added).sort());
+    expect(cancelFrame).toHaveBeenCalled();
   });
 });

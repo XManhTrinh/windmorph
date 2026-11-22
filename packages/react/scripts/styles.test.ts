@@ -72,8 +72,8 @@ describe('styles.css', () => {
   });
 
   it('drives dark: from data-mode, including system mode', () => {
-    expect(css).toContain('[data-mode="dark"]');
-    expect(css).toMatch(/prefers-color-scheme: dark[^}]*data-mode="system"/);
+    expect(css).toMatch(/prefers-color-scheme: dark[^}]*data-mode='dark'/);
+    expect(css).toMatch(/prefers-color-scheme: dark[^}]*data-mode='system'/);
   });
 
   it('ships all built-in themes and the token variables', () => {
