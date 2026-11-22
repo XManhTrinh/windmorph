@@ -141,6 +141,18 @@ test.describe('Dialog behaviour', () => {
     expect(style).toBe('solid 1px');
   });
 
+  test('opened by Space on a switch, its first field takes focus', async ({ page }) => {
+    await openStory(page, 'components-dialog--opened-by-switch');
+    await page.getByRole('switch', { name: 'App lock' }).focus();
+    await page.keyboard.press('Space');
+    const dialog = page.getByRole('alertdialog', { name: 'Set a code' });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole('textbox', { name: 'Code' })).toBeFocused();
+    // Escape works from there: focus is in the dialog, not on the page.
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+  });
+
   test('traps focus, closes on Escape and returns focus to the trigger', async ({ page }) => {
     await openStory(page, 'components-dialog--basic');
     const trigger = page.getByRole('button', { name: 'Open dialog' });

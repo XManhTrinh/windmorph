@@ -2,7 +2,6 @@
 
 import {
   useContext,
-  useEffect,
   useId,
   useLayoutEffect,
   useRef,
@@ -27,7 +26,8 @@ import { Overlay } from '../../primitives/Overlay';
 import { usePresence } from '../../primitives/use-presence';
 import { closedByOverlayOptions, type ClosedBy } from '../../utils/closed-by';
 import { cn } from '../../utils/cn';
-import { focusFirstInteractive, tabbables } from '../../utils/focus';
+import { tabbables } from '../../utils/focus';
+import { useFirstFocus } from '../../utils/use-first-focus';
 import { DensityZeroButtons } from '../button/DensityZeroButtons';
 import { IconButton } from '../icon-button/IconButton';
 import { BackIcon, CloseIcon } from './sheet-icons';
@@ -387,7 +387,7 @@ function ModalSideSheet({
     panelRef,
   );
   // M3: focus lands on the first (non-disabled) icon button, as in a Dialog, not the panel.
-  useEffect(() => focusFirstInteractive(panelRef.current), [panelRef]);
+  useFirstFocus(panelRef);
   const exiting = isExiting || undefined;
   return (
     <>
