@@ -34,6 +34,87 @@ const CORE_PAGE_COUNT = COMPONENT_META.filter(
  */
 export const RELEASES: Release[] = [
   {
+    version: '0.2.11',
+    date: '2026-11-22',
+    summary: (
+      <>
+        Menus that show their submenus in place, a list a person can put in order, and a
+        media&apos;s length said the same way everywhere. In Windmorph Pro, a video player with its
+        settings, a featured carousel, a shelf, a reorder list and a duration tag.
+      </>
+    ),
+    sections: [
+      {
+        title: 'Components',
+        items: [
+          <>
+            A <InlineCode>Menu</InlineCode> can show its submenus in place (
+            <InlineCode>submenuPresentation=&quot;replace&quot;</InlineCode>), below a back button,
+            its height springing to each page, and open inside an element of yours. A{' '}
+            <InlineCode>MenuGroup</InlineCode> can be a group of choices beside the menu&apos;s
+            actions, with a selection of its own.
+          </>,
+          <>
+            <InlineCode>ListItemVideo</InlineCode>&apos;s <InlineCode>duration</InlineCode> takes
+            seconds: a clock in the page&apos;s digits, read in words.
+          </>,
+        ],
+      },
+      {
+        title: 'Primitives',
+        items: [
+          <>
+            <InlineCode>useReorder</InlineCode>, the engine of a list a person puts in order: a drag
+            from a row&apos;s handle, moves by action, a cancel, and scrolling near an edge.
+          </>,
+          <>
+            <InlineCode>formatClock</InlineCode> and <InlineCode>formatDurationWords</InlineCode>{' '}
+            say a media&apos;s length, and <InlineCode>usePageHeight</InlineCode> measures a page in
+            a surface whose pages replace each other.
+          </>,
+        ],
+      },
+      {
+        title: 'Fixes',
+        items: [
+          <>
+            A <InlineCode>Dialog</InlineCode>, <InlineCode>BottomSheet</InlineCode> or{' '}
+            <InlineCode>SideSheet</InlineCode> opened by Space on a switch or checkbox, or by a
+            screen reader&apos;s click, takes its first focus.
+          </>,
+          <>
+            <InlineCode>dark:</InlineCode> follows the nearest <InlineCode>ThemeScope</InlineCode>,
+            so a light scope on a dark page is light.
+          </>,
+          <>
+            <InlineCode>ThemeProvider</InlineCode> stores only the person&apos;s own choices: a mode
+            the app sets for a while no longer replaces theirs.
+          </>,
+          <>
+            Dates, times and numbers keep the page&apos;s locale and hour cycle inside a region laid
+            out in the other direction; icon slots size an icon in a wrapper of its own; entrances
+            print their final picture and show it at once under reduced motion.
+          </>,
+        ],
+      },
+      {
+        title: 'Windmorph Pro',
+        items: [
+          <>
+            <InlineCode>VideoPlayer</InlineCode> and its settings,{' '}
+            <InlineCode>FeaturedCarousel</InlineCode>, <InlineCode>Shelf</InlineCode>,{' '}
+            <InlineCode>ReorderList</InlineCode> and <InlineCode>DurationTag</InlineCode>, with
+            chapters on the time slider.
+          </>,
+          <>
+            Fixes across the charts and <InlineCode>DataTable</InlineCode>, and a{' '}
+            <InlineCode>PinInput</InlineCode> whose six boxes fit the narrowest dialog.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: '0.2.10',
     date: '2026-11-18',
     summary: (
