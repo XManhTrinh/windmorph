@@ -39,7 +39,7 @@ export function ShelfWide() {
         {TITLES.map((title, index) => (
           <a
             key={title}
-            href={`#${title}`}
+            href={`#demo-${title.toLowerCase().replaceAll(' ', '-')}`}
             className="flex flex-col gap-2 rounded-corner-medium text-on-surface outline-offset-2 focus-visible:outline-[3px] focus-visible:outline-secondary"
           >
             <span

@@ -17,7 +17,7 @@ export function DurationTagCard() {
       {VIDEOS.map((video) => (
         <li key={video.title}>
           <a
-            href={`#${video.title}`}
+            href={`#demo-${video.title.toLowerCase().replaceAll(' ', '-')}`}
             className="flex flex-col gap-2 rounded-corner-medium text-on-surface outline-offset-2 focus-visible:outline-[3px] focus-visible:outline-secondary"
           >
             <MediaFrame ratio="16/9" className="w-full">

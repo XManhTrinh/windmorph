@@ -38,7 +38,7 @@ export function ShelfTall() {
         {TITLES.map((title, index) => (
           <a
             key={title}
-            href={`#${title}`}
+            href={`#demo-${title.toLowerCase().replaceAll(' ', '-')}`}
             className="grid overflow-hidden rounded-corner-medium text-on-surface outline-offset-2 *:[grid-area:1/1] focus-visible:outline-[3px] focus-visible:outline-secondary"
           >
             <span className={`block aspect-[9/16] w-full ${TONES[index % TONES.length]}`} />

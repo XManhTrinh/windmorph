@@ -40,7 +40,7 @@ export function FeaturedCarouselSlides() {
             <div className="wm-featured-carousel-content flex flex-col gap-3 bg-gradient-to-t from-scrim/70 to-transparent pb-6 pt-16">
               <h3 className="text-headline-small text-white">
                 <a
-                  href={`#${item.title}`}
+                  href={`#demo-${item.title.toLowerCase().replaceAll(' ', '-')}`}
                   className="rounded-corner-extra-small focus-visible:outline-[3px] focus-visible:outline-white"
                 >
                   {item.title}
