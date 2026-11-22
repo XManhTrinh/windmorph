@@ -341,7 +341,12 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
               order: a drag from a row&apos;s handle that the row follows while the rows it passes
               slide aside, moves by action, a cancel, rows that can&apos;t move, and scrolling near
               an edge; it has no look and no words of its own, and calls{' '}
-              <InlineCode>onReorder</InlineCode> once a move lands).
+              <InlineCode>onReorder</InlineCode> once a move lands). Merge{' '}
+              <InlineCode>handleProps()</InlineCode>&apos;s <InlineCode>style</InlineCode> (its{' '}
+              <InlineCode>touch-action: none</InlineCode> keeps a finger on the handle from
+              scrolling the page). The <InlineCode>slide</InlineCode> adds to a row&apos;s own
+              transitions, and the hook leaves reduced motion to you: give it a duration that
+              resolves to 0 there (a motion token does), or no slide.
             </li>
             <li>
               <InlineCode>usePageHeight</InlineCode> (measures the page shown in a surface whose
