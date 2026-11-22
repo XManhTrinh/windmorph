@@ -120,10 +120,6 @@ export const MEDIA_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     // `number | null | undefined`: a length not known yet draws nothing.
     controlKinds: { duration: 'number' },
     numberRanges: { duration: { min: 0, max: 36000, step: 1 } },
-    notControlled: {
-      formatDuration:
-        'A function that writes the clock; the preview keeps `m:ss` in the page’s locale, and the examples write minutes.',
-    },
     importMembers: ['MediaFrame'],
     codeWrap: {
       before: '<MediaFrame ratio="16/9">\n  <img src="/media/poster.jpg" alt="" />',
