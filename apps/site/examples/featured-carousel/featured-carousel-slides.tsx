@@ -33,7 +33,7 @@ const ITEMS = [
  */
 export function FeaturedCarouselSlides() {
   return (
-    <FeaturedCarousel aria-label="Featured" className="w-full">
+    <FeaturedCarousel aria-label="Featured picks" className="w-full">
       {ITEMS.map((item) => (
         <FeaturedCarouselSlide key={item.title} textValue={item.title}>
           <div className={`flex h-full flex-col justify-end bg-gradient-to-br ${item.fill}`}>
