@@ -296,6 +296,41 @@ test.describe('Dialog behaviour', () => {
     await expect(trigger).toBeFocused();
   });
 
+  for (const mode of ['light', 'dark'] as const) {
+    test(`a theme's container colour paints the dialog at every width, while it opens too · ${mode}`, async ({
+      page,
+    }) => {
+      const colour = 'rgb(1, 2, 3)';
+      for (const width of [412, 1280]) {
+        await page.setViewportSize({ width, height: 760 });
+        await openStory(page, 'components-dialog--full-screen-compact', { mode });
+        // On the theme scope, as an app sets it; the overlay carries the scope's attributes.
+        await page.addStyleTag({
+          content: `[data-theme] { --md-comp-dialog-container-color: ${colour}; }`,
+        });
+        // Every frame from the press until it rests.
+        const frames = page.evaluate(
+          () =>
+            new Promise<string[]>((resolve) => {
+              const seen: string[] = [];
+              const start = performance.now();
+              const frame = () => {
+                const panel = document.querySelector('[role="dialog"][data-tokens~="md-comp-dialog"]');
+                if (panel) seen.push(getComputedStyle(panel).backgroundColor);
+                if (performance.now() - start < 900) requestAnimationFrame(frame);
+                else resolve(seen);
+              };
+              requestAnimationFrame(frame);
+            }),
+        );
+        await page.getByRole('button', { name: 'Edit name' }).click();
+        const seen = await frames;
+        expect(seen.length, `${width}px`).toBeGreaterThan(5);
+        expect(new Set(seen), `${width}px`).toEqual(new Set([colour]));
+      }
+    });
+  }
+
   test('full screen "compact" stays a basic dialog on larger windows', async ({ page }) => {
     await page.setViewportSize({ width: 1024, height: 760 });
     await openStory(page, 'components-dialog--full-screen-compact');

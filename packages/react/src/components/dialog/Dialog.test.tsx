@@ -784,7 +784,11 @@ describe('Dialog full screen', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Edit name' }));
     const panel = screen.getByRole('dialog', { name: 'Edit name' });
     expect(panel).toHaveAttribute('data-full-screen', 'always');
-    expect(panel).toHaveClass('size-full', 'bg-surface-container-high', 'rounded-none');
+    expect(panel).toHaveClass(
+      'size-full',
+      'bg-[var(--_md-comp-dialog-container-color)]',
+      'rounded-none',
+    );
     expect(screen.getByRole('heading', { name: 'Edit name' }).parentElement).toHaveClass(
       'h-[56px]',
     );
@@ -816,7 +820,7 @@ describe('Dialog full screen', () => {
     expect(panel).toHaveAttribute('data-full-screen', 'compact');
     expect(panel).toHaveClass(
       'max-medium:size-full',
-      'max-medium:bg-surface-container-high',
+      'max-medium:bg-[var(--_md-comp-dialog-container-color)]',
       'rounded-[var(--_md-comp-dialog-container-shape)]',
     );
     expect(screen.getByRole('button', { name: 'Close' })).toHaveClass('medium:hidden');
@@ -930,7 +934,7 @@ describe('Dialog container transform', () => {
       '[--m3-dialog-exit-clip:var(--m3-dialog-origin)]',
       '[--m3-dialog-slide:0_0]',
     );
-    expect(panel).toHaveClass('starting:bg-(--m3-dialog-origin-color)', '*:starting:opacity-0');
+    expect(panel).toHaveClass('starting:bg-[var(--m3-dialog-origin-color,var(--_md-comp-dialog-container-color))]', '*:starting:opacity-0');
     fab.remove();
   });
 
@@ -951,8 +955,10 @@ describe('Dialog container transform', () => {
     expect(boxMotion.style.getPropertyValue('--m3-dialog-origin')).toBe(
       'inset(50px 904px 698px 100px round 0px)',
     );
-    expect(boxMotion.style.getPropertyValue('--m3-dialog-origin-color')).toBe(
-      'var(--md-sys-color-surface-container-high)',
+    // A box has no colour: the panel starts from its own full-screen container colour.
+    expect(boxMotion.style.getPropertyValue('--m3-dialog-origin-color')).toBe('');
+    expect(screen.getByTestId('panel')).toHaveClass(
+      'starting:bg-[var(--m3-dialog-origin-color,var(--_md-comp-dialog-container-color))]',
     );
   });
 

@@ -26,7 +26,7 @@ import { tv, type VariantProps } from '../../utils/tv';
  * on wider ones, and `placement` aligns the dialog in it.
  *
  * Full-screen dialogs follow the M3 dialog spec's full-screen type: the panel fills the
- * window on `surface-container-high` with no corners, elevation or padding; a 56px header
+ * window on the dialog's `container-color` with no corners, elevation or padding; a 56px header
  * holds the `on-surface` close icon button, the `title-large` headline and the confirming
  * text button (with an optional `outline-variant` divider), and the content is padded 24px
  * at the top and sides. With a header action `DialogActions` are hidden; without one they
@@ -38,7 +38,7 @@ import { tv, type VariantProps } from '../../utils/tv';
  * The basic dialog's container colour, corners and shadow, and the icon, title and supporting
  * text colours, come from the dialog's component tokens (`dialog-tokens.ts`,
  * `--md-comp-dialog-*`); the panel carries `data-tokens="md-comp-dialog"`, and the parts read
- * one private variable each. A full-screen panel keeps its own `surface-container-high`. A
+ * one private variable each, full screen too. A
  * consumer class (`bg-surface-container`) still wins. Every class is written out in full.
  */
 
@@ -231,7 +231,7 @@ export const dialogStyles = tv({
         ],
         panel: [
           'size-full max-h-none max-w-none rounded-none p-0 shadow-none',
-          'bg-surface-container-high',
+          'bg-[var(--_md-comp-dialog-container-color)]',
         ],
         header: 'flex h-[56px] shrink-0 items-center gap-[4px] ps-[4px] pe-[12px]',
         title: 'min-w-0 flex-1 truncate ps-[4px] pb-0 text-start text-title-large',
@@ -269,7 +269,7 @@ export const dialogStyles = tv({
         panel: [
           'max-medium:size-full max-medium:max-h-none max-medium:max-w-none',
           'max-medium:rounded-none max-medium:p-0 max-medium:shadow-none',
-          'max-medium:bg-surface-container-high',
+          'max-medium:bg-[var(--_md-comp-dialog-container-color)]',
         ],
         header: [
           'max-medium:flex max-medium:h-[56px] max-medium:shrink-0 max-medium:items-center',
@@ -446,7 +446,8 @@ export const dialogStyles = tv({
           '[transition-property:background-color] motion-reduce:[transition-property:none]',
           '[transition-duration:var(--md-sys-motion-spring-effects-slow-duration)]',
           '[transition-timing-function:var(--md-sys-motion-spring-effects-slow-easing)]',
-          'starting:bg-(--m3-dialog-origin-color) motion-safe:data-exiting:bg-(--m3-dialog-origin-color)',
+          'starting:bg-[var(--m3-dialog-origin-color,var(--_md-comp-dialog-container-color))]',
+          'motion-safe:data-exiting:bg-[var(--m3-dialog-origin-color,var(--_md-comp-dialog-container-color))]',
           'data-exiting:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)]',
           '*:[transition-property:opacity] *:starting:opacity-0 data-exiting:*:opacity-0',
           '*:[transition-duration:var(--md-sys-motion-spring-effects-slow-duration)]',
@@ -477,8 +478,8 @@ export const dialogStyles = tv({
           'max-medium:motion-reduce:[transition-property:none]',
           'max-medium:[transition-duration:var(--md-sys-motion-spring-effects-slow-duration)]',
           'max-medium:[transition-timing-function:var(--md-sys-motion-spring-effects-slow-easing)]',
-          'max-medium:starting:bg-(--m3-dialog-origin-color)',
-          'max-medium:motion-safe:data-exiting:bg-(--m3-dialog-origin-color)',
+          'max-medium:starting:bg-[var(--m3-dialog-origin-color,var(--_md-comp-dialog-container-color))]',
+          'max-medium:motion-safe:data-exiting:bg-[var(--m3-dialog-origin-color,var(--_md-comp-dialog-container-color))]',
           'max-medium:data-exiting:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)]',
           'max-medium:*:[transition-property:opacity] max-medium:*:starting:opacity-0',
           'max-medium:data-exiting:*:opacity-0',

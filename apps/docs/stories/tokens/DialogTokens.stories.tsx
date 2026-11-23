@@ -38,7 +38,13 @@ export default meta;
 export const Probe: StoryObj = {
   render: () => (
     <TokenProbe
-      instances={<Open title="Delete 3 files?" />}
+      instances={
+        <>
+          <Open title="Delete 3 files?" />
+          {/* Full screen, on the same container colour. */}
+          <Open title="Edit name" fullScreen="always" />
+        </>
+      }
       scoped={<Open title="Scoped" />}
       override={{
         token: '--md-comp-dialog-container-color',
