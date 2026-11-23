@@ -4,9 +4,9 @@ import { color, corner, defineComponentTokens, elevation } from '../../tokens/co
  * Dialog's component tokens, M3's `md.comp.dialog.*` names (checked against m3.material.io's
  * token tables, 2026-10-14), with Compose's DialogTokens defaults. The panel carries
  * `data-tokens="md-comp-dialog"`, and `dialog-styles.ts` reads one private variable per part
- * (the icon, title and content inherit them). A full-screen dialog keeps its own container
- * (M3's separate full-screen set, not exposed): the window-filling `surface-container-high`
- * with no corners or shadow. The actions are text buttons with their own tokens, and the
+ * (the icon, title and content inherit them). A full-screen dialog fills the window with no
+ * corners or shadow on the same `container-color` (M3's tables have no full-screen set), so
+ * one colour reaches the dialog at every width. The actions are text buttons with their own tokens, and the
  * dividers and the scrim stay classes.
  */
 

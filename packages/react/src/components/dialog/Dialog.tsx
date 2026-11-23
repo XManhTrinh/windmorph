@@ -81,8 +81,8 @@ export type DialogOrigin = 'trigger' | Element | DOMRectReadOnly;
 interface OriginBox {
   /** The origin's box and corners as a `clip-path` of the window. */
   clip: string;
-  /** The origin's container colour, or the dialog's own when it has none. */
-  color: string;
+  /** The origin's container colour; none when it has none, so the dialog's own is used. */
+  color: string | undefined;
 }
 
 /** How browsers serialise a computed `transparent`. */
@@ -107,7 +107,7 @@ function measureOrigin(origin: Element | DOMRectReadOnly): OriginBox {
   const background = style?.backgroundColor ?? TRANSPARENT;
   return {
     clip: `inset(${top}px ${right}px ${bottom}px ${left}px round ${radius})`,
-    color: background === TRANSPARENT ? 'var(--md-sys-color-surface-container-high)' : background,
+    color: background === TRANSPARENT ? undefined : background,
   };
 }
 
@@ -497,7 +497,7 @@ function DialogModal({
               originBox
                 ? ({
                     '--m3-dialog-origin': originBox.clip,
-                    '--m3-dialog-origin-color': originBox.color,
+                    ...(originBox.color ? { '--m3-dialog-origin-color': originBox.color } : {}),
                   } as CSSProperties)
                 : undefined
             }
