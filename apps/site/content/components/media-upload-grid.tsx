@@ -41,7 +41,7 @@ export async function MediaUploadGridBody(): Promise<ComponentDoc> {
             Examples
           </h2>
           <ExampleViewer
-            title="A post composer: progress, retry, reorder, a menu and refused files"
+            title="A post composer: progress, retry, reorder, a menu and one note for refused files"
             code={composer}
             html={composerHtml}
             fileName="media-upload-grid-composer.tsx"
@@ -118,6 +118,16 @@ export async function MediaUploadGridBody(): Promise<ComponentDoc> {
               <InlineCode>room</InlineCode>; it isn&apos;t drawn as a drop target then. A drag whose
               types can&apos;t match <InlineCode>accept</InlineCode> is refused while it&apos;s over
               the grid, with the no-drop cursor, so it&apos;s never reported.
+            </li>
+            <li>
+              <InlineCode>onFilePick(pick)</InlineCode> is called once for each pick or drop that
+              brings files, with all of them: <InlineCode>accepted</InlineCode> (what{' '}
+              <InlineCode>onFileAccept</InlineCode> gets) and <InlineCode>rejected</InlineCode>{' '}
+              (what <InlineCode>onFileReject</InlineCode> gets), each in the order the files came;{' '}
+              <InlineCode>accepted</InlineCode> is empty when every file was refused. It runs first,
+              then the other two, all in the same task, so the composer above adds what fits and
+              says once what was left out from one call. It alone is enough for the add tile and
+              drops, and each callback gets its own copy of the lists.
             </li>
             <li>
               Show a chosen file at once with <InlineCode>URL.createObjectURL(file)</InlineCode> as

@@ -20,6 +20,11 @@ export const CHARTS_FIGURES_SPEC: Record<string, ComponentSpecData> = {
         examples: ['stat-tile/stat-tile-sizes'],
       },
       {
+        name: 'A short figure read in full (`valueText`)',
+        kind: 'configuration',
+        examples: ['stat-tile/stat-tile-sizes'],
+      },
+      {
         name: 'A figure with no value yet',
         kind: 'configuration',
         examples: ['stat-tile/stat-tile-sizes'],

@@ -275,6 +275,8 @@ export const MEDIA_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       defaultPlaybackRate: 'The speed at first; `<` and `>` change it in the preview.',
       playbackRates:
         'The speeds `<` and `>` step through; the preview keeps quarters from 0.25 to 2.',
+      playbackRatePresets:
+        'The settings’ speed presets; the preview has no settings, and the "Speeds up to 4×, with a locked preset" example sets them.',
       rotation: 'The picture’s turn, which Rotate and R change once `rotatable` is on.',
       defaultRotation: 'The turn at first; Rotate and R change it once `rotatable` is on.',
       autoplayNext:

@@ -5,7 +5,7 @@ export const CHARTS_CARTESIAN_SPEC: Record<string, ComponentSpecData> = {
   'line-chart': {
     covers: [
       {
-        name: 'A subject with a wash, and a line to compare with (`subject`)',
+        name: 'A subject with a wash, and a quiet line to compare with (`subject`, `quiet`)',
         kind: 'variant',
         examples: ['line-chart/line-chart-compare'],
       },

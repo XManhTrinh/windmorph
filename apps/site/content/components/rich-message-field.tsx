@@ -162,16 +162,17 @@ export async function RichMessageFieldBody(): Promise<ComponentDoc> {
               <InlineCode>onSubmit</InlineCode> gets it trimmed. Everything else is the
               frame&apos;s: <InlineCode>tools</InlineCode> (after Aa),{' '}
               <InlineCode>banner</InlineCode>, <InlineCode>attachments</InlineCode>,{' '}
-              <InlineCode>onFileAccept</InlineCode> and <InlineCode>onFileReject</InlineCode>,{' '}
-              <InlineCode>maxLength</InlineCode> (never cut; it counts the stored marker text, so
-              markers and mentions count: <InlineCode>*bold*</InlineCode> is 6),{' '}
-              <InlineCode>expandOnFocus</InlineCode>, <InlineCode>docked</InlineCode> and the rest.{' '}
-              <InlineCode>handleRef</InlineCode> adds <InlineCode>format</InlineCode>,{' '}
-              <InlineCode>setLink</InlineCode> and <InlineCode>removeLink</InlineCode> to{' '}
-              <InlineCode>focus</InlineCode>, <InlineCode>insertText</InlineCode> and{' '}
-              <InlineCode>clear</InlineCode>. Focusing the text (a press on the field or a tool,{' '}
-              <InlineCode>insertText</InlineCode>) never scrolls the page; the app&apos;s{' '}
-              <InlineCode>focus()</InlineCode> brings a field that is wholly off screen into view.
+              <InlineCode>onFilePick</InlineCode>, <InlineCode>onFileAccept</InlineCode> and{' '}
+              <InlineCode>onFileReject</InlineCode>, <InlineCode>maxLength</InlineCode> (never cut;
+              it counts the stored marker text, so markers and mentions count:{' '}
+              <InlineCode>*bold*</InlineCode> is 6), <InlineCode>expandOnFocus</InlineCode>,{' '}
+              <InlineCode>docked</InlineCode> and the rest. <InlineCode>handleRef</InlineCode> adds{' '}
+              <InlineCode>format</InlineCode>, <InlineCode>setLink</InlineCode> and{' '}
+              <InlineCode>removeLink</InlineCode> to <InlineCode>focus</InlineCode>,{' '}
+              <InlineCode>insertText</InlineCode> and <InlineCode>clear</InlineCode>. Focusing the
+              text (a press on the field or a tool, <InlineCode>insertText</InlineCode>) never
+              scrolls the page; the app&apos;s <InlineCode>focus()</InlineCode> brings a field that
+              is wholly off screen into view.
             </li>
             <li>
               <InlineCode>onFileAccept</InlineCode> gets files pasted or dropped onto the field that
@@ -186,6 +187,16 @@ export async function RichMessageFieldBody(): Promise<ComponentDoc> {
               reported when <InlineCode>accept</InlineCode> leaves it out. A paste that takes no
               file still pastes as usual, and reports its files unless it carries plain text (a
               copied file&apos;s name).
+            </li>
+            <li>
+              <InlineCode>onFilePick(pick)</InlineCode> is called once for each paste or drop that
+              brings files, with all of them: <InlineCode>accepted</InlineCode> and{' '}
+              <InlineCode>rejected</InlineCode> (with their reasons), each in the order the files
+              came; <InlineCode>accepted</InlineCode> is empty when every file was refused. It runs
+              first, then <InlineCode>onFileAccept</InlineCode> and{' '}
+              <InlineCode>onFileReject</InlineCode>, all in the same task, so you can add what fits
+              and say once what was left out. A paste the field leaves as text calls nothing, and{' '}
+              <InlineCode>onFilePick</InlineCode> alone is enough to take files.
             </li>
             <li>
               <InlineCode>FormattedText</InlineCode> shows the marker format as elements, never HTML

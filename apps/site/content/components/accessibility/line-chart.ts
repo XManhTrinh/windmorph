@@ -56,7 +56,7 @@ export const lineChart: ComponentAccessibility = {
   ],
   motion: [
     'Lines rise or draw on once, as the chart first comes into view, and move to new numbers on the spatial spring. Under reduced motion they take their new shape at once and the draw-on is instant; a series hiding or showing still fades, and a new series’ line fades in where it lands once the chart is on screen.',
-    'In forced colours each line is `CanvasText` with its own dash pattern (slot 1 solid), the legend and readout keys carry the same dashes, the wash is left out, and the points and the hairline are `CanvasText`.',
+    'In forced colours each line is `CanvasText` with its own dash pattern (slot 1 solid, a quiet series a dash and two dots), the legend and readout keys carry the same dashes, the wash is left out, and the points and the hairline are `CanvasText`.',
   ],
   consumer: [
     'Name every chart: put it in a `ChartFrame`, whose title names it, or give it `aria-label` or `aria-labelledby`.',
@@ -64,6 +64,7 @@ export const lineChart: ComponentAccessibility = {
     'Put units in `formatValue`, so the value text says them ("-4.8°C", not "-4.8").',
     'Show every value another way too: a `ChartFrame` gives the table view, since the readout enhances and is hidden from assistive technology.',
     'Refer to series by name, never by colour alone. Keep `texture` on (it is, for two or more series) unless every series is told apart some other way, such as a label of your own beside each line.',
+    'Mark a line drawn only to compare with (the previous period) `quiet`: it steps back in colour and always keeps its dash and two dots, so it is told apart without colour; its label still has to say what it is ("Last year").',
     'A chart that updates by itself needs a way to pause it (WCAG 2.2.2), as the live example has.',
     'Translate `labels` (`describePlace`, `noValue`, `legend`, `lastSeries`, `place`), or set them once for the app with a `LabelsProvider` under `Chart`.',
     'For a theme of your own, add its chart palette with `withChartColors`, so the slots are made for it as the built-in themes’ are.',

@@ -108,6 +108,18 @@ export async function FileTriggerBody(): Promise<ComponentDoc> {
               file&apos;s name and type can lie.
             </li>
             <li>
+              <InlineCode>onFilePick(pick)</InlineCode> is called once for each pick that brings
+              files, with all of them: <InlineCode>accepted</InlineCode>, the files taken, and{' '}
+              <InlineCode>rejected</InlineCode>, the files refused with their reasons, each list in
+              the order the files came (<InlineCode>accepted</InlineCode> is empty when every file
+              was refused). It runs first, then <InlineCode>onFileAccept</InlineCode> and{' '}
+              <InlineCode>onFileReject</InlineCode>, all in the same task, so you can treat a pick
+              as one thing: add what fits and say once what was left out. A closed dialog calls
+              nothing. It is enough on its own to take files, and each callback gets its own copy of
+              the lists. Its type, <InlineCode>FilePick</InlineCode>, comes from{' '}
+              <InlineCode>@windmorph/react-pro</InlineCode>.
+            </li>
+            <li>
               <InlineCode>multiple</InlineCode> allows several files,{' '}
               <InlineCode>capture</InlineCode> opens the front (<InlineCode>user</InlineCode>) or
               back (<InlineCode>environment</InlineCode>) camera on phones, and{' '}

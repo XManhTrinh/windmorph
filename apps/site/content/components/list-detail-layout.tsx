@@ -113,6 +113,16 @@ export async function ListDetailLayoutBody(): Promise<ComponentDoc> {
               slides in. Focus moves to the new pane without scrolling the page.
             </li>
             <li>
+              <strong className="text-on-surface">The page keeps its heading:</strong> with one
+              pane, the list and its heading are gone while an item is open.{' '}
+              <InlineCode>pageHeading</InlineCode> says the page&apos;s heading again, first in the
+              detail pane, for assistive technology only (visually hidden), so the page always has
+              its heading. It is usually the list&apos;s own heading&apos;s words, at{' '}
+              <InlineCode>pageHeadingLevel</InlineCode> (1 by default). From 840px, with the list
+              beside it, it isn&apos;t there for anyone. It switches in CSS, so the server&apos;s
+              HTML is right.
+            </li>
+            <li>
               <InlineCode>variant</InlineCode>: <InlineCode>plain</InlineCode> (the default) puts
               the panes on the page&apos;s surface; <InlineCode>filled</InlineCode> makes each a{' '}
               <InlineCode>surface-container-low</InlineCode> container with large corners.
@@ -146,7 +156,7 @@ export async function ListDetailLayoutBody(): Promise<ComponentDoc> {
             <li>
               Override any part with <InlineCode>className</InlineCode> and{' '}
               <InlineCode>classNames</InlineCode> (root, the size container; panes, the grid or row
-              holding them; list, detail, back).
+              holding them; list, detail, back, pageHeading).
             </li>
           </ul>
           <TokenTable set={listDetailLayoutTokenSet} caption="List-detail layout tokens" />

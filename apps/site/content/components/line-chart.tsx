@@ -112,6 +112,16 @@ export async function LineChartBody(): Promise<ComponentDoc> {
               are only in a frame&apos;s table view, and development builds warn.
             </li>
             <li>
+              <InlineCode>quiet</InlineCode> on a series draws it only to compare with, such as the
+              previous period&apos;s line beside this one: in the charts&apos; quiet colour (
+              <InlineCode>--wm-chart-quiet</InlineCode>, M3&apos;s <InlineCode>outline</InlineCode>)
+              and always patterned, its line in a dash and two dots, with texture on or off, in the
+              legend, the readout and forced colours too. It takes no colour slot, so the other
+              series keep theirs, and its <InlineCode>slot</InlineCode> is ignored. One a chart:
+              development builds warn about a quiet series with a slot, two quiet series, and a
+              quiet <InlineCode>subject</InlineCode>.
+            </li>
+            <li>
               The side labels run from nought, or from the least value below it, to a round number
               in about four steps: in full under 10,000 and compact above, with the decimals the
               step needs. Under 224px of plot plus place labels every other one shows. The bottom
@@ -249,11 +259,13 @@ export async function LineChartBody(): Promise<ComponentDoc> {
               each item its series&apos; slot (or colour) where the order differs from the
               chart&apos;s, and <InlineCode>{"mark: 'line'"}</InlineCode> for a line&apos;s dashes;{' '}
               <InlineCode>texture</InlineCode> is on from two items (
-              <InlineCode>texture={'{false}'}</InlineCode> turns it off).{' '}
-              <InlineCode>ChartTooltip</InlineCode> takes the same <InlineCode>slot</InlineCode> on
-              its rows and the same <InlineCode>texture</InlineCode>; it is drawn as the core&apos;s
-              rich tooltip and is hidden from assistive technology, so what it shows must be said
-              another way too.
+              <InlineCode>texture={'{false}'}</InlineCode> turns it off). An item for a quiet series
+              takes <InlineCode>quiet</InlineCode>, for the quiet pattern, and{' '}
+              <InlineCode>{"color: 'var(--wm-chart-quiet)'"}</InlineCode>.{' '}
+              <InlineCode>ChartTooltip</InlineCode> takes the same <InlineCode>slot</InlineCode> and{' '}
+              <InlineCode>quiet</InlineCode> on its rows and the same{' '}
+              <InlineCode>texture</InlineCode>; it is drawn as the core&apos;s rich tooltip and is
+              hidden from assistive technology, so what it shows must be said another way too.
             </li>
             <li>
               <InlineCode>chartColor(slot)</InlineCode> gives a slot&apos;s colour as the charts

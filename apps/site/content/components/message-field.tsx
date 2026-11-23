@@ -178,8 +178,19 @@ export async function MessageFieldBody(): Promise<ComponentDoc> {
               taken nor reported; a copied picture, whose HTML is the image alone, is taken, or
               reported when <InlineCode>accept</InlineCode> leaves it out. A paste that takes no
               file still pastes as usual, and reports its files unless it carries plain text (a
-              copied file&apos;s name). Without <InlineCode>onFileAccept</InlineCode>, files are
-              ignored and text pastes as usual; a disabled or read-only field takes no files.
+              copied file&apos;s name). Without <InlineCode>onFileAccept</InlineCode> or{' '}
+              <InlineCode>onFilePick</InlineCode>, files are ignored and text pastes as usual; a
+              disabled or read-only field takes no files.
+            </li>
+            <li>
+              <InlineCode>onFilePick(pick)</InlineCode> is called once for each paste or drop that
+              brings files, with all of them: <InlineCode>accepted</InlineCode> and{' '}
+              <InlineCode>rejected</InlineCode> (with their reasons), each in the order the files
+              came; <InlineCode>accepted</InlineCode> is empty when every file was refused. It runs
+              first, then <InlineCode>onFileAccept</InlineCode> and{' '}
+              <InlineCode>onFileReject</InlineCode>, all in the same task, so you can add what fits
+              and say once what was left out. A paste the field leaves as text calls nothing. It
+              alone is enough to take files, here and on <InlineCode>MessageFieldFrame</InlineCode>.
             </li>
             <li>
               <InlineCode>maxLength</InlineCode> never cuts what&apos;s written: past it, the

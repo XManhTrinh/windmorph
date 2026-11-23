@@ -104,9 +104,9 @@ export async function DurationTagBody(): Promise<ComponentDoc> {
           Theming &amp; tokens
         </h2>
         <p className={TEXT}>
-          Set the tokens below on the tag, its frame or any ancestor. The clock&apos;s colour is the
-          theme&apos;s light neutral in both modes (
-          <InlineCode>light-dark(surface, on-surface)</InlineCode>), on{' '}
+          Set the tokens below on the tag, its frame or any ancestor. The tag is a dark{' '}
+          <InlineCode>ThemeScope</InlineCode>, so its clock is the dark theme&apos;s{' '}
+          <InlineCode>on-surface</InlineCode> in every mode, in a theme made at run time too, on{' '}
           <InlineCode>scrim</InlineCode> at 72%, which keeps 4.5:1 over a white picture in every
           theme and contrast level. <InlineCode>className</InlineCode> goes on the tag; style each
           part with <InlineCode>classNames</InlineCode>: <CodeList names={SLOTS} />.
