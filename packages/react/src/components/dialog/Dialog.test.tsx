@@ -934,7 +934,10 @@ describe('Dialog container transform', () => {
       '[--m3-dialog-exit-clip:var(--m3-dialog-origin)]',
       '[--m3-dialog-slide:0_0]',
     );
-    expect(panel).toHaveClass('starting:bg-[var(--m3-dialog-origin-color,var(--_md-comp-dialog-container-color))]', '*:starting:opacity-0');
+    expect(panel).toHaveClass(
+      'starting:bg-[var(--m3-dialog-origin-color,var(--_md-comp-dialog-container-color))]',
+      '*:starting:opacity-0',
+    );
     fab.remove();
   });
 

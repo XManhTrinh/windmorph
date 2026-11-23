@@ -315,7 +315,9 @@ test.describe('Dialog behaviour', () => {
               const seen: string[] = [];
               const start = performance.now();
               const frame = () => {
-                const panel = document.querySelector('[role="dialog"][data-tokens~="md-comp-dialog"]');
+                const panel = document.querySelector(
+                  '[role="dialog"][data-tokens~="md-comp-dialog"]',
+                );
                 if (panel) seen.push(getComputedStyle(panel).backgroundColor);
                 if (performance.now() - start < 900) requestAnimationFrame(frame);
                 else resolve(seen);
