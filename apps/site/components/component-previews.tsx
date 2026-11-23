@@ -354,6 +354,131 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
       </span>
     </span>
   ),
+  'stat-tile': (
+    <Col gap={2}>
+      <Text w={56} />
+      <span className="text-headline-small text-on-surface">4,218</span>
+      <Row gap={1}>
+        <span className="size-2 shrink-0 rotate-45 border-l-2 border-t-2 border-success" />
+        <span className="block h-1.5 w-10 shrink-0 rounded-corner-full bg-success" />
+      </Row>
+      <span className="relative block h-7 w-36 rounded-ee-[100%] border-e-2 border-b-2 border-outline">
+        <span className="absolute -end-1.5 -top-1.5 size-3 rounded-full bg-primary" />
+      </span>
+    </Col>
+  ),
+  meter: (
+    <span className="flex w-40 flex-col gap-2">
+      <Text w={48} />
+      <span className="text-title-medium text-on-surface">
+        86 <span className="text-body-small text-on-surface-variant">of 100 GB</span>
+      </span>
+      <span className="relative block h-2 w-full overflow-hidden rounded-full bg-surface-container-highest">
+        <span className="absolute inset-y-0 start-0 w-[86%] rounded-full bg-warning" />
+        <span className="absolute inset-y-0 start-[80%] w-0.5 bg-surface" />
+      </span>
+      <Row gap={1}>
+        <span className="size-2.5 shrink-0 rotate-45 rounded-[2px] bg-warning" />
+        <Text w={72} />
+      </Row>
+    </span>
+  ),
+  'line-chart': (
+    <span className="flex w-40 flex-col">
+      <svg viewBox="0 0 160 64" className="h-16 w-40 overflow-visible">
+        <path
+          d="M0 50 L32 40 L64 44 L96 26 L128 30 L160 14 L160 64 L0 64 Z"
+          className="fill-primary/15"
+        />
+        <path
+          d="M0 56 L32 52 L64 53 L96 44 L128 46 L160 38"
+          className="fill-none stroke-tertiary stroke-2 [stroke-linecap:round] [stroke-linejoin:round]"
+        />
+        <path
+          d="M0 50 L32 40 L64 44 L96 26 L128 30 L160 14"
+          className="fill-none stroke-primary stroke-2 [stroke-linecap:round] [stroke-linejoin:round]"
+        />
+      </svg>
+      <span className="block h-px w-full bg-outline" />
+    </span>
+  ),
+  'bar-chart': (
+    <span className="flex h-16 w-40 items-end justify-around border-b border-outline">
+      {[
+        [18, 10, 6],
+        [22, 10, 8],
+        [26, 12, 8],
+        [20, 12, 6],
+        [30, 14, 8],
+        [34, 14, 10],
+      ].map(([first, second, third], index) => (
+        <span key={index} className="flex w-4 flex-col-reverse gap-0.5">
+          <span className="block bg-primary" style={{ height: first }} />
+          <span className="block bg-tertiary" style={{ height: second }} />
+          <span
+            className="block rounded-t-corner-extra-small bg-secondary"
+            style={{ height: third }}
+          />
+        </span>
+      ))}
+    </span>
+  ),
+  'segmented-bar': (
+    <span className="flex w-44 flex-col gap-2.5">
+      <span className="flex h-5 gap-0.5">
+        <span className="block grow-[5] basis-0 rounded-corner-extra-small bg-primary" />
+        <span className="block grow-[3] basis-0 rounded-corner-extra-small bg-tertiary" />
+        <span className="block grow-[1.5] basis-0 rounded-corner-extra-small bg-secondary" />
+        <span className="block grow-[0.8] basis-0 rounded-corner-extra-small bg-outline" />
+      </span>
+      <Row gap={3}>
+        {['bg-primary', 'bg-tertiary', 'bg-secondary'].map((fill) => (
+          <span key={fill} className="flex items-center gap-1">
+            <span className={`block size-2 shrink-0 rounded-[2px] ${fill}`} />
+            <Text w={18} />
+          </span>
+        ))}
+      </Row>
+    </span>
+  ),
+  'ranked-bars': (
+    <Col gap={3}>
+      {[96, 58, 36, 48].map((width, row) => (
+        <Row key={row}>
+          <Text w={32} strong />
+          <span className="flex w-24">
+            <span
+              className={`block h-2.5 rounded-e-corner-extra-small ${row === 3 ? 'bg-outline' : 'bg-primary'}`}
+              style={{ width }}
+            />
+          </span>
+          <Text w={16} />
+        </Row>
+      ))}
+    </Col>
+  ),
+  'chart-frame': (
+    <Panel w={176} h={104} round="md" fill="high">
+      <span className="flex items-start justify-between">
+        <Col gap={1}>
+          <Text w={64} strong />
+          <Text w={44} />
+        </Col>
+        <span className="flex size-4 shrink-0 flex-col rounded-[3px] border-2 border-on-surface-variant">
+          <span className="h-0.5 bg-on-surface-variant" />
+        </span>
+      </span>
+      <span className="mt-auto flex h-10 items-end gap-1.5">
+        {[18, 26, 22, 34, 30, 40].map((height, index) => (
+          <span
+            key={index}
+            className="block w-3 rounded-t-corner-extra-small bg-primary"
+            style={{ height }}
+          />
+        ))}
+      </span>
+    </Panel>
+  ),
   chips: (
     <Row gap={1}>
       <Shape w={56} h={28} fill="secondary" round="sm" />
@@ -431,6 +556,22 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
     </span>
   ),
   list: listRows(3, <Shape w={28} h={28} fill="tertiary" />),
+  'reorder-list': (
+    <span className="flex w-40 flex-col gap-1">
+      <span className="flex items-center gap-2 px-2 py-1">
+        <Shape w={10} h={14} fill="variant" round="sm" />
+        <Text w={72} strong />
+      </span>
+      <span className="flex items-center gap-2 rounded-corner-large bg-tertiary-container px-2 py-1 shadow-elevation-4">
+        <Shape w={10} h={14} fill="outline" round="sm" />
+        <Text w={88} strong />
+      </span>
+      <span className="flex items-center gap-2 px-2 py-1">
+        <Shape w={10} h={14} fill="variant" round="sm" />
+        <Text w={60} strong />
+      </span>
+    </span>
+  ),
   'list-detail-layout': (
     <Row gap={1}>
       <Panel w={64} h={88} round="md" fill="high">
@@ -452,6 +593,21 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
       <Shape w={20} h={84} fill="high" round="xl" />
     </Row>
   ),
+  'featured-carousel': (
+    <span className="flex flex-col items-center gap-2">
+      <span className="flex items-center gap-1">
+        <span className="block h-14 w-6 rounded-corner-medium bg-secondary-container opacity-60" />
+        <span className="block h-16 w-28 rounded-corner-large bg-tertiary-container" />
+        <span className="block h-14 w-6 rounded-corner-medium bg-secondary-container opacity-60" />
+      </span>
+      <Row gap={1}>
+        <span className="block h-1.5 w-1.5 rounded-full bg-outline" />
+        <span className="block h-1.5 w-5 rounded-full bg-primary" />
+        <span className="block h-1.5 w-1.5 rounded-full bg-outline" />
+        <span className="block h-1.5 w-1.5 rounded-full bg-outline" />
+      </Row>
+    </span>
+  ),
   'media-grid': (
     <span className="grid grid-cols-3 gap-1">
       <Shape w={40} h={40} fill="tertiary" round="sm" />
@@ -470,6 +626,64 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
       </span>
       <span className="mx-auto h-10 w-20 rounded-corner-small bg-tertiary-container" />
       <span className="mx-auto h-1.5 w-16 rounded-full bg-inverse-on-surface" />
+    </span>
+  ),
+  'duration-tag': (
+    <span className="grid h-20 w-36 overflow-hidden rounded-corner-medium bg-tertiary-container *:[grid-area:1/1]">
+      <span className="m-1 self-end justify-self-end rounded-corner-extra-small bg-inverse-surface px-1 text-label-small text-inverse-on-surface">
+        4:12
+      </span>
+    </span>
+  ),
+  shelf: (
+    <Row gap={1}>
+      <Col gap={1}>
+        <Shape w={64} h={40} fill="tertiary" round="sm" />
+        <Text w={48} strong />
+      </Col>
+      <Col gap={1}>
+        <Shape w={64} h={40} fill="secondary" round="sm" />
+        <Text w={40} strong />
+      </Col>
+      <Col gap={1}>
+        <Shape w={24} h={40} fill="high" round="sm" />
+        <Text w={20} strong />
+      </Col>
+    </Row>
+  ),
+  'video-player': (
+    <span className="flex h-24 w-40 flex-col justify-end gap-1.5 rounded-corner-medium bg-inverse-surface p-2">
+      <span className="flex h-1 w-full rounded-full bg-inverse-on-surface/30">
+        <span className="block h-full w-3/5 rounded-full bg-inverse-primary" />
+      </span>
+      <span className="flex items-center justify-between">
+        <span className="flex gap-1">
+          <span className="size-3.5 rounded-full bg-inverse-on-surface" />
+          <span className="h-3.5 w-8 rounded-full bg-inverse-on-surface/60" />
+        </span>
+        <span className="flex gap-1">
+          <span className="size-3.5 rounded-full bg-inverse-on-surface/60" />
+          <span className="size-3.5 rounded-full bg-inverse-on-surface/60" />
+        </span>
+      </span>
+    </span>
+  ),
+  'video-player-settings': (
+    <span className="flex h-24 w-40 items-end justify-end rounded-corner-medium bg-inverse-surface p-1.5">
+      <span className="flex w-24 flex-col gap-1.5 rounded-corner-small bg-inverse-on-surface/20 p-2">
+        <span className="flex justify-between">
+          <span className="h-1.5 w-10 rounded-full bg-inverse-on-surface" />
+          <span className="h-1.5 w-5 rounded-full bg-inverse-on-surface/60" />
+        </span>
+        <span className="flex justify-between">
+          <span className="h-1.5 w-8 rounded-full bg-inverse-on-surface" />
+          <span className="h-1.5 w-6 rounded-full bg-inverse-on-surface/60" />
+        </span>
+        <span className="flex justify-between">
+          <span className="h-1.5 w-9 rounded-full bg-inverse-on-surface" />
+          <span className="h-1.5 w-4 rounded-full bg-inverse-primary" />
+        </span>
+      </span>
     </span>
   ),
   'shaped-icon': (

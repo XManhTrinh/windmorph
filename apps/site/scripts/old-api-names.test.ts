@@ -104,6 +104,15 @@ const OLD_PATTERNS: [RegExp, string][] = [
 ];
 
 /**
+ * Replaced names a later component took for something else, with the files where that use is
+ * right: StatTile's `change.tone` (`good`, `bad`, `neutral`; 0.2.10) is what a change means, not
+ * a colour.
+ */
+const REUSED: Record<string, RegExp> = {
+  tone: /(?:^|\/)(?:stat-tile|charts-figures)(?:[-./]|$)/,
+};
+
+/**
  * Names replaced on some components only, checked in those components' pages and examples:
  * checkboxes and switches are `checked` (2026-10-17), while toggles and chips keep `selected`.
  */
@@ -212,6 +221,7 @@ function findings(): string[] {
         const line = withoutCompose(raw);
         const where = `${relative(site, file)}:${index + 1}`;
         for (const [name, now] of Object.entries(REPLACED)) {
+          if (REUSED[name]?.test(relative(site, file))) continue;
           if (asCode(name).test(line)) found.push(`${where} ${name} (now ${now})`);
         }
         for (const [pattern, now] of LINE_PATTERNS) {

@@ -11,6 +11,7 @@ export type ComponentGroup =
   | 'Containment & overlays'
   | 'Navigation'
   | 'Feedback & pickers'
+  | 'Charts'
   | 'Primitives';
 
 /**
@@ -19,7 +20,14 @@ export type ComponentGroup =
  * `group`) splits into `feedback` and `pickers` here.
  */
 export type RailGroupId =
-  'actions' | 'inputs' | 'containment' | 'navigation' | 'feedback' | 'pickers' | 'primitives';
+  | 'actions'
+  | 'inputs'
+  | 'containment'
+  | 'navigation'
+  | 'feedback'
+  | 'pickers'
+  | 'charts'
+  | 'primitives';
 
 export interface RailGroup {
   id: RailGroupId;
@@ -39,6 +47,7 @@ export const RAIL_GROUPS: RailGroup[] = [
   { id: 'feedback', railLabel: 'Feedback', fullName: 'Feedback' },
   // pickers members: date-picker, time-picker, picker-dialog
   { id: 'pickers', railLabel: 'Pickers', fullName: 'Pickers' },
+  { id: 'charts', railLabel: 'Charts', fullName: 'Charts' },
   { id: 'primitives', railLabel: 'Primitives', fullName: 'Primitives' },
 ];
 
@@ -674,7 +683,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     summary:
       "A media player's position bar: where playback is, what has loaded, and the time under the pointer, to seek by pointer, touch and keyboard. Not an M3 component (@windmorph/react-pro).",
     propsComponents: ['MediaTimeSlider'],
-    types: ['MediaTimeRanges'],
+    types: ['MediaTimeRanges', 'MediaTimeSliderChapter'],
     playground: 'full',
     pro: true,
     related: ['slider', 'media-viewer', 'progress'],
@@ -910,12 +919,37 @@ export const COMPONENT_META: ComponentMeta[] = [
       'For top-level navigation use a Navigation rail or bar; for tabular data use a table.',
   },
   {
+    slug: 'reorder-list',
+    title: 'Reorder list',
+    group: 'Containment & overlays',
+    railGroup: 'containment',
+    summary:
+      'A vertical list whose rows a person puts in order: by dragging a handle, with the arrow keys, or from a move menu with no drag at all, each move said to screen readers. Not an M3 component (@windmorph/react-pro).',
+    propsComponents: ['ReorderList', 'ReorderListItem'],
+    hooks: ['useReorderListItem'],
+    playground: 'full',
+    pro: true,
+    related: ['list', 'media-upload-grid', 'menu'],
+    whenNotToUse:
+      'For rows that are picked rather than ordered, use a List; to order photos being uploaded, the Media upload grid.',
+    keywords: [
+      'sortable',
+      'drag and drop',
+      'rearrange',
+      'reorder',
+      'drag to reorder',
+      'sort',
+      'playlist',
+      'drag handle',
+    ],
+  },
+  {
     slug: 'list-detail-layout',
     title: 'List-detail layout',
     group: 'Containment & overlays',
     railGroup: 'containment',
     summary:
-      "M3's list-detail canonical layout: one pane at a time on phones, the list beside the open item from 840px. For settings, an inbox or a dashboard. Not an M3 component (@windmorph/react-pro).",
+      "M3's list-detail canonical layout, sized by its own width: one pane at a time below 840px, the list beside the open item from 840px. For settings, an inbox or a dashboard. Not an M3 component (@windmorph/react-pro).",
     propsComponents: ['ListDetailLayout'],
     playground: 'full',
     pro: true,
@@ -955,6 +989,32 @@ export const COMPONENT_META: ComponentMeta[] = [
     },
     related: ['card', 'tabs'],
     whenNotToUse: 'When every item must be seen at once, use a grid of Cards instead.',
+  },
+  {
+    slug: 'featured-carousel',
+    title: 'Featured carousel',
+    group: 'Containment & overlays',
+    railGroup: 'containment',
+    summary:
+      'The large carousel at the top of a media or store page: one slide in front with whole slides set back beside it, moved by a swipe, side arrows or keys, and by itself only with a Pause control. Not an M3 component (@windmorph/react-pro).',
+    propsComponents: ['FeaturedCarousel', 'FeaturedCarouselSlide', 'FeaturedCarouselPlaceholder'],
+    hooks: ['useFeaturedCarouselSlide'],
+    playground: 'full',
+    pro: true,
+    related: ['carousel', 'shelf', 'media-viewer'],
+    whenNotToUse:
+      "For M3's browsing row of pictures, use a Carousel; for a row of cards, a Shelf; to look through photos full screen, a Media viewer.",
+    keywords: [
+      'hero',
+      'slideshow',
+      'banner',
+      'carousel',
+      'slider',
+      'featured',
+      'spotlight',
+      'auto-rotating',
+      'rotator',
+    ],
   },
   {
     slug: 'media-grid',
@@ -998,6 +1058,122 @@ export const COMPONENT_META: ComponentMeta[] = [
       'swipe',
       'photos',
       'container transform',
+    ],
+  },
+  {
+    slug: 'duration-tag',
+    title: 'Duration tag',
+    group: 'Containment & overlays',
+    railGroup: 'containment',
+    summary:
+      "A video's length in the corner of its picture, light on a dark see-through ground over any picture, read in words as part of the card's link. Not an M3 component (@windmorph/react-pro).",
+    propsComponents: ['DurationTag', 'MediaFrame'],
+    playground: 'full',
+    pro: true,
+    related: ['badge', 'tag', 'video-player'],
+    whenNotToUse:
+      'For a count or a status on an icon, use a Badge; for a label a person can act on, a Tag or a chip.',
+    keywords: [
+      'duration',
+      'length',
+      'runtime',
+      'video length',
+      'timestamp',
+      'thumbnail overlay',
+      'time badge',
+      'video',
+    ],
+  },
+  {
+    slug: 'shelf',
+    title: 'Shelf',
+    group: 'Containment & overlays',
+    railGroup: 'containment',
+    summary:
+      'One row of cards that scrolls sideways, with part of the next card showing at its end and Previous and Next at its sides for a mouse. Not an M3 component (@windmorph/react-pro).',
+    propsComponents: ['Shelf', 'ShelfPlaceholder'],
+    playground: 'full',
+    pro: true,
+    related: ['carousel', 'media-grid', 'card'],
+    whenNotToUse:
+      "For M3's carousel of pictures that change size as they scroll, use a Carousel; when every item must be seen at once, a grid of Cards.",
+    keywords: [
+      'row',
+      'scroller',
+      'rail of cards',
+      'horizontal list',
+      'horizontal scroll',
+      'row of cards',
+      'swimlane',
+      'strip',
+    ],
+  },
+  {
+    slug: 'video-player',
+    title: 'Video player',
+    group: 'Containment & overlays',
+    railGroup: 'containment',
+    summary:
+      'A video player complete with nothing set: its own controls, keys, touch gestures, captions and states over a file or a stream, drawn in the theme over any picture. Not an M3 component (@windmorph/react-pro).',
+    propsComponents: [
+      'VideoPlayer',
+      'VideoPlayerControl',
+      'VideoPlayerControlGroup',
+      'VideoPlayerVolume',
+      'VideoPlayerNotice',
+      'MediaSlider',
+    ],
+    hooks: ['useVideoPlayer'],
+    types: ['VideoPlayerPoster', 'VideoPlayerCaptionTrack'],
+    playground: 'full',
+    pro: true,
+    related: ['video-player-settings', 'media-time-slider', 'duration-tag'],
+    whenNotToUse:
+      "For a position bar alone, in an audio player of your own, use the Media time slider; for a video's length on a card, a Duration tag.",
+    keywords: [
+      'video',
+      'media player',
+      'player',
+      'playback',
+      'captions',
+      'subtitles',
+      'full screen',
+      'picture-in-picture',
+      'theater mode',
+      'streaming',
+      'controls',
+    ],
+  },
+  {
+    slug: 'video-player-settings',
+    title: 'Video player settings',
+    group: 'Containment & overlays',
+    railGroup: 'containment',
+    summary:
+      "A video player's settings: a small panel over the picture at the player's corner whose rows open pages in its place (speed, captions, quality), a bottom sheet on phones. Not an M3 component (@windmorph/react-pro).",
+    propsComponents: [
+      'VideoPlayerSettings',
+      'VideoPlayerSettingsTrigger',
+      'VideoPlayerSettingsItem',
+      'VideoPlayerSettingsSwitch',
+      'VideoPlayerSettingsChoice',
+      'VideoPlayerSettingsSpeed',
+      'VideoPlayerSettingsPage',
+    ],
+    types: ['VideoPlayerSettingsOption', 'VideoPlayerSettingsSpeedPreset'],
+    playground: 'showcase',
+    pro: true,
+    related: ['video-player', 'menu', 'sheets'],
+    whenNotToUse: 'For a menu of actions, use a Menu; for settings of a page, a List of switches.',
+    keywords: [
+      'settings',
+      'playback speed',
+      'quality',
+      'captions',
+      'subtitles',
+      'gear',
+      'video settings',
+      'player menu',
     ],
   },
   {
@@ -1805,6 +1981,157 @@ export const COMPONENT_META: ComponentMeta[] = [
       'docked',
       'time list',
       'dropdown',
+    ],
+  },
+  {
+    slug: 'stat-tile',
+    title: 'Stat tile',
+    group: 'Charts',
+    railGroup: 'charts',
+    summary:
+      'One number and how it moved: what it is, the figure, its change against something, and a small trend under the number. Not an M3 component (@windmorph/react-pro).',
+    propsComponents: ['StatTile', 'Sparkline'],
+    playground: 'full',
+    pro: true,
+    related: ['meter', 'line-chart', 'chart-frame'],
+    whenNotToUse:
+      'For a value against a limit, use a Meter; for how something changed over time in detail, a Line chart.',
+    keywords: [
+      'kpi',
+      'metric',
+      'scorecard',
+      'big number',
+      'sparkline',
+      'trend',
+      'dashboard',
+      'figure',
+      'change',
+      'delta',
+    ],
+  },
+  {
+    slug: 'meter',
+    title: 'Meter',
+    group: 'Charts',
+    railGroup: 'charts',
+    summary:
+      'A value on a known scale, such as storage used or a quota, with a warning past a threshold said in words, never by colour alone. Not an M3 component (@windmorph/react-pro).',
+    propsComponents: ['Meter', 'MeterList'],
+    playground: 'full',
+    pro: true,
+    related: ['stat-tile', 'progress', 'segmented-bar'],
+    whenNotToUse:
+      "For a task's progress, use a Progress indicator; for one whole split into parts, a Segmented bar.",
+    keywords: ['gauge', 'quota', 'usage', 'limit', 'capacity', 'storage', 'threshold', 'level'],
+  },
+  {
+    slug: 'line-chart',
+    title: 'Line chart',
+    group: 'Charts',
+    railGroup: 'charts',
+    summary:
+      'Lines over time: one subject with a wash under it and others to compare with, read by pointer, finger and keyboard. Not an M3 component (@windmorph/react-pro).',
+    propsComponents: ['LineChart', 'ChartLegend', 'ChartTooltip'],
+    playground: 'full',
+    pro: true,
+    related: ['bar-chart', 'stat-tile', 'chart-frame'],
+    whenNotToUse:
+      'For a total made of parts over time, use a Bar chart; for one number and its trend, a Stat tile.',
+    keywords: [
+      'line graph',
+      'time series',
+      'trend',
+      'over time',
+      'graph',
+      'plot',
+      'comparison',
+      'series',
+    ],
+  },
+  {
+    slug: 'bar-chart',
+    title: 'Bar chart',
+    group: 'Charts',
+    railGroup: 'charts',
+    summary:
+      'Columns over places: one series, or several stacked into a total, read by pointer, finger and keyboard. Not an M3 component (@windmorph/react-pro).',
+    propsComponents: ['BarChart', 'ChartLegend', 'ChartTooltip'],
+    playground: 'full',
+    pro: true,
+    related: ['line-chart', 'ranked-bars', 'chart-frame'],
+    whenNotToUse:
+      'To rank parts against each other, use Ranked bars; for a trend across many places, a Line chart.',
+    keywords: ['column chart', 'stacked bars', 'graph', 'totals', 'over time', 'series'],
+  },
+  {
+    slug: 'segmented-bar',
+    title: 'Segmented bar',
+    group: 'Charts',
+    railGroup: 'charts',
+    summary:
+      "One whole in a few parts, as a bar that prints its figures or a thin bar above a list of the parts; parts with an order can take the theme's ramp, lightest to darkest (the reverse in dark mode). Not an M3 component (@windmorph/react-pro).",
+    propsComponents: ['SegmentedBar', 'SegmentedList'],
+    playground: 'full',
+    pro: true,
+    related: ['ranked-bars', 'meter', 'chart-frame'],
+    whenNotToUse:
+      "To compare parts that don't add up to a whole, use Ranked bars; for a value against a limit, a Meter.",
+    keywords: [
+      'stacked bar',
+      'share',
+      'breakdown',
+      'composition',
+      'parts of a whole',
+      'percentage',
+      'pie chart',
+      'donut',
+    ],
+  },
+  {
+    slug: 'ranked-bars',
+    title: 'Ranked bars',
+    group: 'Charts',
+    railGroup: 'charts',
+    summary:
+      "Parts compared on one scale, largest first, with the rest in one row last; and a funnel's steps with each one's share of the step before. Not an M3 component (@windmorph/react-pro).",
+    propsComponents: ['RankedBars', 'FunnelBars'],
+    playground: 'full',
+    pro: true,
+    related: ['segmented-bar', 'bar-chart', 'chart-frame'],
+    whenNotToUse:
+      'For parts that make up one whole, use a Segmented bar; for change over time, a Bar chart or Line chart.',
+    keywords: [
+      'bar list',
+      'leaderboard',
+      'top items',
+      'ranking',
+      'funnel',
+      'conversion',
+      'drop-off',
+      'horizontal bars',
+    ],
+  },
+  {
+    slug: 'chart-frame',
+    title: 'Chart frame',
+    group: 'Charts',
+    railGroup: 'charts',
+    summary:
+      'The card a chart sits in: its title names the chart, a switch shows the same numbers as a table, and it has empty, loading, pending and error states. Not an M3 component (@windmorph/react-pro).',
+    propsComponents: ['ChartFrame'],
+    playground: 'full',
+    pro: true,
+    related: ['line-chart', 'bar-chart', 'data-table'],
+    whenNotToUse:
+      'A chart that needs no title or table, such as a sparkline in a tile, can stand on its own.',
+    keywords: [
+      'chart card',
+      'chart container',
+      'data table view',
+      'loading',
+      'empty state',
+      'error',
+      'dashboard card',
     ],
   },
   {

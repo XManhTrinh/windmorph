@@ -161,8 +161,25 @@ export async function MessageFieldBody(): Promise<ComponentDoc> {
             </li>
             <li>
               <InlineCode>onFileAccept</InlineCode> gets files pasted or dropped onto the field that
-              match <InlineCode>accept</InlineCode>; the field shows its drag-over state. Without
-              it, files are ignored and text pastes as usual.
+              match <InlineCode>accept</InlineCode>, and the field shows its drag-over state.{' '}
+              <InlineCode>accept</InlineCode> lists MIME types, wildcards (
+              <InlineCode>image/*</InlineCode>) or extensions (<InlineCode>.pdf</InlineCode>): list
+              the extensions beside the MIME types (
+              <InlineCode>{"['text/csv', '.csv']"}</InlineCode>
+              ), since a file&apos;s type comes from the system and can differ from the one you
+              expect. <InlineCode>*</InlineCode> or <InlineCode>*/*</InlineCode> takes any file, and
+              an entry may hold several types, comma-separated.{' '}
+              <InlineCode>onFileReject(rejections)</InlineCode> gets the files a paste or drop
+              brought that weren&apos;t taken, after <InlineCode>onFileAccept</InlineCode> and never
+              with an empty list, each with its <InlineCode>reason</InlineCode> (
+              <InlineCode>type</InlineCode>, off <InlineCode>accept</InlineCode>), so you can say
+              why a file didn&apos;t appear. A paste whose HTML holds words is a text paste whatever
+              files it carries (copied cells or a document bring a picture of themselves), neither
+              taken nor reported; a copied picture, whose HTML is the image alone, is taken, or
+              reported when <InlineCode>accept</InlineCode> leaves it out. A paste that takes no
+              file still pastes as usual, and reports its files unless it carries plain text (a
+              copied file&apos;s name). Without <InlineCode>onFileAccept</InlineCode>, files are
+              ignored and text pastes as usual; a disabled or read-only field takes no files.
             </li>
             <li>
               <InlineCode>maxLength</InlineCode> never cuts what&apos;s written: past it, the

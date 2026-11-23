@@ -53,6 +53,7 @@ const entryPaths = [
   join(proRoot, 'dist/rich-text.d.ts'),
   join(proRoot, 'dist/data-grid.d.ts'),
   join(proRoot, 'dist/calendar.d.ts'),
+  join(proRoot, 'dist/charts.d.ts'),
 ];
 /** The entries whose `use*` exports are documented as hooks, per package. */
 const hookEntries = [
@@ -67,6 +68,7 @@ const hookEntries = [
       join(proRoot, 'dist/rich-text.d.ts'),
       join(proRoot, 'dist/data-grid.d.ts'),
       join(proRoot, 'dist/calendar.d.ts'),
+      join(proRoot, 'dist/charts.d.ts'),
     ],
   },
 ];
@@ -90,9 +92,14 @@ const packages = [
       join(proRoot, 'dist/rich-text.d.ts'),
       join(proRoot, 'dist/data-grid.d.ts'),
       join(proRoot, 'dist/calendar.d.ts'),
+      join(proRoot, 'dist/charts.d.ts'),
     ],
     tsconfigPath: join(siteRoot, 'tsconfig.json'),
-    sourceRoots: [join(proRoot, 'dist/components'), join(proRoot, 'dist/rich-text')],
+    sourceRoots: [
+      join(proRoot, 'dist/components'),
+      join(proRoot, 'dist/rich-text'),
+      join(proRoot, 'dist/charts'),
+    ],
     extension: '.d.ts' as const,
   },
 ];

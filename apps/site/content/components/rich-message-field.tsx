@@ -24,20 +24,26 @@ const RichMessageFieldDialog = lazyExample(
   'rich-message-field/rich-message-field-dialog',
   'RichMessageFieldDialog',
 );
+const FormattedTextOwnLinks = lazyExample(
+  'rich-message-field/formatted-text-own-links',
+  'FormattedTextOwnLinks',
+);
 
 /** Rich message field page body: purpose, examples, behaviour, accessibility and tokens. */
 export async function RichMessageFieldBody(): Promise<ComponentDoc> {
-  const [comment, post, dialog, mentions] = await Promise.all([
+  const [comment, post, dialog, mentions, ownLinks] = await Promise.all([
     readExampleSource('rich-message-field/rich-message-field-comment.tsx'),
     readExampleSource('rich-message-field/rich-message-field-post.tsx'),
     readExampleSource('rich-message-field/rich-message-field-dialog.tsx'),
     readExampleSource('rich-message-field/rich-message-field-mentions.tsx'),
+    readExampleSource('rich-message-field/formatted-text-own-links.tsx'),
   ]);
-  const [commentHtml, postHtml, dialogHtml, mentionsHtml] = await Promise.all([
+  const [commentHtml, postHtml, dialogHtml, mentionsHtml, ownLinksHtml] = await Promise.all([
     highlightSource(comment),
     highlightSource(post),
     highlightSource(dialog),
     highlightSource(mentions),
+    highlightSource(ownLinks),
   ]);
 
   return {
@@ -78,6 +84,14 @@ export async function RichMessageFieldBody(): Promise<ComponentDoc> {
             fileName="rich-message-field-mentions.tsx"
           >
             <RichMessageFieldMentions />
+          </ExampleViewer>
+          <ExampleViewer
+            title="FormattedText: the app’s own links as ordinary links, by their safe path"
+            code={ownLinks}
+            html={ownLinksHtml}
+            fileName="formatted-text-own-links.tsx"
+          >
+            <FormattedTextOwnLinks />
           </ExampleViewer>
         </section>
       </>
@@ -148,25 +162,58 @@ export async function RichMessageFieldBody(): Promise<ComponentDoc> {
               <InlineCode>onSubmit</InlineCode> gets it trimmed. Everything else is the
               frame&apos;s: <InlineCode>tools</InlineCode> (after Aa),{' '}
               <InlineCode>banner</InlineCode>, <InlineCode>attachments</InlineCode>,{' '}
-              <InlineCode>onFileAccept</InlineCode>, <InlineCode>maxLength</InlineCode> (never cut;
-              it counts the stored marker text, so markers and mentions count:{' '}
-              <InlineCode>*bold*</InlineCode> is 6), <InlineCode>expandOnFocus</InlineCode>,{' '}
-              <InlineCode>docked</InlineCode> and the rest. <InlineCode>handleRef</InlineCode> adds{' '}
-              <InlineCode>format</InlineCode>, <InlineCode>setLink</InlineCode> and{' '}
-              <InlineCode>removeLink</InlineCode> to <InlineCode>focus</InlineCode>,{' '}
-              <InlineCode>insertText</InlineCode> and <InlineCode>clear</InlineCode>. Focusing the
-              text (a press on the field or a tool, <InlineCode>insertText</InlineCode>) never
-              scrolls the page; the app&apos;s <InlineCode>focus()</InlineCode> brings a field that
-              is wholly off screen into view.
+              <InlineCode>onFileAccept</InlineCode> and <InlineCode>onFileReject</InlineCode>,{' '}
+              <InlineCode>maxLength</InlineCode> (never cut; it counts the stored marker text, so
+              markers and mentions count: <InlineCode>*bold*</InlineCode> is 6),{' '}
+              <InlineCode>expandOnFocus</InlineCode>, <InlineCode>docked</InlineCode> and the rest.{' '}
+              <InlineCode>handleRef</InlineCode> adds <InlineCode>format</InlineCode>,{' '}
+              <InlineCode>setLink</InlineCode> and <InlineCode>removeLink</InlineCode> to{' '}
+              <InlineCode>focus</InlineCode>, <InlineCode>insertText</InlineCode> and{' '}
+              <InlineCode>clear</InlineCode>. Focusing the text (a press on the field or a tool,{' '}
+              <InlineCode>insertText</InlineCode>) never scrolls the page; the app&apos;s{' '}
+              <InlineCode>focus()</InlineCode> brings a field that is wholly off screen into view.
+            </li>
+            <li>
+              <InlineCode>onFileAccept</InlineCode> gets files pasted or dropped onto the field that
+              match <InlineCode>accept</InlineCode>, before the editor sees them.{' '}
+              <InlineCode>onFileReject(rejections)</InlineCode> gets the files a paste or drop
+              brought that weren&apos;t taken, after <InlineCode>onFileAccept</InlineCode> and never
+              with an empty list, each with its <InlineCode>reason</InlineCode> (
+              <InlineCode>type</InlineCode>, off <InlineCode>accept</InlineCode>), so you can say
+              why a file didn&apos;t appear. A paste whose HTML holds words is a text paste whatever
+              files it carries (copied cells or a document bring a picture of themselves), neither
+              taken nor reported; a copied picture, whose HTML is the image alone, is taken, or
+              reported when <InlineCode>accept</InlineCode> leaves it out. A paste that takes no
+              file still pastes as usual, and reports its files unless it carries plain text (a
+              copied file&apos;s name).
             </li>
             <li>
               <InlineCode>FormattedText</InlineCode> shows the marker format as elements, never HTML
               from the text. Links are http and https only, open in a new tab and get{' '}
               <InlineCode>{'rel="ugc nofollow noopener noreferrer"'}</InlineCode>;{' '}
               <InlineCode>{'links={false}'}</InlineCode> shows them as words inside something
-              pressable. <InlineCode>parseMarkers</InlineCode>,{' '}
-              <InlineCode>markersToDoc</InlineCode> and <InlineCode>docToMarkers</InlineCode> read
-              and convert the format.
+              pressable. Links to the app&apos;s own pages can be ordinary links:{' '}
+              <InlineCode>internalLinks(url)</InlineCode> picks them (say,{' '}
+              <InlineCode>{'(url) => url.origin === SITE_ORIGIN'}</InlineCode>, a constant from the
+              app&apos;s config: it runs on the server too, where there is no{' '}
+              <InlineCode>location</InlineCode>, and must answer the same there), and they open in
+              the same tab, through the app&apos;s <InlineCode>RouterProvider</InlineCode> on the
+              page&apos;s own origin (its <InlineCode>navigate</InlineCode> gets the link as
+              written, a full <InlineCode>https://</InlineCode> address), with no new-tab mark or
+              words and <InlineCode>internalLinkRel</InlineCode> (none by default) in place of{' '}
+              <InlineCode>ugc nofollow</InlineCode>. <InlineCode>renderLink(link)</InlineCode>{' '}
+              renders a link yourself, for instance with your router&apos;s link component; return{' '}
+              <InlineCode>undefined</InlineCode> to keep the default for that link. For a router
+              that takes a path, render the link there and give it{' '}
+              <InlineCode>link.path</InlineCode>: the path with one leading slash, then the search
+              and hash. Never use the address&apos;s raw <InlineCode>pathname</InlineCode>:{' '}
+              <InlineCode>https://site.example//other.example/x</InlineCode> has the pathname{' '}
+              <InlineCode>//other.example/x</InlineCode>, which a browser or router reads as an
+              address on another site, so a crafted link would send people there. An address whose
+              path starts with <InlineCode>//</InlineCode> is never one of the app&apos;s own,
+              whatever <InlineCode>internalLinks</InlineCode> says.{' '}
+              <InlineCode>parseMarkers</InlineCode>, <InlineCode>markersToDoc</InlineCode> and{' '}
+              <InlineCode>docToMarkers</InlineCode> read and convert the format.
             </li>
           </ul>
         </section>

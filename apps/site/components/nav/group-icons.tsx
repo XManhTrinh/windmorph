@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react';
 import type { RailGroupId } from '../../content/components/catalog';
 import {
+  BarChartIcon,
   BoltIcon,
   CalendarMonthIcon,
   CategoryIcon,
@@ -18,5 +19,6 @@ export const GROUP_ICONS: Record<RailGroupId, ReactElement> = {
   navigation: <ExploreIcon />,
   feedback: <NotificationsIcon />,
   pickers: <CalendarMonthIcon />,
+  charts: <BarChartIcon />,
   primitives: <CategoryIcon />,
 };

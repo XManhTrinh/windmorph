@@ -27,28 +27,42 @@ const SLOTS = [
   'header',
   'headerRow',
   'headerCell',
+  'headerContent',
+  'headerLabel',
   'sortIcon',
   'sortLevel',
   'resizer',
+  'resizerLine',
   'body',
   'row',
   'cell',
   'rowLink',
   'selectionCell',
+  'selectionCheckbox',
   'actionsCell',
+  'actionButton',
   'pagination',
   'pageSize',
   'range',
   'pageButtons',
+  'pageButton',
+  'pageIcon',
   'compactList',
   'compactRow',
+  'compactFigure',
   'loading',
   'skeletonRow',
+  'skeletonRows',
+  'skeletonCell',
   'progress',
   'empty',
   'error',
   'columnSettings',
+  'settingsRow',
+  'settingsName',
   'filterDialog',
+  'filterFields',
+  'filterRange',
 ];
 
 /** DataTable page body: examples, when to use it, behaviour, parts and tokens. */
@@ -68,6 +82,11 @@ export async function DataTableBody(): Promise<ComponentDoc> {
     { title: 'Pinned columns', file: 'data-table/data-table-pinned', name: 'DataTablePinned' },
     { title: 'Column widths', file: 'data-table/data-table-widths', name: 'DataTableWidths' },
     { title: 'A plain table', file: 'data-table/data-table-plain', name: 'DataTablePlain' },
+    {
+      title: 'Rows that scroll under the header',
+      file: 'data-table/data-table-height',
+      name: 'DataTableHeight',
+    },
   ]);
   return {
     overview,
@@ -122,6 +141,40 @@ export async function DataTableBody(): Promise<ComponentDoc> {
           </ul>
         </section>
         <section className={SECTION}>
+          <h2 id="height-and-scrolling" className={HEADING}>
+            Height and scrolling
+          </h2>
+          <ul className={LIST}>
+            <li>
+              <InlineCode>maxHeight</InlineCode> (px, or any CSS length such as{' '}
+              <InlineCode>&apos;60dvh&apos;</InlineCode>) caps the rows: past it they scroll under
+              the header, which stays in view. The compact list scrolls within the same height.
+              Without it the table is as tall as its rows.
+            </li>
+            <li>
+              Columns wider than the table scroll sideways, and pinned columns stay in place. The
+              keyboard reaches what&apos;s cut off: a grid&apos;s focus moves to every cell and
+              brings it into view, and a <InlineCode>plain</InlineCode> table that cuts rows or
+              columns off becomes a tab stop itself, a region named after the table, which the arrow
+              and page keys scroll. The compact list kept to <InlineCode>maxHeight</InlineCode> does
+              the same whenever its rows have nothing to press. When nothing is cut off it is
+              neither.
+            </li>
+            <li>
+              The arrow keys bring a cell into view only as far as it needs, so the page never jumps
+              to centre the table.
+            </li>
+            <li>
+              To let the page, or a region of your own, scroll the table instead, turn its scroller
+              off with{' '}
+              <InlineCode>
+                classNames={'{{'} container: &apos;overflow-visible&apos;{' }}'}
+              </InlineCode>
+              : the header then sticks to the nearest scrolling ancestor.
+            </li>
+          </ul>
+        </section>
+        <section className={SECTION}>
           <h2 id="behaviour" className={HEADING}>
             Behaviour
           </h2>
@@ -156,7 +209,9 @@ export async function DataTableBody(): Promise<ComponentDoc> {
             </li>
             <li>
               Below <InlineCode>compactBelow</InlineCode> of its own width the table becomes a list,
-              through a container query, so the server&apos;s HTML is right.{' '}
+              through a container query, so the server&apos;s HTML is right. Each row shows its row
+              header, with the next column that isn&apos;t end-aligned as supporting text; a table
+              of figures with no such column lists every other column&apos;s name and value instead.{' '}
               <InlineCode>renderCompactRow</InlineCode> chooses what each row shows, and selection
               and actions carry over.
             </li>

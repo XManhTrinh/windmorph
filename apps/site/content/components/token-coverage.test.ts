@@ -4,6 +4,7 @@ import * as windmorph from '@windmorph/react';
 import { isComponentTokenSet } from '@windmorph/react';
 import * as pro from '@windmorph/react-pro';
 import * as proCalendar from '@windmorph/react-pro/calendar';
+import * as proCharts from '@windmorph/react-pro/charts';
 import * as proDataGrid from '@windmorph/react-pro/data-grid';
 import * as proRichText from '@windmorph/react-pro/rich-text';
 import { describe, expect, it } from 'vitest';
@@ -27,6 +28,7 @@ const proSets = [
   ...Object.entries(proRichText),
   ...Object.entries(proDataGrid),
   ...Object.entries(proCalendar),
+  ...Object.entries(proCharts),
 ]
   .filter(([, value]) => isComponentTokenSet(value))
   .filter(([, value]) => (value as { name: string }).name.startsWith('wm-'))

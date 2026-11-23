@@ -102,6 +102,7 @@ export const richMessageField: ComponentAccessibility = {
     'Name the field for what is being written ("Write a comment"), not only with a placeholder.',
     'Translate every word through `labels`, including each format, the link dialog and the mention strings.',
     "With `mentions`, give each person a `label` that names them; it is the option's text and the inserted mention.",
+    'The field announces nothing when it refuses a pasted or dropped file off `accept`: handle `onFileReject` and say why in words a screen reader hears too, such as a snackbar.',
     'In forced-colours mode inline code, code blocks and quotes keep a `CanvasText` border, and the mention list keeps a border.',
   ],
 };

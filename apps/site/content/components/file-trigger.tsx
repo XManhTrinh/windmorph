@@ -86,18 +86,35 @@ export async function FileTriggerBody(): Promise<ComponentDoc> {
           </h2>
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
-              <InlineCode>onFileAccept</InlineCode> gets the chosen files as an array, never empty.
-              Choosing the same file again still calls it.
+              <InlineCode>onFileAccept</InlineCode> gets the chosen files that match{' '}
+              <InlineCode>accept</InlineCode> as an array, never empty. Choosing the same file again
+              still calls it.
             </li>
             <li>
-              <InlineCode>accept</InlineCode> lists MIME types or extensions; check the real type on
-              the server, since a file&apos;s name and type can lie.
+              <InlineCode>accept</InlineCode> lists MIME types, wildcards or extensions, in any
+              case. List the extensions beside the MIME types (
+              <InlineCode>{"['text/csv', '.csv']"}</InlineCode>), since a file&apos;s type comes
+              from the system and can differ from the one you expect (a CSV is{' '}
+              <InlineCode>application/vnd.ms-excel</InlineCode> where a spreadsheet app owns it).{' '}
+              <InlineCode>*</InlineCode> or <InlineCode>*/*</InlineCode> takes any file, as does no
+              list, and an entry may hold several types, comma-separated. The system dialog only
+              hints at it (a person can pick any file there, and a folder&apos;s contents ignore
+              it), so a chosen file off it never reaches <InlineCode>onFileAccept</InlineCode>.{' '}
+              <InlineCode>onFileReject(rejections)</InlineCode> gets the files a pick brought that
+              weren&apos;t taken, after <InlineCode>onFileAccept</InlineCode> and never with an
+              empty list, each with its <InlineCode>reason</InlineCode> (
+              <InlineCode>type</InlineCode>, off <InlineCode>accept</InlineCode>), so you can say
+              why a file didn&apos;t appear. Check the real type on the server too, since a
+              file&apos;s name and type can lie.
             </li>
             <li>
               <InlineCode>multiple</InlineCode> allows several files,{' '}
               <InlineCode>capture</InlineCode> opens the front (<InlineCode>user</InlineCode>) or
               back (<InlineCode>environment</InlineCode>) camera on phones, and{' '}
-              <InlineCode>directory</InlineCode> chooses a folder where the browser supports it.
+              <InlineCode>directory</InlineCode> chooses a folder where the browser supports it,
+              leaving out the files the system keeps there for itself (
+              <InlineCode>.DS_Store</InlineCode>, <InlineCode>Thumbs.db</InlineCode>, dot files),
+              neither taken nor reported.
             </li>
             <li>
               <InlineCode>useFileTrigger(options)</InlineCode> returns{' '}

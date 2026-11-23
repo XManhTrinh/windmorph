@@ -272,6 +272,27 @@ export const GUIDE_ENTRIES: SearchEntry[] = [
     ],
   },
   {
+    title: 'Charts',
+    summary:
+      'Which chart answers which question, the chart colours for every theme, and how the charts read and move. In Windmorph Pro.',
+    href: '/charts',
+    kind: 'guide',
+    keywords: [
+      'chart',
+      'charts',
+      'graph',
+      'data visualisation',
+      'data visualization',
+      'dashboard',
+      'palette',
+      'withChartColors',
+      'chartColor',
+      'pie chart',
+      'donut',
+      '@windmorph/react-pro/charts',
+    ],
+  },
+  {
     title: "What's new",
     summary: 'Release notes for each version of @windmorph/react, newest first.',
     href: '/whats-new',

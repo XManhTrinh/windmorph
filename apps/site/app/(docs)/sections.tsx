@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react';
 import {
   AccessibilityIcon,
+  BarChartIcon,
   ChecklistIcon,
   CodeIcon,
   HomeIcon,
@@ -35,5 +36,6 @@ export const DOCS_SECTIONS: DocsSection[] = [
   { href: '/from-compose', label: 'From Compose', icon: <SwapHorizIcon /> },
   { href: '/spec-status', label: 'Spec status', icon: <ChecklistIcon /> },
   { href: '/pro', label: 'Windmorph Pro', icon: <WorkspacePremiumIcon /> },
+  { href: '/charts', label: 'Charts', icon: <BarChartIcon /> },
   { href: '/whats-new', label: "What's new", icon: <NewReleasesIcon /> },
 ];

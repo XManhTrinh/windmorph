@@ -127,7 +127,8 @@ export interface PlaygroundDescriptor {
     | '@windmorph/react-pro'
     | '@windmorph/react-pro/rich-text'
     | '@windmorph/react-pro/data-grid'
-    | '@windmorph/react-pro/calendar';
+    | '@windmorph/react-pro/calendar'
+    | '@windmorph/react-pro/charts';
 }
 
 /** Casts a typed component to a loose one so arbitrary control values can be spread. */

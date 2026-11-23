@@ -46,6 +46,19 @@ import { CommentRowBody } from './comment-row';
 import { LoadMoreBody } from './load-more';
 import { MediaGridBody } from './media-grid';
 import { MediaTimeSliderBody } from './media-time-slider';
+import { DurationTagBody } from './duration-tag';
+import { ShelfBody } from './shelf';
+import { FeaturedCarouselBody } from './featured-carousel';
+import { ReorderListBody } from './reorder-list';
+import { VideoPlayerBody } from './video-player';
+import { VideoPlayerSettingsBody } from './video-player-settings';
+import { StatTileBody } from './stat-tile';
+import { MeterBody } from './meter';
+import { LineChartBody } from './line-chart';
+import { BarChartBody } from './bar-chart';
+import { SegmentedBarBody } from './segmented-bar';
+import { RankedBarsBody } from './ranked-bars';
+import { ChartFrameBody } from './chart-frame';
 import { ReactionSummaryBody } from './reaction-summary';
 import { ExpandableTextBody } from './expandable-text';
 import { ReactionPickerBody } from './reaction-picker';
@@ -174,6 +187,19 @@ const BODIES: Record<string, ComponentDocLoader> = {
   'load-more': LoadMoreBody,
   'media-grid': MediaGridBody,
   'media-time-slider': MediaTimeSliderBody,
+  'duration-tag': DurationTagBody,
+  shelf: ShelfBody,
+  'featured-carousel': FeaturedCarouselBody,
+  'reorder-list': ReorderListBody,
+  'video-player': VideoPlayerBody,
+  'video-player-settings': VideoPlayerSettingsBody,
+  'stat-tile': StatTileBody,
+  meter: MeterBody,
+  'line-chart': LineChartBody,
+  'bar-chart': BarChartBody,
+  'segmented-bar': SegmentedBarBody,
+  'ranked-bars': RankedBarsBody,
+  'chart-frame': ChartFrameBody,
   'reaction-summary': ReactionSummaryBody,
   'expandable-text': ExpandableTextBody,
   alert: AlertBody,

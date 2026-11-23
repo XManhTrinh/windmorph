@@ -9,7 +9,17 @@ const LIST = `flex flex-col gap-2 ps-5 ${TEXT} [&>li]:list-disc`;
 const HEADING = 'text-headline-small text-on-surface';
 const SECTION = 'flex flex-col gap-3';
 
-const SLOTS = ['root', 'track', 'buffered', 'played', 'thumb', 'bubbleAnchor', 'bubble'];
+const SLOTS = [
+  'root',
+  'parts',
+  'track',
+  'buffered',
+  'played',
+  'hover',
+  'thumb',
+  'bubbleAnchor',
+  'bubble',
+];
 
 /** MediaTimeSlider page body: examples, when to use it, behaviour, parts and tokens. */
 export async function MediaTimeSliderBody(): Promise<ComponentDoc> {
@@ -81,19 +91,47 @@ export async function MediaTimeSliderBody(): Promise<ComponentDoc> {
               page.
             </li>
             <li>
-              A screen reader&apos;s step (one step of the native input, as VoiceOver&apos;s swipe
-              up or down) moves <InlineCode>step</InlineCode> seconds and seeks, as a key does.
-              While the slider has focus, the value screen readers read stays where the person last
-              put it, so playback doesn&apos;t make it speak every second; it refreshes on each key,
-              step or drag, and follows playback again once focus leaves. The handle on screen keeps
-              moving.
+              A screen reader&apos;s step (one step of the native input, such as a swipe up or down
+              on a phone&apos;s screen reader) moves <InlineCode>step</InlineCode> seconds and
+              seeks, as a key does. While the slider has focus, the value screen readers read stays
+              where the person last put it, so playback doesn&apos;t make it speak every second; it
+              refreshes on each key, step or drag, and follows playback again once focus leaves. The
+              handle on screen keeps moving.
             </li>
             <li>
               A bubble shows the time under the pointer before a press, and the handle&apos;s time
               while it moves or has keyboard focus. It is <InlineCode>m:ss</InlineCode>, or{' '}
-              <InlineCode>h:mm:ss</InlineCode> for an hour or longer, in the locale&apos;s digits;{' '}
+              <InlineCode>h:mm:ss</InlineCode> for an hour or longer;{' '}
               <InlineCode>formatTime</InlineCode> writes your own. It shows above the bar, outside
               the slider&apos;s box, so leave about 40px above it.
+            </li>
+            <li>
+              Under a mouse, a trackpad or a pen (never a touch), the stretch from the played part
+              to the pointer fills, where a press would land: its own token,{' '}
+              <InlineCode>--wm-media-time-slider-hover-color</InlineCode>,{' '}
+              <InlineCode>primary</InlineCode> at 38% by default (
+              <InlineCode>transparent</InlineCode> turns it off). Forced colours hide it.{' '}
+              <InlineCode>--wm-media-time-slider-thumb-size-rest</InlineCode> keeps a dot at rest
+              (none by default), so a paused player shows where it is.
+            </li>
+            <li>
+              The bar runs left to right in every language, as media progress does: on a
+              right-to-left page it fills from the left, Arrow Right moves forward and the pointer
+              reads from the left. Its times and words stay in the page&apos;s locale and digits
+              (Arabic-Indic digits in <InlineCode>ar-EG</InlineCode>). Only its parts run left to
+              right: the root keeps the page&apos;s direction, so your logical classes on it (
+              <InlineCode>ms-4</InlineCode>) stay on the page&apos;s side.
+            </li>
+            <li>
+              <InlineCode>chapters</InlineCode>, each a start in seconds and a title, split the bar
+              by <InlineCode>--wm-media-time-slider-chapter-gap</InlineCode>; the segment under the
+              pointer or the handle grows a step, and the bubble shows its title over the time, said
+              with the position too.{' '}
+              <InlineCode>--wm-media-time-slider-played-color-end</InlineCode> turns the played part
+              into a gradient across the played length, and{' '}
+              <InlineCode>--wm-media-time-slider-underlay-color</InlineCode> draws a ground under
+              the line only, for contrast over a picture (the <InlineCode>VideoPlayer</InlineCode>{' '}
+              sets it).
             </li>
             <li>
               A touch waits to tell a tap, a drag and a scroll apart, as the core{' '}

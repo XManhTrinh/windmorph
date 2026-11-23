@@ -295,7 +295,12 @@ export async function ListBody(): Promise<ComponentDoc> {
               Deviation: standard items are transparent rather than Compose&apos;s{' '}
               <InlineCode>surface</InlineCode>, so a list takes the colour of its sheet, card or
               pane. Not yet supported: drag-to-reorder (and its dragged state) and swipe-to-reveal
-              (Android only in M3).
+              (Android only in M3). For a list whose rows a person puts in order, Windmorph Pro has
+              the{' '}
+              <a href="/components/reorder-list" className="text-primary underline">
+                Reorder list
+              </a>
+              , on the core&apos;s <InlineCode>useReorder</InlineCode> engine.
             </li>
           </ul>
         </section>

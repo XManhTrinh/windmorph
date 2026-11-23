@@ -8,24 +8,25 @@ export const listDetailLayout: ComponentAccessibility = {
     role: 'Two landmarks: the list pane is a `navigation` region (`nav`), or a `region` (`section`) with `listAs="section"`; the detail pane is a `region` (`section`).',
     name: 'The list pane is named by `listLabel` ("Settings"), the detail pane by `detailLabel` (the open item\'s title).',
     states:
-      'None. Below 840px the hidden pane is `display: none`, so it is out of the accessibility tree.',
+      "None. Below 840px of the layout’s own width (its wrapper’s, not the window’s) the hidden pane is `display: none`, so it is out of the accessibility tree; while it fades out it is already `inert`, so neither Tab, a screen reader's cursor nor a press reaches it.",
   },
   focus: [
-    'Below 840px, when `detailKey` changes, focus moves to the pane now showing (unless focus is already inside it), without scrolling the page, so keyboard and screen reader users land on the new content. Both panes take focus this way only (`tabIndex={-1}`), never by Tab.',
+    'Below 840px of the layout’s own width, when `detailKey` changes, focus moves to the pane now showing (unless focus is already inside it), without scrolling the page, so keyboard and screen reader users land on the new content. Both panes take focus this way only (`tabIndex={-1}`), never by Tab.',
     "A pane focused this way from the keyboard shows M3's focus indicator inside its edge.",
-    'From 840px focus stays where it is, usually on the item that was chosen.',
+    'From 840px of its width, focus stays where it is, usually on the item that was chosen.',
+    "Below 840px of its width, focus inside the pane that's leaving (on Back, say) moves to the pane showing as the switch starts, so it never drops to the page.",
   ],
   touchTarget: {
     none: 'The layout has no controls of its own; the list items and the back control keep their own targets.',
   },
   motion: [
-    'Below 840px the panes switch with the shared axis transition both ways: the outgoing pane fades and slides out before it hides, and the incoming one fades in and slides 30px, the detail from the end edge, the list from the start edge. A page load never animates.',
+    'Below 840px of the layout’s own width, the panes switch with the shared axis transition both ways: the outgoing pane fades and slides out before it hides, and the incoming one fades in and slides 30px, the detail from the end edge, the list from the start edge. A page load never animates.',
     'Under reduced motion the slides are instant and the panes only fade. In right-to-left layouts the list sits on the right and the slide mirrors.',
   ],
   consumer: [
     'Pass `listLabel` and `detailLabel` from your translations; update `detailLabel` with the open item.',
-    'Pass `detailKey` (usually the pathname) and render the layout in a shared route layout, so focus can follow the open item below 840px.',
-    'Pass `back`, usually an {@link IconButton} link with an `aria-label` such as "Back", so phone users can return to the list.',
+    'Pass `detailKey` (usually the pathname) and render the layout in a shared route layout, so focus can follow the open item below 840px of the layout’s own width.',
+    'Pass `back`, usually an {@link IconButton} link with an `aria-label` such as "Back", so people can return to the list while one pane shows (below 840px of the layout’s own width).',
     'Mark the open item as selected in the list (a {@link List} with `selectedKeys`), so the two panes agree.',
   ],
 };
