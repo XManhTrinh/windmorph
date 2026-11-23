@@ -2,6 +2,12 @@
 
 All notable changes to `@windmorph/react`, newest first. Each version is grouped by kind (Added, Changed, Deprecated, Removed, Fixed, Security), and each entry links to its pull request. The [What's new](https://windmorph.dev/whats-new) page tells the same story in plain words.
 
+## 0.2.12 — 2026-11-23
+
+### Fixed
+
+- A full-screen dialog (`fullScreen="always"`, or `"compact"` below 600px) paints `--md-comp-dialog-container-color`, as the basic dialog does, instead of always `surface-container-high`, while it opens too. ([#118](https://github.com/XManhTrinh/windmorph/pull/118))
+
 ## 0.2.11 — 2026-11-22
 
 ### Added
