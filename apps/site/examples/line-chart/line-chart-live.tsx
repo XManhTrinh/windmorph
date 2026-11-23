@@ -14,6 +14,13 @@ const WINDOW = 15;
  */
 const timeAt = (minute: number) => Date.UTC(2026, 0, 1, 10, minute);
 
+/**
+ * The text with its thin and narrow no-break spaces made plain. The server's and the
+ * browser's date formatting can space a range differently ("10:14\u2009–\u200910:15"), and
+ * the page would then not hydrate.
+ */
+const plainSpaces = (text: string) => text.replace(/[\u2009\u202f]/g, ' ');
+
 /** A made-up but repeatable figure for each minute, so the server and the browser agree. */
 const visitorsAt = (minute: number) =>
   Math.round(120 + 30 * Math.sin(minute / 4) + ((minute * 37) % 17));
@@ -46,8 +53,8 @@ export function LineChartLive() {
     () =>
       minutes.map((minute) => ({
         key: String(minute),
-        tick: time.format(timeAt(minute)),
-        name: time.formatRange(timeAt(minute), timeAt(minute + 1)),
+        tick: plainSpaces(time.format(timeAt(minute))),
+        name: plainSpaces(time.formatRange(timeAt(minute), timeAt(minute + 1))),
       })),
     [minutes, time],
   );
