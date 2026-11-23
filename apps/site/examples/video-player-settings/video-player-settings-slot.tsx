@@ -4,18 +4,25 @@ import { VideoPlayer, VideoPlayerSettings, VideoPlayerSettingsChoice } from '@wi
 import { useState } from 'react';
 import { TuneIcon } from '../../components/icons';
 
+const HD = (
+  <span className="rounded-corner-extra-small bg-error px-0.5 text-label-small-emphasized text-on-error">
+    HD
+  </span>
+);
+
 const QUALITIES = [
-  { value: '1080', label: '1080p', description: 'Enhanced bitrate' },
-  { value: '720', label: '720p' },
+  { value: '1080', label: '1080p', description: 'Enhanced bitrate', badge: HD },
+  { value: '720', label: '720p', badge: HD },
   { value: '480', label: '480p' },
   { value: 'auto', label: 'Auto' },
 ];
 
 /**
  * In the player's `settings` slot the player gives the button, the corner and the room: no
- * trigger or container to write. With no rows of its own the panel draws Playback speed,
- * Captions and Loop from the player; your rows, here Quality, go after them. A choice closes
- * the panel and hands focus back to the gear. `settingsBadge` marks the gear.
+ * trigger or container to write. As a function, `children` places the rows the player fills
+ * (Playback speed, Captions, Loop…) among yours: here Quality comes second, and Loop, left out,
+ * doesn't show. A text badge is read after the label ("1080p HD"). A choice closes the panel
+ * and hands focus back to the gear. `settingsBadge` marks the gear.
  */
 export function VideoPlayerSettingsSlot() {
   const [quality, setQuality] = useState('auto');
@@ -31,24 +38,24 @@ export function VideoPlayerSettingsSlot() {
         { lang: 'en', src: '/media/captions/tour-en.vtt' },
         { lang: 'fr', src: '/media/captions/tour-fr.vtt' },
       ]}
-      settingsBadge={
-        quality === '1080' ? (
-          <span className="rounded-corner-extra-small bg-error px-0.5 text-label-small-emphasized text-on-error">
-            HD
-          </span>
-        ) : undefined
-      }
+      settingsBadge={quality === '1080' ? HD : undefined}
       settings={
         <VideoPlayerSettings>
-          <VideoPlayerSettingsChoice
-            id="quality"
-            icon={<TuneIcon />}
-            label="Quality"
-            value={quality}
-            onChange={setQuality}
-            valueLabel={quality === 'auto' ? 'Auto (720p)' : undefined}
-            options={QUALITIES}
-          />
+          {(rows) => (
+            <>
+              {rows.speed}
+              <VideoPlayerSettingsChoice
+                id="quality"
+                icon={<TuneIcon />}
+                label="Quality"
+                value={quality}
+                onChange={setQuality}
+                valueLabel={quality === 'auto' ? 'Auto (720p)' : undefined}
+                options={QUALITIES}
+              />
+              {rows.captions}
+            </>
+          )}
         </VideoPlayerSettings>
       }
       className="aspect-[1152/720] w-full max-w-2xl rounded-corner-large"

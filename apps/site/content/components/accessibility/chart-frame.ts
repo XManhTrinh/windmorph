@@ -44,6 +44,7 @@ export const chartFrame: ComponentAccessibility = {
     'Give every frame a `title` that says what the chart shows; it names the chart, so the chart needs no `aria-label`.',
     "Set `headingLevel` to fit the page's outline.",
     'Pass `empty` when there is nothing to draw, and write `error` as what failed and what to do: the frame announces it, so it needs no announcement of your own.',
+    'Around a list or a meter, pass a `minHeight` near its height (or 0), so the first load’s placeholder is as tall as what replaces it and nothing below moves under someone reading or about to press.',
     'For lists and meters, which give no table, the printed figures are the text alternative; pass `table` only for figures they leave out.',
     'Translate `labels.showTable`, `labels.loading` and `labels.retry`, or set them once for the app with a {@link LabelsProvider} (its `ChartFrame` words).',
   ],

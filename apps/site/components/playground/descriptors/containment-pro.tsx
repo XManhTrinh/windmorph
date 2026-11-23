@@ -264,6 +264,11 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       list: SECTIONS_CODE,
       detail: '<p className="p-4 text-body-large">Name, photos, bio and languages</p>',
     },
+    notControlled: {
+      pageHeading:
+        'The page’s heading for assistive technology while only the detail shows: nothing to see, and this page has its own.',
+      pageHeadingLevel: 'The level of `pageHeading`, with nothing to see.',
+    },
   },
   'confirm-dialog': {
     component: 'ConfirmDialog',

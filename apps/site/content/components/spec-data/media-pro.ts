@@ -151,6 +151,11 @@ export const MEDIA_PRO_SPEC: Record<string, ComponentSpecData> = {
         examples: ['video-player/video-player-controls'],
       },
       {
+        name: "Speeds and the settings' presets, one of them locked (`playbackRates`, `playbackRatePresets`, `onPlaybackRatePresetPress`)",
+        kind: 'configuration',
+        examples: ['video-player/video-player-speeds'],
+      },
+      {
         name: 'Looks: grouped and scrim (`look`)',
         kind: 'variant',
         examples: ['video-player/video-player-look'],
@@ -188,6 +193,16 @@ export const MEDIA_PRO_SPEC: Record<string, ComponentSpecData> = {
       {
         name: "In a player's `settings` slot, with the rows the player fills",
         kind: 'use case',
+        examples: ['video-player-settings/video-player-settings-slot'],
+      },
+      {
+        name: "The player's rows placed among yours (`children` as a function)",
+        kind: 'configuration',
+        examples: ['video-player-settings/video-player-settings-slot'],
+      },
+      {
+        name: 'Badges on a row and its options (`badge`, `badgeLabel`)',
+        kind: 'configuration',
         examples: ['video-player-settings/video-player-settings-slot'],
       },
       {

@@ -165,11 +165,22 @@ export async function ChartFrameBody(): Promise<ComponentDoc> {
               states, so the pattern above never hides a first load or a failure. An{' '}
               <InlineCode>empty</InlineCode> or <InlineCode>error</InlineCode> given as a failed{' '}
               <InlineCode>{"cond && 'Words'"}</InlineCode> (<InlineCode>false</InlineCode>) is no
-              state, as React draws nothing for it. <InlineCode>minHeight</InlineCode> (240px at the
-              default text size, growing with larger text) is the chart area&apos;s least height: a
-              line or bar chart with no <InlineCode>minHeight</InlineCode> of its own fills it, its
-              legend included, and a state, a table or a reload&apos;s placeholder keeps the last
-              chart&apos;s height, so nothing below moves as the chart comes back.
+              state, as React draws nothing for it.
+            </li>
+            <li>
+              <InlineCode>minHeight</InlineCode> (240px at the default text size, growing with
+              larger text) is the chart area&apos;s least height around a line or bar chart, and for
+              the loading placeholder, a state and the table view before anything has shown. A line
+              or bar chart with no <InlineCode>minHeight</InlineCode> of its own fills it, its
+              legend included. A reload, a state or the table keeps the height last shown, so
+              nothing below moves as the chart comes back.
+            </li>
+            <li>
+              Around a list or a meter (a segmented list or bar, ranked or funnel bars, a meter, a
+              stat tile) the frame is as tall as what it holds. Pass a{' '}
+              <InlineCode>minHeight</InlineCode> near that height, so the first load&apos;s
+              placeholder matches it, or <InlineCode>{'minHeight={0}'}</InlineCode>. It is done in
+              CSS, so the server&apos;s HTML has the right height.
             </li>
           </ul>
         </section>

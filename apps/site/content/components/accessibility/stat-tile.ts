@@ -8,7 +8,7 @@ export const statTile: ComponentAccessibility = {
     role: 'A `group`. A `Sparkline` standing on its own with a name is an `img`; without one it is hidden.',
     name: 'The tile\'s `label`, which it is labelled by (`aria-labelledby`). A sparkline on its own takes `aria-label` or `aria-labelledby`, saying what it shows and which way it goes ("Visits over twelve weeks, rising").',
     states:
-      'The number is read once, as it settles: the counting figure is hidden and a copy of the final one is read. A change is read as one sentence, its visible text hidden from screen readers so it is heard once: the direction in words (`labels.up`, `labels.down`, `labels.flat`), your `value` and `context`, then good or bad news in words (`labels.good`, `labels.bad`; nothing for `neutral`), as in "Up 12% on last week, better". `labels.change(parts)` puts it together, so a language can order the parts its own way. A number that isn’t one reads `labels.noValue` ("No value").',
+      'The number is read once, as it settles: the counting figure is hidden and a copy of the final one is read. With `valueText`, that copy is its words for the settled value ("105,312" for a shown "105K", "8.2 minutes" for "8.2 min"), and the figure and unit on screen are hidden from screen readers. A change is read as one sentence, its visible text hidden from screen readers so it is heard once: the direction in words (`labels.up`, `labels.down`, `labels.flat`), your `value` and `context`, then good or bad news in words (`labels.good`, `labels.bad`; nothing for `neutral`), as in "Up 12% on last week, better". `labels.change(parts)` puts it together, so a language can order the parts its own way. A number that isn’t one reads `labels.noValue` ("No value").',
     notes: [
       "The change's arrow and the sparkline inside a tile are hidden from assistive tech (`aria-hidden`): the words say which way the number moved.",
       "It isn't a live region: a new value is read when someone reaches the tile, not announced. Announce a change that matters in a live region of your own.",
@@ -24,6 +24,7 @@ export const statTile: ComponentAccessibility = {
   ],
   consumer: [
     'Give each tile a `label` that says what the number is ("Orders", "Time on page"): it names the tile.',
+    'When the figure is shortened ("105K") or its unit abbreviated ("h", "min"), pass `valueText` with the full value and the unit in words, so screen readers hear what is meant.',
     'Write `change.value` and `change.context` as words that read well after "Up" or "Down" ("12%", "on last week"), and set `change.tone` by what the change means for the reader: a rise in returns is `bad`.',
     'Translate `labels` (`up`, `down`, `flat`, `good`, `bad`, `separator`, the " · " shown before good or bad news, `change`, which orders the sentence, and `noValue`), or set them once for the app with a {@link LabelsProvider}.',
     'Name a sparkline that stands on its own, and leave the one inside a tile unnamed.',

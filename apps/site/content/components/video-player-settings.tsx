@@ -93,6 +93,20 @@ export async function VideoPlayerSettingsBody(): Promise<ComponentDoc> {
               yours.
             </li>
             <li>
+              As a function, <InlineCode>children</InlineCode> places the player&apos;s rows among
+              yours, in the order it returns them:{' '}
+              <InlineCode>
+                {'{(rows) => <>{rows.loop}{rows.speed}<Quality />{rows.captions}</>}'}
+              </InlineCode>
+              . <InlineCode>rows</InlineCode> holds <InlineCode>speed</InlineCode>,{' '}
+              <InlineCode>captions</InlineCode>, <InlineCode>loop</InlineCode>,{' '}
+              <InlineCode>autoplay</InlineCode> and <InlineCode>rotate</InlineCode>, each{' '}
+              <InlineCode>null</InlineCode> where it doesn&apos;t apply (no caption tracks, no{' '}
+              <InlineCode>onAutoplayNextChange</InlineCode>, not rotatable, or outside a player). A
+              row left out doesn&apos;t show, and opening focuses the first row placed. Autoplay and
+              Rotate still show only where the bar has no room for them.
+            </li>
+            <li>
               Alone, <InlineCode>VideoPlayerSettingsTrigger</InlineCode> takes your button first,
               then the settings, and gives the button <InlineCode>aria-haspopup</InlineCode>,{' '}
               <InlineCode>aria-expanded</InlineCode>, <InlineCode>aria-controls</InlineCode> and{' '}
@@ -142,9 +156,13 @@ export async function VideoPlayerSettingsBody(): Promise<ComponentDoc> {
             <li>
               Every row takes an <InlineCode>icon</InlineCode>, a <InlineCode>label</InlineCode>, a{' '}
               <InlineCode>value</InlineCode>, a <InlineCode>description</InlineCode> and a{' '}
-              <InlineCode>badge</InlineCode>; its <InlineCode>id</InlineCode> names its page for{' '}
-              <InlineCode>page</InlineCode> and <InlineCode>onPageChange</InlineCode>. A row hidden
-              by CSS is skipped by the keys, and a page opens on its first row that shows.
+              <InlineCode>badge</InlineCode> (an option too). A text badge is read after the label
+              (&ldquo;1080p HD&rdquo;); one that isn&apos;t text is read as its{' '}
+              <InlineCode>badgeLabel</InlineCode>. The <InlineCode>description</InlineCode>{' '}
+              describes the row rather than joining its name. Its <InlineCode>id</InlineCode> names
+              its page for <InlineCode>page</InlineCode> and <InlineCode>onPageChange</InlineCode>.
+              A row hidden by CSS is skipped by the keys, and a page opens on its first row that
+              shows.
             </li>
             <li>
               Going back: the header, Escape, or the arrow key pointing back returns to the first

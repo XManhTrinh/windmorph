@@ -6,13 +6,13 @@ import { SAMPLE_PHOTOS } from './sample-photos';
 
 const MAX_PHOTOS = 10;
 
-/** Why files didn't appear, in the app's own words. */
-function refusal(rejections: FileRejection[]) {
-  const wrongType = rejections.filter((rejection) => rejection.reason === 'type');
-  const noRoom = rejections.length - wrongType.length;
+/** One note for a whole pick or drop: what was left out and why, in the app's own words. */
+function leftOut(rejected: FileRejection[]) {
+  const wrongType = rejected.filter((rejection) => rejection.reason === 'type').length;
+  const noRoom = rejected.length - wrongType;
   return [
-    wrongType.length > 0 &&
-      `${wrongType.map((rejection) => rejection.file.name).join(', ')}: only JPEG, PNG, WebP and GIF photos can be added.`,
+    wrongType > 0 &&
+      `${wrongType === 1 ? '1 file was' : `${wrongType} files were`} left out: a post takes JPEG, PNG, WebP or AVIF photos.`,
     noRoom > 0 &&
       `A post holds ${MAX_PHOTOS} photos, so ${noRoom === 1 ? '1 photo was' : `${noRoom} photos were`} left out.`,
   ]
@@ -22,14 +22,13 @@ function refusal(rejections: FileRejection[]) {
 
 /**
  * A post composer's photos. New files "upload" with progress (a timer stands in for the
- * server); the failed one uploads again on Retry. Drag to reorder, or use the menu. A file the
- * grid doesn't take (off `accept`, or past `maxItems`) comes back to `onFileReject`, and the
- * line under the grid says why it didn't appear.
+ * server); the failed one uploads again on Retry. Drag to reorder, or use the menu.
+ * `onFilePick` gets each pick or drop whole: it adds the photos that fit and, from the same
+ * call, says once under the grid what was left out (off `accept`, or past `maxItems`).
  */
 export function MediaUploadGridComposer() {
-  // Each notice is a new node (its `id`), so the same refusal twice is announced twice.
-  const [notice, setNotice] = useState({ id: 0, text: '' });
-  const say = (text: string) => setNotice((last) => ({ id: last.id + 1, text }));
+  // Each note is a new node (its `id`), so the same note twice is announced twice.
+  const [note, setNote] = useState({ id: 0, text: '' });
   const [items, setItems] = useState<MediaUploadItem[]>(() => [
     {
       key: 'sample-0',
@@ -85,15 +84,12 @@ export function MediaUploadGridComposer() {
       <MediaUploadGrid
         aria-label="Photos in your post"
         items={items}
-        accept={['image/jpeg', 'image/png', 'image/webp', 'image/gif']}
+        accept={['image/jpeg', 'image/png', 'image/webp', 'image/avif']}
         maxItems={MAX_PHOTOS}
-        onFileAccept={(files) => {
-          // Clears the last notice; `onFileReject`, called after this, sets a new one if a file
-          // was refused.
-          say('');
+        onFilePick={({ accepted, rejected }) => {
           setItems((current) => [
             ...current,
-            ...files.map((file) => ({
+            ...accepted.map((file) => ({
               key: crypto.randomUUID(),
               previewUrl: URL.createObjectURL(file),
               alt: file.name,
@@ -101,9 +97,9 @@ export function MediaUploadGridComposer() {
               progress: 0,
             })),
           ]);
+          // One note for the whole pick, cleared when everything fit.
+          setNote((last) => ({ id: last.id + 1, text: leftOut(rejected) }));
         }}
-        // Called after `onFileAccept`, only when something was refused.
-        onFileReject={(rejections) => say(refusal(rejections))}
         onReorder={(keys) =>
           setItems((current) => keys.map((key) => current.find((item) => item.key === key)!))
         }
@@ -129,9 +125,9 @@ export function MediaUploadGridComposer() {
         ]}
         onItemAction={(key, action) => move(key, action === 'earlier' ? -1 : 1)}
       />
-      {/* In the page from the start, so each new notice is announced. */}
+      {/* In the page from the start, so each new note is announced. */}
       <p role="status" className="mt-3 text-body-medium text-on-surface-variant">
-        <span key={notice.id}>{notice.text}</span>
+        <span key={note.id}>{note.text}</span>
       </p>
     </div>
   );

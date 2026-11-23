@@ -32,7 +32,7 @@ export async function StatTileBody(): Promise<ComponentDoc> {
       name: 'StatTileDashboard',
     },
     {
-      title: 'A large figure, a unit, and no value yet',
+      title: 'A large compact figure, a unit, and no value yet',
       file: 'stat-tile/stat-tile-sizes',
       name: 'StatTileSizes',
     },
@@ -74,6 +74,15 @@ export async function StatTileBody(): Promise<ComponentDoc> {
               browser&apos;s, with up to two decimals, or three significant digits under one
               (&quot;0.004&quot;, never &quot;0&quot;). <InlineCode>unit</InlineCode> sits smaller
               beside the number (&quot;min&quot;), so a long unit never wraps the number.
+            </li>
+            <li>
+              <InlineCode>valueText</InlineCode> is what screen readers hear for the figure and its
+              unit, in place of what&apos;s shown, as the core <InlineCode>Slider</InlineCode>
+              &apos;s <InlineCode>valueText</InlineCode>: the full value where the figure is short
+              (&quot;105,312&quot; for &quot;105K&quot;, &quot;8.2 minutes&quot; for &quot;8.2
+              min&quot;). It is called with the value the figure settles on, never a counting one,
+              and a value that isn&apos;t a number reads <InlineCode>labels.noValue</InlineCode>{' '}
+              instead. Left out, the figure and its unit are read as shown.
             </li>
             <li>
               The number counts up from 0 the first time the tile comes into view, then springs from

@@ -60,16 +60,16 @@ export const videoPlayerSettings: ComponentAccessibility = {
   ],
   screenReader: {
     role: 'The panel is a non-modal `dialog`. The first page is a `menu`: an action or a row with a page is a `menuitem` (with `aria-haspopup`), a switch row a `menuitemcheckbox`. A choice page is a `menu` of `menuitemradio`s; the speed page a `group` with a `slider` and a `radiogroup` of presets.',
-    name: 'The panel is named as its button ("Settings", `labels.settings`). A row is named by its label and value together ("Quality, Auto (720p)"). The header is one button, "Back, Quality" (`labels.back`), holding the title it shows; the page stays named by that title.',
+    name: 'The panel is named as its button ("Settings", `labels.settings`). A row\'s name is written out: its label, a badge\'s words after a space, then a comma and its value ("1080p HD", "Quality, Auto (720p)"). Its `description` describes it (`aria-describedby`) rather than joining the name. The header is one button, "Back, Quality" (`labels.back`), holding the title it shows; the page stays named by that title.',
     states:
       'A switch row reports `aria-checked`; the drawn switch is hidden. The chosen option of a choice reports `aria-checked`; its tick is decoration. The speed slider reads its value in words ("Normal", "1.5×"), and Slower and Faster say the new speed in a polite region mounted first. A preset\'s caption describes it.',
     notes: [
       "A page change isn't announced: focus moving into the page says its name and the focused row.",
-      'A badge is read as written ("1080p HD"); a mark before a preset takes a name from you if it means something.',
+      'A text badge is read as written ("1080p HD"); a badge that isn\'t text (an icon) is read as its `badgeLabel`. A mark before a preset takes a name from you if it means something.',
     ],
   },
   focus: [
-    'Opening moves focus to the first row that shows; a new page to its first row, its chosen row, or the slider on the speed page, all without scrolling.',
+    'Opening moves focus to the first row that shows (with `children` as a function, the first row it places); a new page to its first row, its chosen row, or the slider on the speed page, all without scrolling.',
     'Going back focuses the row the page came from. Closing by Escape, the button or a choice focuses the button; a press outside returns focus to the button only if it was inside. Focus never lands on the page.',
     'Rows and buttons show the two-tone on-media focus ring on keyboard focus only, never for a focus a script moved.',
   ],
@@ -84,6 +84,7 @@ export const videoPlayerSettings: ComponentAccessibility = {
   ],
   consumer: [
     'Alone, put your button first in `VideoPlayerSettingsTrigger`, with a name ("Settings"), and name a positioned `container` for the panel.',
+    "Give a badge that isn't text a `badgeLabel` (on a row or an option), so its meaning is read with the name.",
     "Give each row a short `label`, and a `value` that says what is chosen; give a row whose label isn't plain text a `textValue` for the letter search.",
     'Keep the default fill and quieter text unless your own keep 4.5:1 over a white frame.',
     "Translate `labels` (`settings`, `back`, and the speed page's `speed`, `normal`, `slower`, `faster`, `presets`, `speedValue`, `speedExact`), or set them once for the app with a `LabelsProvider`.",

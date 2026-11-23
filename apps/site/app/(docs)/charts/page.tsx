@@ -150,7 +150,7 @@ export default async function ChartsPage() {
         <ul className={LIST}>
           <li>
             The charts arrived in <InlineCode>@windmorph/react-pro</InlineCode> 0.2.10; this page
-            describes 0.2.11, which needs <InlineCode>@windmorph/react</InlineCode> 0.2.11 and{' '}
+            describes 0.2.12, which needs <InlineCode>@windmorph/react</InlineCode> 0.2.11 and{' '}
             <InlineCode>motion</InlineCode> 14.12 or later. Only an app that imports{' '}
             <InlineCode>/charts</InlineCode> loads them.
           </li>

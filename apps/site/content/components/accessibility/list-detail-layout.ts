@@ -9,6 +9,9 @@ export const listDetailLayout: ComponentAccessibility = {
     name: 'The list pane is named by `listLabel` ("Settings"), the detail pane by `detailLabel` (the open item\'s title).',
     states:
       "None. Below 840px of the layout’s own width (its wrapper’s, not the window’s) the hidden pane is `display: none`, so it is out of the accessibility tree; while it fades out it is already `inert`, so neither Tab, a screen reader's cursor nor a press reaches it.",
+    notes: [
+      "With `pageHeading`, the page's heading is said again first in the detail pane while only the detail shows (below 840px of the layout's own width), visually hidden, so the page keeps its heading (at `pageHeadingLevel`, 1 by default) while the list's own heading is gone. From 840px it is `display: none`, so it is never read twice.",
+    ],
   },
   focus: [
     'Below 840px of the layout’s own width, when `detailKey` changes, focus moves to the pane now showing (unless focus is already inside it), without scrolling the page, so keyboard and screen reader users land on the new content. Both panes take focus this way only (`tabIndex={-1}`), never by Tab.',
@@ -27,6 +30,7 @@ export const listDetailLayout: ComponentAccessibility = {
     'Pass `listLabel` and `detailLabel` from your translations; update `detailLabel` with the open item.',
     'Pass `detailKey` (usually the pathname) and render the layout in a shared route layout, so focus can follow the open item below 840px of the layout’s own width.',
     'Pass `back`, usually an {@link IconButton} link with an `aria-label` such as "Back", so people can return to the list while one pane shows (below 840px of the layout’s own width).',
+    "When the list holds the page's heading, pass its words as `pageHeading` (at the same level), so the page still has its heading while only the detail shows.",
     'Mark the open item as selected in the list (a {@link List} with `selectedKeys`), so the two panes agree.',
   ],
 };

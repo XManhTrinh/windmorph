@@ -32,13 +32,15 @@ const SIGN_UPS: ChartSeries[] = [
   {
     key: 'last-year',
     label: 'Last year',
+    // Drawn only to compare with: quiet colour, always patterned, no colour slot of its own.
+    quiet: true,
     values: [980, 1010, 1060, 1040, 1120, 1150, 1130, 1190, 1210, 1180, 1260, 1290],
   },
 ];
 
 /**
  * This year's weekly sign-ups, the subject with a wash under its line, against the same weeks
- * last year. In a `ChartFrame` the title names the chart and the switch shows the same numbers
+ * last year, a `quiet` line in the charts' quiet colour with a dash and two dots. In a `ChartFrame` the title names the chart and the switch shows the same numbers
  * as a table, its first column named by `placeLabel`. Point at a week, tap it, or Tab to the
  * chart and use the arrow keys; the legend's chips hide and show a line.
  */

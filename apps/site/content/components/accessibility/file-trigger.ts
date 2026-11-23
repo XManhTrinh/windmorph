@@ -31,6 +31,6 @@ export const fileTrigger: ComponentAccessibility = {
     'Put exactly one library button inside it (or anything reading `TriggerContext`), with a name that says what it picks: "Change photo", not "Browse".',
     'Put it inside a `TooltipTrigger`, not around one: the tooltip keeps working. To stop it, disable the button.',
     "For a trigger it can't wrap, such as a menu item, use `useFileTrigger`: call `open()` from the item's action and render `input` once.",
-    'It announces nothing when it refuses a chosen file off `accept`: handle `onFileReject` and say why in words a screen reader hears too, such as a snackbar.',
+    'It announces nothing when it refuses a chosen file off `accept`: handle `onFilePick` (or `onFileReject`) and say why in words a screen reader hears too, such as a snackbar, once for the whole pick.',
   ],
 };

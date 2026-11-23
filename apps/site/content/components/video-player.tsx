@@ -44,6 +44,11 @@ export async function VideoPlayerBody(): Promise<ComponentDoc> {
       name: 'VideoPlayerControls',
     },
     {
+      title: 'Speeds up to 4×, with a locked preset',
+      file: 'video-player/video-player-speeds',
+      name: 'VideoPlayerSpeeds',
+    },
+    {
       title: 'The scrim look, a control of your own and the end',
       file: 'video-player/video-player-look',
       name: 'VideoPlayerLook',
@@ -108,7 +113,7 @@ export async function VideoPlayerBody(): Promise<ComponentDoc> {
             </li>
             <li>
               One video plays at a time on a page: starting one pauses the one before. A new source
-              keeps the place, the playing and the last frame.
+              (another quality) keeps the place, the speed, the playing and the last frame.
             </li>
             <li>
               The root carries <InlineCode>data-state</InlineCode> (<InlineCode>poster</InlineCode>,{' '}
@@ -167,10 +172,12 @@ export async function VideoPlayerBody(): Promise<ComponentDoc> {
             <li>
               <InlineCode>onNext</InlineCode> adds Next beside Play (Shift+N);{' '}
               <InlineCode>rotatable</InlineCode> adds Rotate (R, Shift+R back), turning only the
-              picture a quarter at a time; <InlineCode>onAutoplayNextChange</InlineCode> adds the
-              Autoplay switch, which the player only shows and reports;{' '}
-              <InlineCode>onTheaterChange</InlineCode> adds Theater (T) from{' '}
-              <InlineCode>theaterFrom</InlineCode>, with the page&apos;s layout left to you.
+              picture a quarter at a time and saying the turn (&ldquo;Rotated 90°&rdquo;,
+              &ldquo;Upright&rdquo;) from the key, the button or the settings&apos; row alike;{' '}
+              <InlineCode>onAutoplayNextChange</InlineCode> adds the Autoplay switch, which the
+              player only shows and reports; <InlineCode>onTheaterChange</InlineCode> adds Theater
+              (T) from <InlineCode>theaterFrom</InlineCode>, with the page&apos;s layout left to
+              you.
             </li>
             <li>
               <InlineCode>playbackRates</InlineCode> are the speeds &lt; and &gt; step through,{' '}
@@ -180,6 +187,14 @@ export async function VideoPlayerBody(): Promise<ComponentDoc> {
               <InlineCode>onLoopChange</InlineCode>), <InlineCode>volume</InlineCode> and{' '}
               <InlineCode>muted</InlineCode> too; a mute the browser forced is never reported as the
               person&apos;s.
+            </li>
+            <li>
+              <InlineCode>playbackRatePresets</InlineCode> are the speeds a press away on the
+              settings&apos; Playback speed page (1, 1.25, 1.5 and 2 by default, those within{' '}
+              <InlineCode>playbackRates</InlineCode>), whose slider runs from the slowest to the
+              fastest of <InlineCode>playbackRates</InlineCode>. A preset can carry a caption, a
+              mark before its figure, or be disabled: a locked speed changes nothing and calls{' '}
+              <InlineCode>onPlaybackRatePresetPress</InlineCode>, which every preset press calls.
             </li>
             <li>
               <InlineCode>playerRef</InlineCode> hands you a{' '}

@@ -32,6 +32,7 @@ export const videoPlayer: ComponentAccessibility = {
       'On and off controls (Captions, Autoplay, Theater) report `aria-pressed` with a name that doesn\'t change; the tooltip says the state. Play, the sound button and full screen change their name ("Pause", "Unmute", "Exit full screen"). The scrubber is read in words, the volume as "Volume 55%". Settings reports `aria-haspopup="dialog"`, `aria-expanded` and, while open, `aria-controls`.',
     notes: [
       'What a key or a gesture did is said politely, each time, the same words twice included ("Forward 10 seconds", "Volume 55%", "Captions on: English").',
+      'A turn is said and marked on the picture ("Rotated 90°", "Upright") whether it came from R, the Rotate button or the settings\' Rotate row.',
       'Failed and offline are said at once, in an alert region mounted with the player.',
       '"Resumed from…" is said in words ("Resumed from 12 minutes, 34 seconds").',
       'Captions are drawn by the player as plain text; their markup is never rendered.',
@@ -57,6 +58,7 @@ export const videoPlayer: ComponentAccessibility = {
     "Name the player with the video's title.",
     "Give captions for speech (`captions`, WebVTT), named by `label` where the language alone isn't enough.",
     'With `autoPlay` or `inView="play"`, the video starts muted where the browser insists; it can always be paused without turning the sound on.',
+    "Name a locked speed preset's mark (`playbackRatePresets`) if it means something, and tell the person why the speed didn't change from `onPlaybackRatePresetPress`.",
     'Translate `labels`, or set them once for the app with a `LabelsProvider`: the player says many words, from its role description to the marks its keys leave.',
     'In forced-colours mode the containers, marks and notices are drawn on `Canvas` with a `CanvasText` border, and an on control has a `Highlight` ground.',
   ],

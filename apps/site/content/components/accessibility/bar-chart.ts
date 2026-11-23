@@ -56,7 +56,7 @@ export const barChart: ComponentAccessibility = {
   ],
   motion: [
     'Bars rise one place after another once, as the chart first comes into view, and move to new numbers on the spatial spring. Under reduced motion they take their new size and place at once, with no one-after-another start, a bar that arrives once the chart is on screen fades in where it lands, and a place that leaves goes at once; stepping back while a place is read and a series hiding still fade.',
-    'In forced colours each bar is `Canvas` with a `CanvasText` edge and its own hatch (slot 1 solid `CanvasText`), and the legend and readout keys carry the same pattern, so a part is matched to its name without colour.',
+    'In forced colours each bar is `Canvas` with a `CanvasText` edge and its own hatch (slot 1 solid `CanvasText`, a quiet series dotted), and the legend and readout keys carry the same pattern, so a part is matched to its name without colour.',
   ],
   consumer: [
     'Name every chart: put it in a `ChartFrame`, whose title names it, or give it `aria-label` or `aria-labelledby`.',
@@ -64,6 +64,7 @@ export const barChart: ComponentAccessibility = {
     'Put units and currencies in `formatValue`, so the value text says them.',
     'Show every value another way too: a `ChartFrame` gives the table view, since the readout enhances and is hidden from assistive technology.',
     'Refer to series by name, never by colour alone. Keep `texture` on (it is, for two or more series) unless every series is told apart some other way, such as a label on each bar.',
+    'Mark a part drawn only to compare with ("Other", everything else in a stack) `quiet`: it steps back in colour and is always dotted, so it is told apart without colour; its label still has to say what it is.',
     'A chart that updates by itself needs a way to pause it (WCAG 2.2.2).',
     'Translate `labels` (`describePlace`, `total`, `noValue`, `legend`, `lastSeries`, `place`), or set them once for the app with a `LabelsProvider` under `Chart`.',
     'For a theme of your own, add its chart palette with `withChartColors`, so the slots are made for it as the built-in themes’ are.',
