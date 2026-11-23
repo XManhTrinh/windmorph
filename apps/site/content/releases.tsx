@@ -34,6 +34,44 @@ const CORE_PAGE_COUNT = COMPONENT_META.filter(
  */
 export const RELEASES: Release[] = [
   {
+    version: '0.2.12',
+    date: '2026-11-23',
+    summary: (
+      <>
+        A full-screen dialog in your dialog colour. In Windmorph Pro, video settings that stay open
+        while you use them, and rounded video players with clean corners.
+      </>
+    ),
+    sections: [
+      {
+        title: 'Fixes',
+        items: [
+          <>
+            A full-screen <InlineCode>Dialog</InlineCode> paints{' '}
+            <InlineCode>--md-comp-dialog-container-color</InlineCode>, as the basic dialog does, so
+            the same dialog keeps its colour on a phone and on a computer, while it opens too.
+          </>,
+        ],
+      },
+      {
+        title: 'Windmorph Pro',
+        items: [
+          <>
+            <InlineCode>VideoPlayer</InlineCode> takes the app&apos;s speed presets and order of
+            settings rows; <InlineCode>ListDetailLayout</InlineCode> takes a page heading for the
+            detail shown alone; <InlineCode>StatTile</InlineCode> takes{' '}
+            <InlineCode>valueText</InlineCode> and a chart series can be quiet.
+          </>,
+          <>
+            A press anywhere inside the video settings keeps them open, the speed presets show the
+            pointer, and a rounded player shows no dark rim at its corners over a bright picture. A
+            rail group&apos;s divider runs its full height while the column scrolls.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: '0.2.11',
     date: '2026-11-22',
     summary: (
