@@ -34,6 +34,37 @@ const CORE_PAGE_COUNT = COMPONENT_META.filter(
  */
 export const RELEASES: Release[] = [
   {
+    version: '0.2.13',
+    date: '2026-11-26',
+    summary: (
+      <>
+        A standard side sheet that stays inside the page when it shuts, and the on-screen
+        keyboard&apos;s height for panels of your own.
+      </>
+    ),
+    sections: [
+      {
+        title: 'Fixes',
+        items: [
+          <>
+            A shut standard <InlineCode>SideSheet</InlineCode> no longer makes the page scroll
+            sideways: content it positions inside itself, such as text only screen readers read, is
+            clipped with it.
+          </>,
+        ],
+      },
+      {
+        title: 'Primitives',
+        items: [
+          <>
+            <InlineCode>useKeyboardInset</InlineCode> tells how far the on-screen keyboard covers
+            the bottom of the window, for a panel that sits above the keyboard or takes its place.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: '0.2.12',
     date: '2026-11-23',
     summary: (
