@@ -189,7 +189,9 @@ export const sideSheetStyles = tv({
     // The panel rides the root's inner edge (the content's side, `edge`), so as the width
     // moves the sheet slides in and out with its edge leading, as M3's reference moves it
     // (2026-10-24); pinned to the window's side, its far side was wiped into view first.
-    standardClip: 'flex w-full min-w-0 overflow-hidden',
+    // Positioned, so it clips positioned descendants too (a shut sheet's screen-reader-only
+    // text is absolute): otherwise they reach past it and the page scrolls sideways.
+    standardClip: 'relative flex w-full min-w-0 overflow-hidden',
     standardFrame: 'flex h-full shrink-0',
   },
   variants: {
