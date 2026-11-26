@@ -2216,6 +2216,7 @@ export const COMPONENT_META: ComponentMeta[] = [
       'useM3Morph',
       'useM3Spring',
       'usePresence',
+      'useKeyboardInset',
       'useTriggerProps',
     ],
   },
