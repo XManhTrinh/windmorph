@@ -2,6 +2,16 @@
 
 All notable changes to `@windmorph/react`, newest first. Each version is grouped by kind (Added, Changed, Deprecated, Removed, Fixed, Security), and each entry links to its pull request. The [What's new](https://windmorph.dev/whats-new) page tells the same story in plain words.
 
+## 0.2.13 — 2026-11-26
+
+### Added
+
+- `useKeyboardInset` from `@windmorph/react/primitives`, the height the on-screen keyboard covers at the window's bottom, for a panel that takes the keyboard's place. ([#124](https://github.com/XManhTrinh/windmorph/pull/124))
+
+### Fixed
+
+- A shut standard `SideSheet` no longer makes the page scroll sideways: its clipping box now clips positioned content too, such as screen-reader-only text. ([#125](https://github.com/XManhTrinh/windmorph/pull/125))
+
 ## 0.2.12 — 2026-11-23
 
 ### Fixed
