@@ -679,6 +679,28 @@ test.describe('Side sheet', () => {
     await expect.poll(async () => (await rect(sheet)).width).toBe(256);
   });
 
+  test('a shut standard sheet clips its positioned content, so the page never scrolls sideways', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-sheet--side-standard');
+    // Screen-reader-only text is absolutely positioned: a long line of it reaches far past
+    // the sheet once its width is shut.
+    await page.getByTestId('sheet').evaluate((sheet) => {
+      const hidden = document.createElement('span');
+      hidden.className = 'sr-only';
+      hidden.style.cssText = 'position:absolute;width:2000px;height:1px;overflow:visible';
+      hidden.textContent = 'Unread messages from the whole team this week';
+      // In the sheet's content, inside its clipping box, as an app's panel holds it.
+      (sheet.firstElementChild?.firstElementChild ?? sheet).append(hidden);
+    });
+    await page.getByRole('button', { name: 'Hide details' }).click();
+    await expect.poll(async () => (await rect(page.getByTestId('sheet'))).width).toBe(0);
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow).toBe(0);
+  });
+
   test.describe('layout safety', () => {
     layoutSafetySuite('components-sheet--layout-override', {
       height: 300,
