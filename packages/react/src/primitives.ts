@@ -70,6 +70,7 @@ export {
   type ReorderWhere,
 } from './primitives/use-reorder';
 export { usePresence } from './primitives/use-presence';
+export { useKeyboardInset } from './components/sheet/use-keyboard-inset';
 export { useRevealEntering } from './components/menu/use-reveal-entering';
 export { usePageHeight, type PageHeight } from './components/menu/use-page-height';
 export { toAriaPlacement } from './utils/placement';

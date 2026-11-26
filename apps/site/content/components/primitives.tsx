@@ -25,6 +25,8 @@ const importSnippet = `import {
   useM3SpringValue, useM3SpringValues, resample, AnimatedNumber, staggerDelays, useEntrance,
   // Overlay plumbing
   TriggerContext, useTriggerProps, usePresence, DomDirectionLocale, localeWithDirection,
+  // The on-screen keyboard
+  useKeyboardInset,
   // Scrolling
   useKeepPressedInPlace, useNearestReveal, useScrollRestoration, useScrollKeys,
   useSliderTouchTrack, sliderThumbInputProps, sliderArrowRaises,
@@ -347,6 +349,12 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
               scrolling the page). The <InlineCode>slide</InlineCode> adds to a row&apos;s own
               transitions, and the hook leaves reduced motion to you: give it a duration that
               resolves to 0 there (a motion token does), or no slide.
+            </li>
+            <li>
+              <InlineCode>useKeyboardInset</InlineCode> (how far the on-screen keyboard covers the
+              bottom of the window, in px, followed as it opens and closes; 0 with no keyboard or a
+              zoomed page), for a panel that sits above the keyboard or takes its place, as the
+              bottom sheet does.
             </li>
             <li>
               <InlineCode>usePageHeight</InlineCode> (measures the page shown in a surface whose
