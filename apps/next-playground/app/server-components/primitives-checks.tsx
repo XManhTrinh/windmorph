@@ -220,5 +220,6 @@ export const primitivesChecks = {
   usePageHeight: hook,
   useReorder: hook,
   usePresence: hook,
+  useKeyboardInset: hook,
   useTriggerProps: hook,
 } satisfies ExportChecks<typeof Primitives>;
