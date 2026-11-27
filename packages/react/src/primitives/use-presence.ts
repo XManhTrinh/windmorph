@@ -9,41 +9,14 @@ import { useEffect, useRef, useState, type TransitionEvent } from 'react';
  */
 export const EXIT_FALLBACK_MS = 800;
 
-/** The CSS transitions (not animations) of `element` and its content that haven't finished. */
-function runningTransitions(element: Element): CSSTransition[] {
-  if (typeof element.getAnimations !== 'function') return [];
-  return element
-    .getAnimations({ subtree: true })
-    .filter(
-      (animation): animation is CSSTransition =>
-        'transitionProperty' in animation && animation.playState !== 'finished',
-    );
-}
-
-/**
- * Cancels `transitions` and calls `done` once each has sent its `transitioncancel` (they go
- * out a frame or two later) up to `element`. Returns a function that stops waiting.
- */
-function cancelTransitions(element: Element, transitions: CSSTransition[], done: () => void) {
-  const pending = new Set(transitions);
-  const onCancel = (event: Event) => {
-    for (const transition of pending) {
-      const target = (transition.effect as KeyframeEffect | null)?.target;
-      if (
-        target === event.target &&
-        transition.transitionProperty === (event as globalThis.TransitionEvent).propertyName
-      ) {
-        pending.delete(transition);
-      }
-    }
-    if (pending.size > 0) return;
-    stop();
-    done();
-  };
-  const stop = () => element.removeEventListener('transitioncancel', onCancel);
-  element.addEventListener('transitioncancel', onCancel);
-  for (const transition of transitions) transition.cancel();
-  return stop;
+/** Resolves once the CSS transitions still running in `element` or its content have ended. */
+function transitionsEnded(element: Element): Promise<unknown> | undefined {
+  const running = element
+    .getAnimations?.({ subtree: true })
+    .filter((animation) => 'transitionProperty' in animation && animation.playState === 'running');
+  return running?.length
+    ? Promise.all(running.map((animation) => animation.finished.catch(() => undefined)))
+    : undefined;
 }
 
 /**
@@ -54,11 +27,10 @@ function cancelTransitions(element: Element, transitions: CSSTransition[], done:
  * slides normally and fades under reduced motion passes both. With `animated` false there is
  * no exit motion to wait for, so `isPresent` follows `isOpen` at once.
  *
- * A transition still running in the element or its content when the exit ends (a reveal's
- * `clip-path` that outlasts the fade) is cancelled, and the element leaves once its
- * `transitioncancel` has been sent (a frame or two later; the fallback still bounds it):
- * removed mid-transition, an element never sends one, and React Aria, which tracks running
- * transitions until they end, would keep it in memory.
+ * A transition still running in the element or its content when that property ends (a
+ * reveal's `clip-path` that outlasts the fade) is waited for too, within the fallback:
+ * removed mid-transition, an element never sends its `transitionend`, and React Aria, which
+ * tracks running transitions until they end, would keep it in memory.
  */
 export function usePresence(
   isOpen: boolean,
@@ -74,15 +46,14 @@ export function usePresence(
   }
   if (!animated && isPresent !== isOpen) setPresent(isOpen);
   const isExiting = animated && isPresent && !isOpen;
-  const stopWaiting = useRef<(() => void) | undefined>(undefined);
+  const waiting = useRef<object | undefined>(undefined);
 
   useEffect(() => {
     if (!isExiting) return;
     const timer = setTimeout(() => setPresent(false), EXIT_FALLBACK_MS);
     return () => {
       clearTimeout(timer);
-      stopWaiting.current?.();
-      stopWaiting.current = undefined;
+      waiting.current = undefined;
     };
   }, [isExiting]);
 
@@ -96,15 +67,15 @@ export function usePresence(
       ) {
         return;
       }
-      const rest = runningTransitions(event.currentTarget);
-      if (rest.length === 0) {
+      const rest = transitionsEnded(event.currentTarget);
+      if (!rest) {
         setPresent(false);
         return;
       }
-      stopWaiting.current?.();
-      stopWaiting.current = cancelTransitions(event.currentTarget, rest, () => {
-        stopWaiting.current = undefined;
-        setPresent(false);
+      const token = {};
+      waiting.current = token;
+      void rest.then(() => {
+        if (waiting.current === token) setPresent(false);
       });
     },
   };

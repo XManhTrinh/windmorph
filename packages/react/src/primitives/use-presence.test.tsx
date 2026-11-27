@@ -58,25 +58,23 @@ describe('usePresence', () => {
       rerender({ open: false });
       const element = document.createElement('div');
       const child = element.appendChild(document.createElement('div'));
-      // As a browser does, a cancelled transition sends its event a frame or two later.
-      const cancelled = (target: Element, propertyName: string) => () =>
-        setTimeout(() =>
-          target.dispatchEvent(
-            Object.assign(new Event('transitioncancel', { bubbles: true }), { propertyName }),
-          ),
-        );
-      const transition = (target: Element, transitionProperty: string, playState: string) => ({
-        transitionProperty,
-        playState,
-        effect: { target },
-        cancel: vi.fn(cancelled(target, transitionProperty)),
-      });
-      const reveal = transition(element, 'clip-path', 'running');
-      const label = transition(child, 'color', 'running');
-      const done = transition(element, 'opacity', 'finished');
-      const spinner = { animationName: 'spin', playState: 'running', cancel: vi.fn() };
+      const transition = (transitionProperty: string, playState: string) => {
+        let finish!: () => void;
+        const finished = new Promise<void>((resolve) => (finish = resolve));
+        return { transitionProperty, playState, finished, finish };
+      };
+      const reveal = transition('clip-path', 'running');
+      const label = transition('color', 'running');
+      const done = transition('opacity', 'finished');
+      // A looping CSS animation (a loading indicator) never finishes, so it isn't waited for.
+      const spinner = {
+        animationName: 'spin',
+        playState: 'running',
+        finished: new Promise(() => {}),
+      };
       const getAnimations = vi.fn(() => [reveal, label, done, spinner] as unknown as Animation[]);
       element.getAnimations = getAnimations;
+      void child;
       const end = () =>
         act(() =>
           result.current.exitProps.onTransitionEnd({
@@ -85,29 +83,31 @@ describe('usePresence', () => {
             propertyName: 'opacity',
           } as unknown as TransitionEvent<HTMLElement>),
         );
-      return { result, rerender, end, getAnimations, reveal, label, done, spinner };
+      return { result, rerender, end, getAnimations, reveal, label };
     }
-    const sent = () => act(() => new Promise((resolve) => setTimeout(resolve)));
+    const settle = () => act(() => new Promise((resolve) => setTimeout(resolve)));
 
-    it("cancels them, and leaves once they've said so, so React Aria never keeps the element", async () => {
-      const { result, end, getAnimations, reveal, label, done, spinner } = setUp();
+    it('waits for them to end, so the element leaves with every transitionend sent and React Aria never keeps it', async () => {
+      const { result, end, getAnimations, reveal, label } = setUp();
       end();
       expect(getAnimations).toHaveBeenCalledWith({ subtree: true });
-      expect(reveal.cancel).toHaveBeenCalledOnce();
-      expect(label.cancel).toHaveBeenCalledOnce();
-      // Only transitions still running: a finished one and a CSS animation are left alone.
-      expect(done.cancel).not.toHaveBeenCalled();
-      expect(spinner.cancel).not.toHaveBeenCalled();
+      await settle();
       expect(result.current.isPresent).toBe(true);
-      await sent();
+      reveal.finish();
+      await settle();
+      expect(result.current.isPresent).toBe(true);
+      label.finish();
+      await settle();
       expect(result.current.isPresent).toBe(false);
     });
 
     it('stays when it opens again before they have', async () => {
-      const { result, rerender, end } = setUp();
+      const { result, rerender, end, reveal, label } = setUp();
       end();
       rerender({ open: true });
-      await sent();
+      reveal.finish();
+      label.finish();
+      await settle();
       expect(result.current).toMatchObject({ isPresent: true, isExiting: false });
     });
   });
