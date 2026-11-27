@@ -430,7 +430,7 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     importFrom: '@windmorph/react-pro/emoji-picker',
     notRendered: {
       EmojiPickerTrigger:
-        'The button that opens this panel in a popover, a bottom sheet or docked below a message field; the examples show it in a field and on its own.',
+        'The button that opens this panel in a popover, a bottom sheet or docked in a message field; the examples show it in a field and on its own.',
     },
     render: ({ defaultSkinTone, ...props }) =>
       createElement(EmojiPickerAny, {
@@ -440,8 +440,13 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
         storageKey: null,
         defaultSkinTone: Number(defaultSkinTone ?? 0),
       }),
-    defaultProps: { defaultSkinTone: 0, maxRecent: 16, initialFocus: 'none' },
-    surfacedProps: ['defaultSkinTone', 'maxRecent', 'initialFocus'],
+    defaultProps: {
+      defaultSkinTone: 0,
+      maxRecent: 16,
+      initialFocus: 'none',
+      tabsVariant: 'secondary',
+    },
+    surfacedProps: ['defaultSkinTone', 'maxRecent', 'initialFocus', 'tabsVariant'],
     controlKinds: { defaultSkinTone: 'number' },
     enumOptions: { defaultSkinTone: ['0', '1', '2', '3', '4', '5'] },
     numberRanges: { maxRecent: { min: 0, max: 48, step: 8 } },
