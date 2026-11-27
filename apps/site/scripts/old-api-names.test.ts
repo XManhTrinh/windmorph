@@ -106,10 +106,10 @@ const OLD_PATTERNS: [RegExp, string][] = [
 /**
  * Replaced names a later component took for something else, with the files where that use is
  * right: StatTile's `change.tone` (`good`, `bad`, `neutral`; 0.2.10) is what a change means, not
- * a colour.
+ * a colour, and EmojiPicker's `labels.tone` (0.2.18) names a skin tone.
  */
 const REUSED: Record<string, RegExp> = {
-  tone: /(?:^|\/)(?:stat-tile|charts-figures)(?:[-./]|$)/,
+  tone: /(?:^|\/)(?:stat-tile|charts-figures|emoji-picker)(?:[-./]|$)/,
 };
 
 /**

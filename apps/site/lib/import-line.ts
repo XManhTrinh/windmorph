@@ -8,7 +8,8 @@ export type ImportEntry =
   | '@windmorph/react-pro/rich-text'
   | '@windmorph/react-pro/data-grid'
   | '@windmorph/react-pro/calendar'
-  | '@windmorph/react-pro/charts';
+  | '@windmorph/react-pro/charts'
+  | '@windmorph/react-pro/emoji-picker';
 
 /** Pages whose exports come from an entry other than their package's main one. */
 const ENTRY_BY_SLUG: Record<string, ImportEntry> = {
@@ -23,6 +24,7 @@ const ENTRY_BY_SLUG: Record<string, ImportEntry> = {
   'segmented-bar': '@windmorph/react-pro/charts',
   'ranked-bars': '@windmorph/react-pro/charts',
   'chart-frame': '@windmorph/react-pro/charts',
+  'emoji-picker': '@windmorph/react-pro/emoji-picker',
 };
 
 /** The entry a component page's exports come from. */

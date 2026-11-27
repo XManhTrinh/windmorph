@@ -248,7 +248,9 @@ export default async function ProPage() {
           <a href="/charts" className={LINK}>
             Charts
           </a>
-          .
+          . Its emoji picker (<InlineCode>@windmorph/react-pro/emoji-picker</InlineCode>) needs{' '}
+          <InlineCode>emojibase-data</InlineCode> and <InlineCode>emojibase</InlineCode> installed,
+          and only an app that imports it loads the emoji data.
         </p>
         <p className={TEXT}>
           Import Pro&apos;s stylesheet after the core&apos;s, and let Tailwind scan both packages.

@@ -67,6 +67,8 @@ const NO_ENUM_DEFAULT: Record<string, string> = {
  */
 const PRO_NO_ENUM_DEFAULT: Record<string, string> = {
   'Calendar.view': 'Controlled; `defaultView` holds the uncontrolled default.',
+  'EmojiPicker.skinTone': 'Controlled; `defaultSkinTone` holds the uncontrolled default.',
+  'EmojiPickerTrigger.skinTone': 'Controlled; `defaultSkinTone` holds the uncontrolled default.',
   'CalendarEvent.active': 'Set by the view while an operation is under way.',
   'CopyField.density': "Left out, it follows the theme's, as the core's TextField.",
   'ConfirmDialogActions.autoFocus': 'Left out, neither action takes focus as the row mounts.',

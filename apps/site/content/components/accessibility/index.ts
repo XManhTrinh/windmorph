@@ -9,6 +9,7 @@ import { reactionSummary } from './reaction-summary';
 import { textField } from './text-field';
 import { messageField } from './message-field';
 import { richMessageField } from './rich-message-field';
+import { emojiPicker } from './emoji-picker';
 import { select } from './select';
 import { autocomplete } from './autocomplete';
 import { fileTrigger } from './file-trigger';
@@ -105,6 +106,7 @@ export const ACCESSIBILITY: Record<string, ComponentAccessibility> = {
   'text-field': textField,
   'message-field': messageField,
   'rich-message-field': richMessageField,
+  'emoji-picker': emojiPicker,
   select: select,
   autocomplete: autocomplete,
   'file-trigger': fileTrigger,
