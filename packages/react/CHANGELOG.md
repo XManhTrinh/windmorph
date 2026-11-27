@@ -2,6 +2,14 @@
 
 All notable changes to `@windmorph/react`, newest first. Each version is grouped by kind (Added, Changed, Deprecated, Removed, Fixed, Security), and each entry links to its pull request. The [What's new](https://windmorph.dev/whats-new) page tells the same story in plain words.
 
+## 0.2.14 — 2026-11-27
+
+### Fixed
+
+- An open menu, popover, dialog or sheet no longer restyles its whole content on every render: its text direction is written only when it changes. ([#128](https://github.com/XManhTrinh/windmorph/pull/128))
+- A closed menu, dialog, sheet, tooltip or other overlay no longer stays in memory when a transition inside it (a reveal outlasting the fade) is still running as it leaves: the overlay now leaves once those transitions have ended too, within the 800ms fallback. ([#128](https://github.com/XManhTrinh/windmorph/pull/128))
+- `normalizeSearch` and `matchesSearch` (Select, Autocomplete) fold ø, ł, ß, æ, œ, þ, ð and the dotless ı too, so "lodz" finds "Łódź" and "strasse" finds "Straße". `ß` becomes two letters, so a normalized string can be longer than the text. ([#128](https://github.com/XManhTrinh/windmorph/pull/128))
+
 ## 0.2.13 — 2026-11-26
 
 ### Added
