@@ -535,6 +535,31 @@ describe('Select searchable', () => {
     expect(sheet).toHaveClass(height);
   });
 
+  it('names its sheet and list by aria-labelledby when there is no label', async () => {
+    const { baseElement } = render(
+      <>
+        <h2 id="country-heading">Country</h2>
+        <Select aria-labelledby="country-heading" searchable presentation="sheet" items={COUNTRIES}>
+          {(country: Country) => <SelectItem key={country.code}>{country.name}</SelectItem>}
+        </Select>
+      </>,
+    );
+    await userEvent.click(screen.getByRole('button', { name: /Country/ }));
+    expect(await screen.findByRole('dialog', { name: 'Country' })).toBeInTheDocument();
+    expect(screen.getByRole('listbox', { name: 'Country' })).toBeInTheDocument();
+    expect(await axeViolations(baseElement)).toEqual([]);
+  });
+
+  it('names its sheet by a label that is not a string', async () => {
+    render(
+      <Select label={<span>Sort by</span>} presentation="sheet">
+        <SelectItem key="newest">Newest first</SelectItem>
+      </Select>,
+    );
+    await userEvent.click(screen.getByRole('button', { name: /Sort by/ }));
+    expect(await screen.findByRole('dialog', { name: 'Sort by' })).toBeInTheDocument();
+  });
+
   it('leaves a sheet without a search at its own height', async () => {
     render(<Sort presentation="sheet" />);
     await userEvent.click(sortField());
