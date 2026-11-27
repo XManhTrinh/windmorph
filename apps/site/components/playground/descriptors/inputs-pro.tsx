@@ -58,6 +58,9 @@ const PhoneFieldAny = lazy(async () => ({
 const RichMessageFieldAny = lazy(async () => ({
   default: loose((await import('@windmorph/react-pro/rich-text')).RichMessageField),
 }));
+const EmojiPickerAny = lazy(async () => ({
+  default: loose((await import('@windmorph/react-pro/emoji-picker')).EmojiPicker),
+}));
 const MediaUploadGridAny = lazy(async () => ({
   default: loose((await import('@windmorph/react-pro')).MediaUploadGrid),
 }));
@@ -421,6 +424,39 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     importMembers: ['Avatar', 'MediaUploadGrid'],
     codeImports: [IMPORT_ICON_BUTTON],
     codeSlots: { 'aria-label': '"Write a comment"' },
+  },
+  'emoji-picker': {
+    component: 'EmojiPicker',
+    importFrom: '@windmorph/react-pro/emoji-picker',
+    notRendered: {
+      EmojiPickerTrigger:
+        'The button that opens this panel in a popover, a bottom sheet or docked below a message field; the examples show it in a field and on its own.',
+    },
+    render: ({ defaultSkinTone, ...props }) =>
+      createElement(EmojiPickerAny, {
+        ...props,
+        key: mountKey({ defaultSkinTone, ...props }, ['defaultSkinTone', 'initialFocus']),
+        // The preview keeps its picks in memory, so the page's own examples aren't changed.
+        storageKey: null,
+        defaultSkinTone: Number(defaultSkinTone ?? 0),
+      }),
+    defaultProps: { defaultSkinTone: 0, maxRecent: 16, initialFocus: 'none' },
+    surfacedProps: ['defaultSkinTone', 'maxRecent', 'initialFocus'],
+    controlKinds: { defaultSkinTone: 'number' },
+    enumOptions: { defaultSkinTone: ['0', '1', '2', '3', '4', '5'] },
+    numberRanges: { maxRecent: { min: 0, max: 48, step: 8 } },
+    notControlled: {
+      loadData:
+        'A function that loads the emoji data; the "Another language" example loads German.',
+      locale: 'The name the loaded data is kept under, which changes nothing to see.',
+      custom: 'A list of your own emoji; the "Custom emoji" example shows it.',
+      recent: 'The recently used list (controlled), which picks in the preview fill.',
+      defaultRecent: 'A starting recently used list of hexcodes, which picks in the preview fill.',
+      skinTone:
+        'Controlled; the preview sets the starting tone with `defaultSkinTone`, and the footer’s menu changes it.',
+      storageKey: 'Where picks are kept on the device; the preview keeps them in memory.',
+      icons: 'Replacement icons, one per category, the search and the trigger.',
+    },
   },
   'rich-message-field': {
     component: 'RichMessageField',

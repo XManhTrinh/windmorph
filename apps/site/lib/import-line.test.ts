@@ -3,6 +3,7 @@ import * as pro from '@windmorph/react-pro';
 import * as calendar from '@windmorph/react-pro/calendar';
 import * as charts from '@windmorph/react-pro/charts';
 import * as dataGrid from '@windmorph/react-pro/data-grid';
+import * as emojiPicker from '@windmorph/react-pro/emoji-picker';
 import * as richText from '@windmorph/react-pro/rich-text';
 import { describe, expect, it } from 'vitest';
 import { COMPONENT_META } from '../content/components/catalog';
@@ -20,6 +21,7 @@ const ENTRIES: Record<ImportEntry, Record<string, unknown>> = {
   '@windmorph/react-pro/data-grid': dataGrid,
   '@windmorph/react-pro/calendar': calendar,
   '@windmorph/react-pro/charts': charts,
+  '@windmorph/react-pro/emoji-picker': emojiPicker,
 };
 
 describe('component import lines', () => {

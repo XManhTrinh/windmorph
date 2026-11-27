@@ -54,6 +54,7 @@ const entryPaths = [
   join(proRoot, 'dist/data-grid.d.ts'),
   join(proRoot, 'dist/calendar.d.ts'),
   join(proRoot, 'dist/charts.d.ts'),
+  join(proRoot, 'dist/emoji-picker.d.ts'),
 ];
 /** The entries whose `use*` exports are documented as hooks, per package. */
 const hookEntries = [
@@ -69,6 +70,7 @@ const hookEntries = [
       join(proRoot, 'dist/data-grid.d.ts'),
       join(proRoot, 'dist/calendar.d.ts'),
       join(proRoot, 'dist/charts.d.ts'),
+      join(proRoot, 'dist/emoji-picker.d.ts'),
     ],
   },
 ];
@@ -93,6 +95,7 @@ const packages = [
       join(proRoot, 'dist/data-grid.d.ts'),
       join(proRoot, 'dist/calendar.d.ts'),
       join(proRoot, 'dist/charts.d.ts'),
+      join(proRoot, 'dist/emoji-picker.d.ts'),
     ],
     tsconfigPath: join(siteRoot, 'tsconfig.json'),
     sourceRoots: [

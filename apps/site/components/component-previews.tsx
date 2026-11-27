@@ -241,6 +241,19 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
       <Shape w={36} h={36} fill="primary" />
     </Row>
   ),
+  'emoji-picker': (
+    <Panel w={150} h={96} round="lg" fill="high">
+      <Shape w={126} h={16} fill="variant" round="full" />
+      <span className="grid grid-cols-6 gap-1">
+        {Array.from({ length: 12 }, (_, index) => (
+          <span
+            key={index}
+            className={`block size-4 rounded-full ${index === 4 ? 'bg-primary' : 'bg-tertiary-container'}`}
+          />
+        ))}
+      </span>
+    </Panel>
+  ),
   'rich-message-field': (
     <Panel w={190} h={64} round="lg" fill="high">
       <Row gap={1}>

@@ -163,6 +163,9 @@ for (const url of PAGES) {
         await assertPageHealthy(page, baseURL ?? DEFAULT_BASE_URL, url, { thenDark: true });
       });
     } else {
+      // A page showing a large collection takes axe longer: the emoji picker's ~1,900 cells
+      // take it about 15s on a laptop, and more on a CI runner.
+      test.beforeEach(() => test.setTimeout(60_000));
       test('renders (LTR / default mode)', async ({ page, baseURL }) => {
         await assertPageHealthy(page, baseURL ?? DEFAULT_BASE_URL, url, {});
       });
@@ -172,6 +175,7 @@ for (const url of PAGES) {
     }
     if (!isTabPage(url) || url.startsWith('/components/button/')) {
       test('renders in RTL', async ({ page, baseURL }) => {
+        if (!isTabPage(url)) test.setTimeout(60_000);
         await assertPageHealthy(page, baseURL ?? DEFAULT_BASE_URL, url, { dir: 'rtl' });
       });
     }

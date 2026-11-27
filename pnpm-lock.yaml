@@ -358,6 +358,12 @@ importers:
       '@windmorph/react':
         specifier: workspace:*
         version: link:../../packages/react
+      emojibase:
+        specifier: ^18.0.0
+        version: 18.0.0
+      emojibase-data:
+        specifier: ^18.0.0
+        version: 18.0.0(emojibase@18.0.0)
       motion:
         specifier: ^14.0.0
         version: 14.14.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -433,8 +439,8 @@ importers:
         version: 5.1.0(@types/node@26.6.6)(jsdom@30.1.3)(vite@8.3.8(@types/node@26.6.6)(jiti@2.7.0)(tsx@4.23.15))
     optionalDependencies:
       '@windmorph/react-pro':
-        specifier: github:XManhTrinh/windmorph-pro#a7b2247eba66b77f22ab09492fb1b074e0d39a15
-        version: git+https://github.com/XManhTrinh/windmorph-pro.git#a7b2247eba66b77f22ab09492fb1b074e0d39a15(1697118efbe6f4a5f593dc7ce79c9576)
+        specifier: github:XManhTrinh/windmorph-pro#10697dea0218b740f09cc85915cffef4fe71f14e
+        version: git+https://github.com/XManhTrinh/windmorph-pro.git#10697dea0218b740f09cc85915cffef4fe71f14e(ec459b1931762b3ee17f847ae91083e4)
 
   packages/react:
     dependencies:
@@ -2809,9 +2815,9 @@ packages:
   '@webcontainer/env@1.1.1':
     resolution: {integrity: sha512-6aN99yL695Hi9SuIk1oC88l9o0gmxL1nGWWQ/kNy81HigJ0FoaoTXpytCj6ItzgyCEwA9kF1wixsTuv5cjsgng==}
 
-  '@windmorph/react-pro@git+https://github.com/XManhTrinh/windmorph-pro.git#a7b2247eba66b77f22ab09492fb1b074e0d39a15':
-    resolution: {commit: a7b2247eba66b77f22ab09492fb1b074e0d39a15, repo: https://github.com/XManhTrinh/windmorph-pro.git, type: git}
-    version: 0.2.17
+  '@windmorph/react-pro@git+https://github.com/XManhTrinh/windmorph-pro.git#10697dea0218b740f09cc85915cffef4fe71f14e':
+    resolution: {commit: 10697dea0218b740f09cc85915cffef4fe71f14e, repo: https://github.com/XManhTrinh/windmorph-pro.git, type: git}
+    version: 0.2.18
     peerDependencies:
       '@tanstack/react-virtual': ^3.14.26
       '@tiptap/core': ^3.31.4
@@ -2824,7 +2830,8 @@ packages:
       '@tiptap/react': ^3.31.4
       '@tiptap/starter-kit': ^3.31.4
       '@tiptap/suggestion': ^3.31.4
-      '@windmorph/react': ^0.2.11
+      '@windmorph/react': ^0.2.13
+      emojibase-data: ^18.0.0
       motion: ^14.12.0
       react: ^19.0.0
       react-dom: ^19.0.0
@@ -2851,6 +2858,8 @@ packages:
       '@tiptap/starter-kit':
         optional: true
       '@tiptap/suggestion':
+        optional: true
+      emojibase-data:
         optional: true
       tailwindcss:
         optional: true
@@ -3173,6 +3182,15 @@ packages:
 
   electron-to-chromium@1.5.481:
     resolution: {integrity: sha512-dNUsbAP6E2S1dHIYEuN3cQ0dViThjMtpVRheGdvv5HgHFtzLi4Cu4Mbzms85YggP3Eh2VVZTl5+XxEN8ofCbmQ==}
+
+  emojibase-data@18.0.0:
+    resolution: {integrity: sha512-TPPRRYv2zPd0jKI+pTpMquwWNZXYAsC3IVsCMeg2X8y8fEzKwOks4/5bz0YavF5r6d71aGPpb6oDnUEwSLLMoA==}
+    peerDependencies:
+      emojibase: '*'
+
+  emojibase@18.0.0:
+    resolution: {integrity: sha512-5PG+EEt5zQ9qvqdHZw61+T9iz96g+r621QS/w8jEzPg+3mjzAdjl8LPLc+e9ABv/yboNfMwEair7aK9qKnwAbQ==}
+    engines: {node: '>=20.0.0'}
 
   empathic@2.1.0:
     resolution: {integrity: sha512-AnfC1ATldl49/cvZdLPDjBfrRNwbDO05aibiOtzQu3qtlbJtomNLhF30HEtn/7iBz50dlMECqATo3fG0LrdEgw==}
@@ -6778,7 +6796,7 @@ snapshots:
 
   '@webcontainer/env@1.1.1': {}
 
-  '@windmorph/react-pro@git+https://github.com/XManhTrinh/windmorph-pro.git#a7b2247eba66b77f22ab09492fb1b074e0d39a15(1697118efbe6f4a5f593dc7ce79c9576)':
+  '@windmorph/react-pro@git+https://github.com/XManhTrinh/windmorph-pro.git#10697dea0218b740f09cc85915cffef4fe71f14e(ec459b1931762b3ee17f847ae91083e4)':
     dependencies:
       '@internationalized/date': 3.12.4
       '@windmorph/react': link:packages/react
@@ -6803,6 +6821,7 @@ snapshots:
       '@tiptap/react': 3.34.0(@floating-ui/dom@1.8.0)(@tiptap/core@3.34.0(@tiptap/pm@3.34.0))(@tiptap/pm@3.34.0)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@tiptap/starter-kit': 3.34.0
       '@tiptap/suggestion': 3.34.0(@floating-ui/dom@1.8.0)(@tiptap/core@3.34.0(@tiptap/pm@3.34.0))(@tiptap/pm@3.34.0)
+      emojibase-data: 18.0.0(emojibase@18.0.0)
       tailwindcss: 4.3.3
     optional: true
 
@@ -7073,6 +7092,12 @@ snapshots:
       oxc-resolver: 11.21.2
 
   electron-to-chromium@1.5.481: {}
+
+  emojibase-data@18.0.0(emojibase@18.0.0):
+    dependencies:
+      emojibase: 18.0.0
+
+  emojibase@18.0.0: {}
 
   empathic@2.1.0: {}
 

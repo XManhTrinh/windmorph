@@ -64,6 +64,7 @@ import { ExpandableTextBody } from './expandable-text';
 import { ReactionPickerBody } from './reaction-picker';
 import { MessageFieldBody } from './message-field';
 import { RichMessageFieldBody } from './rich-message-field';
+import { EmojiPickerBody } from './emoji-picker';
 import { PhoneFieldBody } from './phone-field';
 import { SelectBody } from './select';
 import { PickerDialogBody } from './picker-dialog';
@@ -130,6 +131,7 @@ const BODIES: Record<string, ComponentDocLoader> = {
   'text-field': TextFieldBody,
   'message-field': MessageFieldBody,
   'rich-message-field': RichMessageFieldBody,
+  'emoji-picker': EmojiPickerBody,
   'pin-input': PinInputBody,
   'phone-field': PhoneFieldBody,
   'image-crop': ImageCropBody,

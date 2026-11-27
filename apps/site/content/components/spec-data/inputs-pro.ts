@@ -101,6 +101,50 @@ export const INPUTS_PRO_SPEC: Record<string, ComponentSpecData> = {
       },
     ],
   },
+  'emoji-picker': {
+    covers: [
+      {
+        name: 'The panel on its own (`EmojiPicker`)',
+        kind: 'configuration',
+        examples: ['emoji-picker/emoji-picker-panel', 'emoji-picker/emoji-picker-custom'],
+      },
+      {
+        name: 'In a message field’s tools, inserting at the caret',
+        kind: 'use case',
+        examples: ['emoji-picker/emoji-picker-message-field'],
+      },
+      {
+        name: 'Popover, bottom sheet or docked in the keyboard’s place (`presentation`)',
+        kind: 'configuration',
+        examples: ['emoji-picker/emoji-picker-message-field', 'emoji-picker/emoji-picker-status'],
+      },
+      {
+        name: 'A one-off pick that closes (`closeOnSelect`)',
+        kind: 'configuration',
+        examples: ['emoji-picker/emoji-picker-status'],
+      },
+      {
+        name: 'Custom emoji and their text (`custom`, `customText`)',
+        kind: 'configuration',
+        examples: ['emoji-picker/emoji-picker-custom'],
+      },
+      {
+        name: 'Another language’s data and words (`loadData`, `locale`, `LabelsProvider`)',
+        kind: 'configuration',
+        examples: ['emoji-picker/emoji-picker-german'],
+      },
+    ],
+    extensions: [
+      {
+        item: 'Not an M3 component',
+        note: 'M3 has no emoji picker; it is drawn with M3’s surface roles, the core’s secondary Tabs, SearchField, Menu, IconButton and BottomSheet, and the type scale.',
+      },
+      {
+        item: 'Only what the device draws',
+        note: 'Emoji newer than the device’s font, and flags where they draw as two letters, are hidden, found once per page with nothing stored.',
+      },
+    ],
+  },
   'rich-message-field': {
     covers: [
       {

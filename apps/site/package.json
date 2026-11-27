@@ -31,6 +31,8 @@
     "@tiptap/starter-kit": "3.34.0",
     "@tiptap/suggestion": "3.34.0",
     "@windmorph/react": "workspace:*",
+    "emojibase": "^18.0.0",
+    "emojibase-data": "^18.0.0",
     "motion": "^14.0.0",
     "next": "^16.4.5",
     "react": "^19.3.0",
@@ -59,6 +61,6 @@
     "vitest": "^5.0.3"
   },
   "optionalDependencies": {
-    "@windmorph/react-pro": "github:XManhTrinh/windmorph-pro#a7b2247eba66b77f22ab09492fb1b074e0d39a15"
+    "@windmorph/react-pro": "github:XManhTrinh/windmorph-pro#10697dea0218b740f09cc85915cffef4fe71f14e"
   }
 }
