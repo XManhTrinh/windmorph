@@ -104,6 +104,12 @@ describe('markdownParagraphs', () => {
       'Second.',
     ]);
   });
+
+  it('reads each item of a list as a paragraph, without its marker', () => {
+    expect(
+      markdownParagraphs('Where it goes:\n\n- `a`: the first,\n  still first.\n- `b`: the second.'),
+    ).toEqual(['Where it goes:', '`a`: the first, still first.', '`b`: the second.']);
+  });
 });
 
 describe('the generated descriptions', () => {
@@ -114,7 +120,7 @@ describe('the generated descriptions', () => {
     const visit = (records: { description?: string; keys?: unknown[] }[] | undefined) => {
       for (const record of records ?? []) {
         const outside = (record.description ?? '').replace(/`[^`]*`/g, '');
-        if (/<[a-z][^>]*>|^#+\s|^\s*[-*]\s|!\[/m.test(outside)) unread.push(outside);
+        if (/<[a-z][^>]*>|^#+\s|^\s*\*\s|!\[/m.test(outside)) unread.push(outside);
         visit(record.keys as typeof records);
       }
     };
