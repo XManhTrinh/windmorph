@@ -495,6 +495,8 @@ export const DATA_NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       defaultOpen: 'Pressing the preview’s button opens it.',
       open: 'Pressing the preview’s button opens it.',
       closeIcon: 'A replacement icon, shown only in the full-screen form below 600px.',
+      autoFocus:
+        'Whether its first control takes focus as it opens; the preview’s popover holds only text, so there is nothing to see.',
     },
     render: (props) =>
       createElement(
