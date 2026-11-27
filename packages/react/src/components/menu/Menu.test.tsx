@@ -21,6 +21,7 @@ import { ThemeScope } from '../../theme/ThemeScope';
 import { LocaleProvider } from '../locale/LocaleProvider';
 import { Button } from '../button/Button';
 import { IconButton } from '../icon-button/IconButton';
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '../dialog/Dialog';
 import { BottomSheet } from '../sheet/BottomSheet';
 import { SheetTrigger } from '../sheet/SheetTrigger';
 import {
@@ -335,6 +336,47 @@ describe('Menu', () => {
     expect(screen.getByRole('menuitem', { name: 'Beograd' })).toHaveFocus();
     await userEvent.keyboard('c');
     expect(screen.getByRole('menuitem', { name: 'Cetinje' })).toHaveFocus();
+  });
+
+  it('lets Escape on its closed button reach the dialog around it, and closes only itself when open', async () => {
+    render(
+      <DialogTrigger>
+        <Button>Settings</Button>
+        <Dialog>
+          <DialogTitle>Settings</DialogTitle>
+          <DialogContent>
+            <Button>Rename</Button>
+            <MenuTrigger>
+              <IconButton aria-label="Edit" icon={<span />} />
+              <Menu aria-label="Edit">
+                <MenuItem>Cut</MenuItem>
+                <MenuItem>Copy</MenuItem>
+              </Menu>
+            </MenuTrigger>
+          </DialogContent>
+        </Dialog>
+      </DialogTrigger>,
+    );
+    const settings = screen.getByRole('button', { name: 'Settings' });
+    await userEvent.click(settings);
+    const dialog = screen.getByRole('alertdialog', { name: 'Settings' });
+    await openMenu('Edit');
+    expect(screen.getByRole('menu', { name: 'Edit' })).toBeInTheDocument();
+    await userEvent.keyboard('{Escape}');
+    await closed();
+    expect(settings).toHaveAttribute('aria-expanded', 'true');
+    // Reached by the keyboard, the button shows its tooltip: the first Escape hides only the
+    // tooltip (WCAG 1.4.13), the next one reaches the dialog.
+    screen.getByRole('button', { name: 'Rename' }).focus();
+    await userEvent.tab();
+    expect(screen.getByRole('button', { name: 'Edit' })).toHaveFocus();
+    expect(screen.getByRole('tooltip')).toBeInTheDocument();
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('tooltip')).not.toBeInTheDocument());
+    expect(settings).toHaveAttribute('aria-expanded', 'true');
+    await userEvent.keyboard('{Escape}');
+    expect(settings).toHaveAttribute('aria-expanded', 'false');
+    await waitFor(() => expect(dialog).not.toBeInTheDocument(), { timeout: 1500 });
   });
 
   it('closes on Escape', async () => {
