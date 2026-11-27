@@ -27,8 +27,7 @@ export const emojiPicker: ComponentAccessibility = {
     },
     {
       keys: ['Escape'],
-      action:
-        'Closes the picker’s popover open beside the field, before the field’s own Escape.',
+      action: 'Closes the picker’s popover open beside the field, before the field’s own Escape.',
       where: 'In the message field’s text',
     },
     {
