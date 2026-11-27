@@ -448,7 +448,10 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     },
     surfacedProps: ['defaultSkinTone', 'maxRecent', 'initialFocus', 'tabsVariant'],
     controlKinds: { defaultSkinTone: 'number' },
-    enumOptions: { defaultSkinTone: ['0', '1', '2', '3', '4', '5'] },
+    enumOptions: {
+      defaultSkinTone: ['0', '1', '2', '3', '4', '5'],
+      tabsVariant: ['secondary', 'primary'],
+    },
     numberRanges: { maxRecent: { min: 0, max: 48, step: 8 } },
     notControlled: {
       loadData:
