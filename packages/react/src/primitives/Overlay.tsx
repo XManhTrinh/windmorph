@@ -319,11 +319,13 @@ export function Overlay({
   }, [focusedBefore, nested]);
 
   // `dir` is inherited through the DOM, which a portal leaves; copy the direction in
-  // effect where the overlay is declared onto the portalled wrapper.
+  // effect where the overlay is declared onto the portalled wrapper. Only a change is
+  // written: setting the attribute, even to the same value, restyles the whole overlay.
   useLayoutEffect(() => {
-    if (markerRef.current && scopeRef.current) {
-      scopeRef.current.dir = getComputedStyle(markerRef.current).direction;
-    }
+    const scope = scopeRef.current;
+    if (!markerRef.current || !scope) return;
+    const dir = getComputedStyle(markerRef.current).direction;
+    if (scope.dir !== dir) scope.dir = dir;
   });
   // On mount, copy it before the content's own layout effects run: they may read layout
   // (React Aria's scroll lock does), which resolves the content's first style, and so its
