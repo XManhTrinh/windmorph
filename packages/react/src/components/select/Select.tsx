@@ -504,9 +504,17 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
       ? errorMessage({ isInvalid, validationErrors, validationDetails })
       : (errorMessage ?? validationErrors.join(' '));
 
-  const searchLabelling = hasLabel
-    ? { 'aria-labelledby': labelProps.id }
-    : { 'aria-label': (rest as { 'aria-label'?: string })['aria-label'] };
+  const { 'aria-label': ariaLabel, 'aria-labelledby': ariaLabelledby } = rest as {
+    'aria-label'?: string;
+    'aria-labelledby'?: string;
+  };
+  // What names the field names its list and sheet too: the label, else the app's
+  // `aria-labelledby` (a heading above it), else its `aria-label`.
+  const labelledBy = hasLabel ? labelProps.id : ariaLabelledby;
+  // The search's own "Suggestions" label is dropped, so the list reads as the field's name.
+  const searchLabelling = labelledBy
+    ? { 'aria-labelledby': labelledBy, 'aria-label': undefined }
+    : { 'aria-label': ariaLabel };
   const list = searchable ? (
     <SearchList
       listProps={{
@@ -675,7 +683,9 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
           }
           {...(typeof label === 'string'
             ? { 'aria-label': label }
-            : { 'aria-label': (rest as { 'aria-label'?: string })['aria-label'] ?? '' })}
+            : labelledBy
+              ? { 'aria-labelledby': labelledBy }
+              : { 'aria-label': ariaLabel ?? '' })}
         >
           <div
             {...densityAttribute(density)}
