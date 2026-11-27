@@ -191,6 +191,30 @@ describe('Overlay', () => {
     expect(wrapper).toHaveAttribute('dir', 'rtl');
   });
 
+  it('sets the direction again only when it changes, since each write restyles the overlay', async () => {
+    const view = (dir: string, text: string) => (
+      <div dir={dir}>
+        <Overlay>
+          <div>{text}</div>
+        </Overlay>
+      </div>
+    );
+    const { rerender } = render(view('rtl', 'Menu'));
+    const wrapper = screen.getByText('Menu').closest('[data-overlay-scope]')!;
+    const writes: (string | null)[] = [];
+    const observer = new MutationObserver((records) => {
+      for (const record of records) writes.push((record.target as Element).getAttribute('dir'));
+    });
+    observer.observe(wrapper, { attributes: true, attributeFilter: ['dir'] });
+    rerender(view('rtl', 'Menu, again'));
+    await act(() => Promise.resolve());
+    expect(writes).toEqual([]);
+    rerender(view('ltr', 'Menu, again'));
+    await act(() => Promise.resolve());
+    observer.disconnect();
+    expect(writes).toEqual(['ltr']);
+  });
+
   it("has the direction before the content's layout effects run, without resolving styles", () => {
     // jsdom has neither `CSS.supports` nor `:dir()`; stand in for a browser's.
     vi.stubGlobal('CSS', { supports: () => true, escape: (value: string) => value });

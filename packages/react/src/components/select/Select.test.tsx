@@ -7,6 +7,8 @@ import { axeViolations } from '../../../test/axe';
 import { labelInNameViolations } from '../../../test/label-in-name';
 import { DirectionLocale } from '../../primitives/DomDirectionLocale';
 import { ThemeScope } from '../../theme/ThemeScope';
+import { Button } from '../button/Button';
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '../dialog/Dialog';
 import { SelectItem, SelectSection } from './option-list';
 import { Select, type SelectProps } from './Select';
 
@@ -25,6 +27,25 @@ function Sort(props: Partial<SelectProps<object, 'single' | 'multiple'>>) {
 }
 
 describe('Select', () => {
+  it('lets Escape on its closed field reach the dialog around it', async () => {
+    render(
+      <DialogTrigger>
+        <Button>Filters</Button>
+        <Dialog>
+          <DialogTitle>Filters</DialogTitle>
+          <DialogContent>
+            <Sort />
+          </DialogContent>
+        </Dialog>
+      </DialogTrigger>,
+    );
+    const filters = screen.getByRole('button', { name: 'Filters' });
+    await userEvent.click(filters);
+    sortField().focus();
+    await userEvent.keyboard('{Escape}');
+    expect(filters).toHaveAttribute('aria-expanded', 'false');
+  });
+
   it('takes its own density into the field and its menu, over its scope', async () => {
     const { container } = render(
       <ThemeScope density={-1}>

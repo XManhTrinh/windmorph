@@ -50,6 +50,68 @@ describe('usePresence', () => {
     expect(result.current.isPresent).toBe(false);
   });
 
+  describe('with other transitions still running as the exit ends', () => {
+    function setUp() {
+      const { result, rerender } = renderHook(({ open }) => usePresence(open), {
+        initialProps: { open: true },
+      });
+      rerender({ open: false });
+      const element = document.createElement('div');
+      const child = element.appendChild(document.createElement('div'));
+      const transition = (transitionProperty: string, playState: string) => {
+        let finish!: () => void;
+        const finished = new Promise<void>((resolve) => (finish = resolve));
+        return { transitionProperty, playState, finished, finish };
+      };
+      const reveal = transition('clip-path', 'running');
+      const label = transition('color', 'running');
+      const done = transition('opacity', 'finished');
+      // A looping CSS animation (a loading indicator) never finishes, so it isn't waited for.
+      const spinner = {
+        animationName: 'spin',
+        playState: 'running',
+        finished: new Promise(() => {}),
+      };
+      const getAnimations = vi.fn(() => [reveal, label, done, spinner] as unknown as Animation[]);
+      element.getAnimations = getAnimations;
+      void child;
+      const end = () =>
+        act(() =>
+          result.current.exitProps.onTransitionEnd({
+            target: element,
+            currentTarget: element,
+            propertyName: 'opacity',
+          } as unknown as TransitionEvent<HTMLElement>),
+        );
+      return { result, rerender, end, getAnimations, reveal, label };
+    }
+    const settle = () => act(() => new Promise((resolve) => setTimeout(resolve)));
+
+    it('waits for them to end, so the element leaves with every transitionend sent and React Aria never keeps it', async () => {
+      const { result, end, getAnimations, reveal, label } = setUp();
+      end();
+      expect(getAnimations).toHaveBeenCalledWith({ subtree: true });
+      await settle();
+      expect(result.current.isPresent).toBe(true);
+      reveal.finish();
+      await settle();
+      expect(result.current.isPresent).toBe(true);
+      label.finish();
+      await settle();
+      expect(result.current.isPresent).toBe(false);
+    });
+
+    it('stays when it opens again before they have', async () => {
+      const { result, rerender, end, reveal, label } = setUp();
+      end();
+      rerender({ open: true });
+      reveal.finish();
+      label.finish();
+      await settle();
+      expect(result.current).toMatchObject({ isPresent: true, isExiting: false });
+    });
+  });
+
   it('follows the open state at once when not animated', () => {
     const { result, rerender } = renderHook(({ open }) => usePresence(open, 'opacity', false), {
       initialProps: { open: true },
