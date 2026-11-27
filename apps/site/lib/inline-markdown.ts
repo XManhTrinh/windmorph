@@ -2,8 +2,10 @@
  * The small Markdown subset the library's JSDoc uses, parsed into nodes the props lists
  * render: code spans (`` `standard` ``), TSDoc references (`{@link Badge}`), links
  * (`[text](url)`), strong (`**text**`) and emphasis (`*text*`, `_text_`), with backslash
- * escapes. Soft line breaks read as spaces and a blank line starts a new paragraph. Anything
- * else stays plain text, so an unclosed marker is shown as written.
+ * escapes. Soft line breaks read as spaces and a blank line starts a new paragraph, as does
+ * each item of a `- ` list (its marker dropped, so each value of a list such as "- `auto`: …"
+ * reads as a paragraph of its own). Anything else stays plain text, so an unclosed marker is
+ * shown as written.
  */
 
 export type InlineNode =
@@ -20,11 +22,19 @@ const ESCAPABLE = /[\\`*_{}[\]()#+\-.!|<>~]/;
 /** Link targets that are safe to render: the web, mail, and the site's own paths. */
 const SAFE_HREF = /^(?:https?:\/\/|mailto:|\/(?!\/)|#|\.{1,2}\/)/i;
 
-/** A description's paragraphs: split on blank lines, each with its line breaks as spaces. */
+/**
+ * A description's paragraphs: split on blank lines and before each `- ` list item (its marker
+ * dropped), each with its line breaks as spaces.
+ */
 export function markdownParagraphs(text: string): string[] {
   return text
-    .split(/\n[ \t]*\n/)
-    .map((paragraph) => paragraph.replace(/\s*\n\s*/g, ' ').trim())
+    .split(/\n[ \t]*\n|\n(?=[ \t]*- )/)
+    .map((paragraph) =>
+      paragraph
+        .replace(/^[ \t]*- /, '')
+        .replace(/\s*\n\s*/g, ' ')
+        .trim(),
+    )
     .filter((paragraph) => paragraph !== '');
 }
 

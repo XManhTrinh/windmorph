@@ -84,6 +84,11 @@ export async function EmojiPickerBody(): Promise<ComponentDoc> {
               panel, a settings page, a status).
             </li>
             <li>
+              The category tabs are M3&apos;s secondary tabs by default;{' '}
+              <InlineCode>tabsVariant=&quot;primary&quot;</InlineCode> draws primary tabs, on the
+              picker or the trigger.
+            </li>
+            <li>
               For a short, fixed row of reactions to a message, use a{' '}
               <InlineCode>ReactionPicker</InlineCode> instead.
             </li>
@@ -107,9 +112,14 @@ export async function EmojiPickerBody(): Promise<ComponentDoc> {
           </p>
           <ul className={LIST}>
             <li>
-              <InlineCode>popover</InlineCode>: beside the button (
-              <InlineCode>placement</InlineCode>, <InlineCode>top-start</InlineCode> by default),
-              its height following the window.
+              <InlineCode>popover</InlineCode>: inside a message field, against the whole field,
+              above it (below where there&apos;s no room) and aligned to the side the button is on,
+              so it never covers the text being written; elsewhere,{' '}
+              <InlineCode>top-start</InlineCode> of the button. <InlineCode>placement</InlineCode>{' '}
+              changes the side, <InlineCode>anchorRef</InlineCode> places it against an element of
+              yours (a composer you lay out yourself), and its height follows the window. Beside a
+              field it isn&apos;t modal: the field stays usable, a press in it keeps the picker
+              open, and a press or focus elsewhere closes it.
             </li>
             <li>
               <InlineCode>sheet</InlineCode>: a modal bottom sheet with a drag handle, at most{' '}
@@ -117,12 +127,31 @@ export async function EmojiPickerBody(): Promise<ComponentDoc> {
               the top and its footer at the bottom.
             </li>
             <li>
-              <InlineCode>docked</InlineCode>: below the message field it&apos;s in, in the
-              keyboard&apos;s place, as messaging apps do on phones. The on-screen keyboard closes
-              and the panel takes its height, so the field stays in sight above it and each pick
-              shows in the text as it goes in. Nothing is dimmed; the emoji button becomes a
-              keyboard button (&ldquo;Show keyboard&rdquo;) that puts the caret back in the text,
-              and a press in the text goes back to typing too.
+              <InlineCode>docked</InlineCode>: in the message field it&apos;s in, with nothing
+              dimmed, so each pick shows in the text as it goes in.{' '}
+              <InlineCode>dockedPlacement</InlineCode> says where:
+              <ul className="mt-2 flex flex-col gap-2 ps-5 [&>li]:list-[circle]">
+                <li>
+                  <InlineCode>below</InlineCode>: in the keyboard&apos;s place, as messaging apps do
+                  on phones. The on-screen keyboard closes and the panel takes its height, so the
+                  field stays where it was. The emoji button becomes a keyboard button (&ldquo;Show
+                  keyboard&rdquo;) that puts the caret back in the text, and a press in the text
+                  goes back to typing too.
+                </li>
+                <li>
+                  <InlineCode>above</InlineCode>: above the field, taking the room of the
+                  conversation above it, so the field stays where it was. The button keeps its emoji
+                  icon and is named &ldquo;Hide emoji&rdquo; (<InlineCode>labels.hide</InlineCode>).
+                  Lay the conversation out to give the room up: in a flex column, the scrolling list
+                  above the field as <InlineCode>flex: 1</InlineCode> with{' '}
+                  <InlineCode>min-height: 0</InlineCode>, pinned to its end so the last messages
+                  stay in sight.
+                </li>
+                <li>
+                  <InlineCode>auto</InlineCode> (the default): above from the medium window size,
+                  where there&apos;s no on-screen keyboard to replace, below it under that.
+                </li>
+              </ul>
             </li>
             <li>
               <InlineCode>auto</InlineCode> (the default): the popover from the medium window size
@@ -133,9 +162,16 @@ export async function EmojiPickerBody(): Promise<ComponentDoc> {
           </ul>
           <p className={TEXT}>
             A pick keeps the picker open for more; Escape or a press outside closes it, and{' '}
-            <InlineCode>closeOnSelect</InlineCode> closes it on the first pick. The trigger&apos;s
-            button renders on the server; the panel&apos;s code and the data load on the
-            button&apos;s first hover, focus or press, so a closed trigger costs little.
+            <InlineCode>closeOnSelect</InlineCode> closes it on the first pick. Inside a message
+            field, <InlineCode>focusOnSelect</InlineCode> says where focus goes after a pick:{' '}
+            <InlineCode>auto</InlineCode> (the default) puts a mouse or pen pick back in the text,
+            the caret after the emoji, so the next keys typed carry on the message, keeps a keyboard
+            pick on the emoji picked, and leaves a touch where it was, so the on-screen keyboard
+            stays down; <InlineCode>picker</InlineCode> always stays in the picker and{' '}
+            <InlineCode>field</InlineCode> always goes back to the text. In the sheet focus stays in
+            the sheet. The trigger&apos;s button renders on the server; the panel&apos;s code and
+            the data load on the button&apos;s first hover, focus or press, so a closed trigger
+            costs little.
           </p>
         </section>
         <section className={SECTION}>
@@ -190,7 +226,10 @@ export async function EmojiPickerBody(): Promise<ComponentDoc> {
             <InlineCode>custom</InlineCode>; draw its image wherever you show that text.{' '}
             <InlineCode>src</InlineCode> is drawn lazily; <InlineCode>animatedSrc</InlineCode> (GIF,
             WebP, APNG) plays only while the emoji is hovered or focused and in the preview, and
-            never under reduced motion, so the grid stays still.
+            never under reduced motion, so the grid stays still. An image that fails to load falls
+            back: a failed <InlineCode>animatedSrc</InlineCode> to <InlineCode>src</InlineCode>, and
+            a failed <InlineCode>src</InlineCode> to the label&apos;s first letter on a circle, the
+            cell keeping its name.
           </p>
         </section>
         <section className={SECTION}>
@@ -204,8 +243,9 @@ export async function EmojiPickerBody(): Promise<ComponentDoc> {
               again, so repeated presses never land on a moved emoji.
             </li>
             <li>
-              One skin tone applies to the whole picker, chosen from the menu in its footer; an
-              emoji of two people takes its same-tone form.
+              One skin tone applies to the whole picker, chosen from the menu in its footer (opening
+              from the button&apos;s end, so it stays over the picker); an emoji of two people takes
+              its same-tone form.
             </li>
             <li>
               Both are kept in <InlineCode>localStorage</InlineCode> under{' '}
@@ -239,8 +279,11 @@ export async function EmojiPickerBody(): Promise<ComponentDoc> {
           the trigger, <InlineCode>className</InlineCode> goes on its button, and its{' '}
           <InlineCode>classNames</InlineCode> take <CodeList names={TRIGGER_SLOTS} /> (the
           picker&apos;s own keys). The root carries <InlineCode>data-loading</InlineCode>,{' '}
-          <InlineCode>data-error</InlineCode>, <InlineCode>data-searching</InlineCode> and{' '}
-          <InlineCode>data-skin-tone</InlineCode>.
+          <InlineCode>data-error</InlineCode>, <InlineCode>data-searching</InlineCode>,{' '}
+          <InlineCode>data-skin-tone</InlineCode> and <InlineCode>data-tabs-variant</InlineCode>.
+          Docked above a field, the picker sits in the field&apos;s{' '}
+          <InlineCode>classNames.panelAbove</InlineCode> slot; below it, in{' '}
+          <InlineCode>classNames.panel</InlineCode>.
         </p>
         <TokenTable set={emojiPickerTokenSet} caption="EmojiPicker tokens" />
       </section>
