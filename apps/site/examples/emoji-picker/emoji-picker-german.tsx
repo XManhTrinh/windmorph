@@ -1,7 +1,8 @@
 'use client';
 
 import { LabelsProvider } from '@windmorph/react';
-import { EmojiPicker } from '@windmorph/react-pro/emoji-picker';
+import { EmojiPickerTrigger } from '@windmorph/react-pro/emoji-picker';
+import { useState } from 'react';
 
 const CATEGORIES = {
   recent: 'Zuletzt verwendet',
@@ -23,6 +24,7 @@ const TONES = ['Keine Hautfarbe', 'Hell', 'Mittelhell', 'Mittel', 'Mitteldunkel'
  * picker's `labels`). Search for „Katze“ or „Kuchen“.
  */
 export function EmojiPickerGerman() {
+  const [picked, setPicked] = useState<string | null>(null);
   return (
     <LabelsProvider
       labels={{
@@ -44,12 +46,16 @@ export function EmojiPickerGerman() {
         },
       }}
     >
-      <EmojiPicker
-        lang="de"
-        storageKey={null}
-        locale="de"
-        loadData={() => import('emojibase-data/de/data.json')}
-      />
+      <div className="flex items-center gap-2" lang="de">
+        <EmojiPickerTrigger
+          aria-label="Emoji auswählen"
+          storageKey={null}
+          locale="de"
+          loadData={() => import('emojibase-data/de/data.json')}
+          onEmojiSelect={({ emoji, label }) => setPicked(`${emoji} ${label}`)}
+        />
+        <p className="text-body-large text-on-surface">{picked ?? 'Noch nichts ausgewählt'}</p>
+      </div>
     </LabelsProvider>
   );
 }

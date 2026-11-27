@@ -1,7 +1,7 @@
 'use client';
 
 import {
-  EmojiPicker,
+  EmojiPickerTrigger,
   type CustomEmoji,
   type EmojiSelection,
 } from '@windmorph/react-pro/emoji-picker';
@@ -57,14 +57,15 @@ const TEAM_EMOJI: CustomEmoji[] = [
 export function EmojiPickerCustom() {
   const [picked, setPicked] = useState<EmojiSelection | null>(null);
   return (
-    <div className="flex flex-wrap items-start gap-6">
-      <EmojiPicker
+    <div className="flex items-center gap-2">
+      <EmojiPickerTrigger
+        aria-label="Choose a team emoji"
         storageKey={null}
         custom={TEAM_EMOJI}
         customText={(emoji) => `:team-${emoji.id}:`}
         onEmojiSelect={setPicked}
       />
-      <p className="text-body-large text-on-surface" aria-live="polite">
+      <p className="text-body-large text-on-surface">
         {picked ? `${picked.label}: ${picked.emoji}` : 'Nothing picked yet'}
       </p>
     </div>
