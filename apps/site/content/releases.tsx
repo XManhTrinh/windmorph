@@ -34,6 +34,49 @@ const CORE_PAGE_COUNT = COMPONENT_META.filter(
  */
 export const RELEASES: Release[] = [
   {
+    version: '0.2.14',
+    date: '2026-11-27',
+    summary: (
+      <>
+        Overlays that leave cleanly and search that folds more letters. In Windmorph Pro, an emoji
+        picker that keeps out of the way of the text you&apos;re writing.
+      </>
+    ),
+    sections: [
+      {
+        title: 'Fixes',
+        items: [
+          <>
+            A closed menu, dialog, sheet or tooltip no longer stays in the page while a transition
+            inside it is still running, and an open one no longer restyles its content on every
+            render.
+          </>,
+          <>
+            Search in <InlineCode>Select</InlineCode> and <InlineCode>Autocomplete</InlineCode>{' '}
+            folds ø, ł, ß, æ, œ, þ, ð and the dotless ı, so &quot;strasse&quot; finds
+            &quot;Straße&quot;.
+          </>,
+        ],
+      },
+      {
+        title: 'Windmorph Pro',
+        items: [
+          <>
+            In a message field, <InlineCode>EmojiPicker</InlineCode>&apos;s popover opens against
+            the field instead of over its text, and a pick with the mouse puts you back in the text
+            (<InlineCode>focusOnSelect</InlineCode>). Docked on a computer, it opens above the field
+            and leaves it in place (<InlineCode>dockedPlacement</InlineCode>).
+          </>,
+          <>
+            The picker takes primary or secondary tabs (<InlineCode>tabsVariant</InlineCode>), its
+            skin tone menu stays over the picker, a custom emoji that fails to load shows a
+            fallback, and a message field&apos;s counter counts characters as people see them.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: '0.2.13',
     date: '2026-11-26',
     summary: (
