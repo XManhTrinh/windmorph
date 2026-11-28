@@ -86,7 +86,7 @@ export const emojiPicker: ComponentAccessibility = {
   ],
   touchTarget: [
     'Each emoji is a 48 × 48px cell, as is the trigger’s icon button.',
-    'The ten category tabs share the panel’s width: about 40px each in the 408px panel and 33px on a 360px phone, above WCAG 2.5.8’s 24px but below M3’s 48px, which would need 480px.',
+    'The category tabs share the panel’s width: eight by default (51px each in the 408px panel, M3’s 48px), and up to ten with Recently used (after a pick) and Custom (with `custom`): about 40px each in the 408px panel and 33px on a 360px phone at worst, above WCAG 2.5.8’s 24px.',
   ],
   motion: [
     'Under reduced motion a chosen category scrolls into place at once instead of smoothly, and the popover and sheet keep only their fades.',

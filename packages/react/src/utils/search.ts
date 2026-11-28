@@ -20,7 +20,7 @@ const LETTER = new RegExp('[' + Object.keys(LETTERS).join('') + ']', 'gu');
 /**
  * Lower case without accents, so a search for "zurich" finds "Zürich" and "cote" finds
  * "Côte d'Ivoire". Letters of their own are written as the letters a search types for them:
- * `đ` and `ð` as `d`, `ø` as `o`, `ł` as `l`, `ß` as `ss`, `æ` as `ae`, `œ` as `oe`,
+ * `đ` and `ð` as `d`, `ø` as `o`, `ł` and `ŀ` as `l`, `ß` as `ss`, `æ` as `ae`, `œ` as `oe`,
  * `þ` as `th` and the dotless `ı` as `i`, so "dakovo" finds "Đakovo", "lodz" finds "Łódź"
  * and "strasse" finds "Straße". The result can be longer than `text` (`ß` is two letters),
  * so its positions don't map back onto `text`.
