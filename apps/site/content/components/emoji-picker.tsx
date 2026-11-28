@@ -185,10 +185,7 @@ export async function EmojiPickerBody(): Promise<ComponentDoc> {
               never from a third-party server, and kept for the page by{' '}
               <InlineCode>locale</InlineCode>. The default is English. The names and keywords are
               Unicode CLDR&apos;s, under the{' '}
-              <a
-                className="text-primary underline"
-                href="https://www.unicode.org/license.txt"
-              >
+              <a className="text-primary underline" href="https://www.unicode.org/license.txt">
                 Unicode License v3
               </a>
               : credit them where your app lists its licences.

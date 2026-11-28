@@ -42,6 +42,7 @@ export function EmojiPickerGerman() {
           skinTone: 'Hautfarbe',
           skinToneButton: (tone) => `Hautfarbe, ${tone}`,
           keyboard: 'Tastatur einblenden',
+          hide: 'Emojis ausblenden',
           tone: (tone) => TONES[tone] ?? '',
         },
       }}
