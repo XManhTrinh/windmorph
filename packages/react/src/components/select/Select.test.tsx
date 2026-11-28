@@ -551,7 +551,7 @@ describe('Select searchable', () => {
   });
 
   it.each([
-    ['popover', 'popover'],
+    ['menu', 'menu'],
     ['sheet', 'sheet'],
   ] as const)(
     'names its %s list and dialog as the field when aria-label and aria-labelledby are both given',
