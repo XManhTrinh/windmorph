@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { gotoReady } from './navigate';
 import { exportedPages, isTabPage } from './pages';
 
@@ -65,3 +65,61 @@ for (const url of PAGES) {
     await expect.poll(() => page.evaluate(wrongPreviews, CLIP_ALLOWANCE)).toEqual([]);
   });
 }
+
+/*
+ * A preview that scrolls sideways is a tab stop, so it shows the focus indicator when the
+ * keyboard reaches it (WCAG 2.4.7): Tailwind's `outline-none` sets the outline style a later
+ * `outline-2` reads, so the preview once drew a 2px outline of style `none`. And it stays a tab
+ * stop while it has focus, even when it stops scrolling (a phone turned sideways), so focus
+ * never drops to the page; it leaves the Tab order once focus moves on.
+ */
+test.describe('a preview that scrolls sideways', () => {
+  /** The time picker's dial preview, wider than a 360px phone, focused by Tab. */
+  const focusOverflowingPreview = async (page: Page) => {
+    await gotoReady(page, '/components/time-picker');
+    const preview = page
+      .locator('[data-example="time-picker/time-picker-dial"]')
+      .locator('xpath=..');
+    await expect(preview).toHaveAttribute('tabindex', '0');
+    // Reach it from the control before it, so the focus is the keyboard's.
+    await preview.focus();
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Tab');
+    await expect(preview).toBeFocused();
+    return preview.elementHandle();
+  };
+
+  test('shows the focus indicator', async ({ page }) => {
+    const preview = await focusOverflowingPreview(page);
+    const outline = await preview!.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        focusVisible: element.matches(':focus-visible'),
+        style: style.outlineStyle,
+        width: Number.parseFloat(style.outlineWidth),
+      };
+    });
+    expect(outline.focusVisible).toBe(true);
+    expect(outline.style).not.toBe('none');
+    expect(outline.width).toBeGreaterThanOrEqual(2);
+  });
+
+  test('keeps focus when it stops scrolling, then leaves the Tab order', async ({ page }) => {
+    const preview = (await focusOverflowingPreview(page))!;
+    await page.setViewportSize({ width: 1280, height: 740 });
+    await expect
+      .poll(() => preview.evaluate((element) => element.hasAttribute('data-overflows')))
+      .toBe(false);
+    expect(await preview.evaluate((element) => element === document.activeElement)).toBe(true);
+    expect(await preview.evaluate((element) => element.tabIndex)).toBe(0);
+    await preview.evaluate((element) => element.blur());
+    await expect
+      .poll(() =>
+        preview.evaluate((element) => ({
+          tabIndex: element.getAttribute('tabindex'),
+          role: element.getAttribute('role'),
+        })),
+      )
+      .toEqual({ tabIndex: null, role: null });
+  });
+});

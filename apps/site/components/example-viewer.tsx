@@ -128,6 +128,11 @@ export function ExampleViewer({
   // A state, not a ref: in `tabbed` mode the preview mounts with its tab panel, after this.
   const [previewElement, setPreviewElement] = useState<HTMLDivElement | null>(null);
   const overflows = useOverflowsInline(previewElement);
+  // Whether the preview itself has focus. It stays a tab stop until it loses focus: dropping
+  // its `tabIndex` while focused (a phone turned sideways, so it stops scrolling) would send
+  // focus to the page.
+  const [previewFocused, setPreviewFocused] = useState(false);
+  const tabStop = overflows || previewFocused;
 
   // An example wider than a phone's preview (a fixed-size dial, a row of buttons) scrolls
   // sideways inside its box instead of pushing the page sideways (WCAG 1.4.10). Never
@@ -137,12 +142,20 @@ export function ExampleViewer({
   // example scrolls out of sight in. Only while the content is wider than the box, though: any
   // overflow clips both axes, and an example that fits keeps what it draws past the padding
   // (a slider's value label above its thumb). While it scrolls, the preview is a named region
-  // in the Tab order, so the keyboard can scroll it too (WCAG 2.1.1).
+  // in the Tab order, so the keyboard can scroll it too (WCAG 2.1.1), and it stays there until
+  // focus leaves it. Its focus indicator is a solid outline: Tailwind's `outline-none` sets the
+  // outline style that `outline-2` reads, which drew a 2px outline of style `none`.
   const preview = (
     <div
       ref={setPreviewElement}
       onPointerDown={stopSwipe}
-      {...(overflows && {
+      onFocus={(event) => {
+        if (event.target === event.currentTarget) setPreviewFocused(true);
+      }}
+      onBlur={(event) => {
+        if (event.target === event.currentTarget) setPreviewFocused(false);
+      }}
+      {...(tabStop && {
         role: 'region',
         'aria-label': title ?? 'Example',
         tabIndex: 0,
@@ -151,7 +164,7 @@ export function ExampleViewer({
       className={cn(
         'flex min-w-0 flex-wrap items-center gap-4 rounded-corner-large',
         overflows && 'overflow-x-auto overflow-y-hidden',
-        'bg-surface-container-low p-6 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary',
+        'bg-surface-container-low p-6 outline-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-secondary',
       )}
     >
       {children}
