@@ -550,6 +550,60 @@ describe('Select searchable', () => {
     expect(await axeViolations(baseElement)).toEqual([]);
   });
 
+  it.each([
+    ['popover', 'popover'],
+    ['sheet', 'sheet'],
+  ] as const)(
+    'names its %s list and dialog as the field when aria-label and aria-labelledby are both given',
+    async (_, presentation) => {
+      const { baseElement } = render(
+        <>
+          <h2 id="ship-heading">Shipping</h2>
+          <Select
+            aria-label="Country"
+            aria-labelledby="ship-heading"
+            searchable
+            presentation={presentation}
+            items={COUNTRIES}
+          >
+            {(country: Country) => <SelectItem key={country.code}>{country.name}</SelectItem>}
+          </Select>
+        </>,
+      );
+      await userEvent.click(screen.getByRole('button', { name: /Country/ }));
+      expect(await screen.findByRole('dialog', { name: 'Country Shipping' })).toBeInTheDocument();
+      expect(screen.getByRole('listbox', { name: 'Country Shipping' })).toBeInTheDocument();
+      expect(await axeViolations(baseElement)).toEqual([]);
+    },
+  );
+
+  it.each([
+    ['plain', false],
+    ['searchable', true],
+  ] as const)(
+    'names its %s sheet and list by the label and aria-labelledby together',
+    async (_, searchable) => {
+      const { baseElement } = render(
+        <>
+          <h2 id="ship-heading">Shipping</h2>
+          <Select
+            label="Country"
+            aria-labelledby="ship-heading"
+            searchable={searchable}
+            presentation="sheet"
+            items={COUNTRIES}
+          >
+            {(country: Country) => <SelectItem key={country.code}>{country.name}</SelectItem>}
+          </Select>
+        </>,
+      );
+      await userEvent.click(screen.getByRole('button', { name: /Country/ }));
+      expect(await screen.findByRole('dialog', { name: 'Country Shipping' })).toBeInTheDocument();
+      expect(screen.getByRole('listbox', { name: 'Country Shipping' })).toBeInTheDocument();
+      expect(await axeViolations(baseElement)).toEqual([]);
+    },
+  );
+
   it('names its sheet by a label that is not a string', async () => {
     render(
       <Select label={<span>Sort by</span>} presentation="sheet">
