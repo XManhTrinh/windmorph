@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, IconButton, Tab, Tabs } from '@windmorph/react';
+import { Button, IconButton, Tab, Tabs, cn } from '@windmorph/react';
 import { CodeBlock, Collapse } from '@windmorph/react-pro';
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { exampleAnchor } from '../lib/example-anchor';
@@ -134,8 +134,10 @@ export function ExampleViewer({
   // vertically: `overflow-x: auto` alone makes the other axis `auto` too, and content that
   // overflows only in the scrollable-overflow sense (a touch target 4px past the padding,
   // positioned text that escapes its own scroller) would make the preview a scroller the
-  // example scrolls out of sight in. While the content is wider than the box, the preview is a
-  // named region in the Tab order, so the keyboard can scroll it too (WCAG 2.1.1).
+  // example scrolls out of sight in. Only while the content is wider than the box, though: any
+  // overflow clips both axes, and an example that fits keeps what it draws past the padding
+  // (a slider's value label above its thumb). While it scrolls, the preview is a named region
+  // in the Tab order, so the keyboard can scroll it too (WCAG 2.1.1).
   const preview = (
     <div
       ref={setPreviewElement}
@@ -146,7 +148,11 @@ export function ExampleViewer({
         tabIndex: 0,
       })}
       data-overflows={overflows || undefined}
-      className="flex min-w-0 flex-wrap items-center gap-4 overflow-x-auto overflow-y-hidden rounded-corner-large bg-surface-container-low p-6 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+      className={cn(
+        'flex min-w-0 flex-wrap items-center gap-4 rounded-corner-large',
+        overflows && 'overflow-x-auto overflow-y-hidden',
+        'bg-surface-container-low p-6 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary',
+      )}
     >
       {children}
     </div>

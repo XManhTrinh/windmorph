@@ -12,8 +12,13 @@ import { exportedPages, isTabPage } from './pages';
  * it never scrolls vertically (`overflow-x: auto` alone made DataTable's rows that scroll
  * under the header scroll out of sight inside it), and while its content is wider than its box
  * it is a named region in the Tab order, so the keyboard can scroll it (axe's
- * `scrollable-region-focusable`); one that fits is neither.
+ * `scrollable-region-focusable`); one that fits is neither. Only a preview that scrolls clips,
+ * and what it clips vertically is at most a touch target's few pixels past the padding: a preview
+ * that always clipped cut a slider's value label above its thumb.
  */
+
+/** How far past a clipping preview's box its content may reach: a 48px target round a 40px control. */
+const CLIP_ALLOWANCE = 4;
 
 const PAGES = exportedPages().filter((path) => !isTabPage(path));
 
@@ -23,18 +28,22 @@ test.use({ viewport: { width: 360, height: 740 } });
  * The example previews that a person can scroll vertically, or that don't expose their
  * sideways scrolling as they should.
  */
-const wrongPreviews = () =>
+const wrongPreviews = (clipAllowance: number) =>
   [...document.querySelectorAll<HTMLElement>('[data-example]')]
     .map((example) => example.parentElement)
     .filter((preview): preview is HTMLElement => preview !== null)
     .map((preview) => {
       const wider = preview.scrollWidth > preview.clientWidth + 1;
+      const style = getComputedStyle(preview);
       return {
         example: preview.querySelector('[data-example]')?.getAttribute('data-example'),
         wider,
         taller:
-          ['auto', 'scroll'].includes(getComputedStyle(preview).overflowY) &&
+          ['auto', 'scroll'].includes(style.overflowY) &&
           preview.scrollHeight > preview.clientHeight + 1,
+        clipped:
+          ['hidden', 'clip'].includes(style.overflowY) &&
+          preview.scrollHeight > preview.clientHeight + clipAllowance,
         exposed:
           preview.getAttribute('role') === 'region' &&
           Boolean(preview.getAttribute('aria-label')) &&
@@ -42,8 +51,8 @@ const wrongPreviews = () =>
         inTabOrder: preview.tabIndex === 0 || preview.hasAttribute('role'),
       };
     })
-    .filter(({ wider, taller, exposed, inTabOrder }) =>
-      wider ? taller || !exposed : taller || inTabOrder,
+    .filter(({ wider, taller, clipped, exposed, inTabOrder }) =>
+      wider ? taller || clipped || !exposed : taller || clipped || inTabOrder,
     );
 
 for (const url of PAGES) {
@@ -53,6 +62,6 @@ for (const url of PAGES) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
       360,
     );
-    await expect.poll(() => page.evaluate(wrongPreviews)).toEqual([]);
+    await expect.poll(() => page.evaluate(wrongPreviews, CLIP_ALLOWANCE)).toEqual([]);
   });
 }
