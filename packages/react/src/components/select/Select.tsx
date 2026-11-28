@@ -685,9 +685,7 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
                 ? { panel: classNames.sheet }
                 : undefined
           }
-          {...(labelledBy
-            ? { 'aria-labelledby': labelledBy }
-            : { 'aria-label': (typeof label === 'string' ? label : ariaLabel) ?? '' })}
+          {...(labelledBy ? { 'aria-labelledby': labelledBy } : { 'aria-label': ariaLabel ?? '' })}
         >
           <div
             {...densityAttribute(density)}
