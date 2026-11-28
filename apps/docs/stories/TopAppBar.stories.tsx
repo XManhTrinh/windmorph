@@ -106,6 +106,39 @@ export const LongTitle: Story = {
   ),
 };
 
+/**
+ * Long titles in a narrow column: the top row's title and subtitle end in an ellipsis within
+ * their column, start-aligned or centred, and a two-row bar's collapsed title (hidden at rest)
+ * stays inside the bar too.
+ */
+export const LongTitleNarrow: Story = {
+  render: () => (
+    <div className="flex w-[280px] flex-col gap-4" data-testid="bars">
+      <TopAppBar
+        title="Recipes saved for the long weekend away"
+        subtitle="Soups, sandwiches and salads for everyone"
+        navigationIcon={back}
+        actions={actions}
+      />
+      <TopAppBar
+        title="Recipes saved for the long weekend away"
+        subtitle="Soups, sandwiches and salads for everyone"
+        titleAlign="center"
+        navigationIcon={back}
+        actions={actions}
+      />
+      <TopAppBar
+        variant="large"
+        title="Recipes saved for the long weekend away"
+        subtitle="Soups, sandwiches and salads for everyone"
+        titleAlign="center"
+        navigationIcon={back}
+        actions={actions}
+      />
+    </div>
+  ),
+};
+
 const chips = (
   <ChipSet
     aria-label="Filter"
