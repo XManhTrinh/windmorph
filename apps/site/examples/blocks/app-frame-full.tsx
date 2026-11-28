@@ -47,7 +47,7 @@ export function AppFrameFull() {
           <a
             href="#demo-overview"
             aria-label="Workspace home"
-            className="-mt-9 flex size-12 items-center justify-center rounded-corner-large bg-primary-container text-title-medium text-on-primary-container no-underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+            className="-mt-9 flex size-12 items-center justify-center rounded-corner-large bg-primary-container text-title-medium text-on-primary-container no-underline outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-secondary"
           >
             <span aria-hidden="true">W</span>
           </a>
@@ -83,7 +83,7 @@ export function AppFrameFull() {
             ref={paneRef}
             // Always focusable, for the scroll keys and a skip link.
             tabIndex={paneTabIndex}
-            className="min-h-0 min-w-0 flex-1 overflow-y-auto bg-surface medium:mb-(--app-frame-gap) medium:h-[calc(100dvh-64px-var(--app-frame-gap))] medium:flex-none medium:grow medium:basis-0 medium:rounded-corner-large outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-secondary"
+            className="min-h-0 min-w-0 flex-1 overflow-y-auto bg-surface medium:mb-(--app-frame-gap) medium:h-[calc(100dvh-64px-var(--app-frame-gap))] medium:flex-none medium:grow medium:basis-0 medium:rounded-corner-large outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:-outline-offset-2 focus-visible:outline-secondary"
           >
             <header className="sticky top-0 z-10 bg-surface px-6 py-4">
               <h1 className="m-0 text-title-large">Overview</h1>

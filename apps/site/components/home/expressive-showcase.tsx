@@ -148,7 +148,7 @@ export function ExpressiveShowcase({ bentoVideo }: { bentoVideo?: BentoManifest 
           action={
             <Link
               href="/components"
-              className="group/link inline-flex items-center gap-1 rounded-sm text-label-large text-primary outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+              className="group/link inline-flex items-center gap-1 rounded-sm text-label-large text-primary outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-secondary"
             >
               Browse all
               <span className="inline-flex size-5 transition-transform group-hover/link:translate-x-0.5 rtl:group-hover/link:-translate-x-0.5 motion-reduce:transition-none">

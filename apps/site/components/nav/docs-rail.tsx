@@ -171,7 +171,7 @@ function RailContent({ settings, pathname }: { settings: ReactNode; pathname: st
           href="/"
           aria-label="Home"
           aria-current={pathname === '/' ? 'page' : undefined}
-          className="block size-14 rounded-corner-large outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+          className="block size-14 rounded-corner-large outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-secondary"
         >
           <img
             src="/windmorph-icon.png"

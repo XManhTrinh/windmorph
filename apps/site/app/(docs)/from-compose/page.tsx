@@ -16,7 +16,7 @@ import { guideMetadata } from '../../../lib/site-metadata';
 export const metadata: Metadata = guideMetadata('/from-compose');
 
 const LINK =
-  'rounded-sm text-primary underline underline-offset-2 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary';
+  'rounded-sm text-primary underline underline-offset-2 outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-secondary';
 
 /** The conventions that carry over from every composable to every component. */
 const CONVENTIONS: { compose: string; windmorph: string; note: string }[] = [

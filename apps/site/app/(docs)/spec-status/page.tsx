@@ -11,7 +11,7 @@ import { guideMetadata } from '../../../lib/site-metadata';
 export const metadata: Metadata = guideMetadata('/spec-status');
 
 const LINK =
-  'rounded-sm text-primary underline underline-offset-2 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary';
+  'rounded-sm text-primary underline underline-offset-2 outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-secondary';
 
 /** One component's counts, as the summary tables show them. */
 interface Summary {

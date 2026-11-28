@@ -15,7 +15,7 @@ export default function BlocksPage() {
       </p>
       <Link
         href="/blocks/app-frame"
-        className="flex flex-col gap-1 rounded-corner-large bg-surface-container p-6 no-underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+        className="flex flex-col gap-1 rounded-corner-large bg-surface-container p-6 no-underline outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-secondary"
       >
         <span className="text-title-large text-on-surface">App frame</span>
         <span className="text-body-medium text-on-surface-variant">

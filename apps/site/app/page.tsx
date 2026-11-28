@@ -222,7 +222,7 @@ export default async function HomePage() {
               Three steps to your first component. See the{' '}
               <a
                 href="/getting-started"
-                className="rounded-sm text-primary underline underline-offset-2 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+                className="rounded-sm text-primary underline underline-offset-2 outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-secondary"
               >
                 full guide
               </a>{' '}
