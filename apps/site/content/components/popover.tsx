@@ -44,11 +44,12 @@ export async function PopoverBody(): Promise<ComponentDoc> {
               With <InlineCode>modal={'{false}'}</InlineCode> it&apos;s a non-modal dialog for a
               panel that works beside its anchor (an emoji panel beside a message field): focus
               isn&apos;t held inside, nothing in the page is hidden or made inert, and the panel
-              follows its trigger in the Tab order (Tab from the trigger goes in, Shift + Tab from
-              its first control goes back to the trigger, Tab from its last goes on to what follows
-              the trigger). A press or focus in the anchor keeps it open, Escape in the
-              anchor&apos;s text closes it, and a press or focus anywhere else closes it. The
-              full-screen form below 600px is always modal.
+              follows its trigger in the Tab order: Tab from the trigger goes in and Tab from its
+              last control on to what follows the trigger, and Shift + Tab retraces that way back.
+              Arriving from anywhere else, it&apos;s passed over, so it&apos;s visited once each
+              way. A press or focus in the anchor keeps it open, Escape in the anchor&apos;s text
+              closes it, and a press or focus anywhere else closes it. The full-screen form below
+              600px is always modal.
             </li>
             <li>
               <InlineCode>closedBy</InlineCode> sets what closes it: <InlineCode>any</InlineCode>{' '}

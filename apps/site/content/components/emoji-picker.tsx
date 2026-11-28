@@ -25,6 +25,7 @@ const SLOTS = [
   'footer',
   'preview',
   'skinTone',
+  'fallback',
 ];
 const TRIGGER_SLOTS = ['button', 'popover', 'sheet', 'docked', 'picker'];
 
