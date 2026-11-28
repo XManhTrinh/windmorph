@@ -110,7 +110,7 @@ function ShapeTable() {
       role="region"
       aria-label={caption}
       tabIndex={0}
-      className="overflow-x-auto rounded-corner-large border border-outline-variant outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+      className="overflow-x-auto rounded-corner-large border border-outline-variant outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-secondary"
     >
       <table className="w-full text-start text-body-medium text-on-surface">
         <caption className="sr-only">{caption}</caption>

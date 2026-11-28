@@ -1,5 +1,5 @@
 const LINK =
-  'rounded-sm underline-offset-2 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary';
+  'rounded-sm underline-offset-2 outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-secondary';
 
 /**
  * The footer's links: where the code lives, the package, its licence, Pro, sponsoring the

@@ -45,8 +45,11 @@ export const topAppBarStyles = tv({
     navigation:
       'col-start-1 flex items-center ps-[8px] pe-[4px] text-[color:var(--_md-comp-app-bar-leading-icon-color)] [--md-comp-icon-button-icon-color:currentColor]',
     title: 'col-start-2 flex min-w-0 flex-col ps-[4px] pe-[4px]',
-    titleText: 'truncate text-[color:var(--_md-comp-app-bar-title-color)]',
-    subtitleText: 'truncate text-[color:var(--_md-comp-app-bar-subtitle-color)]',
+    // `max-w-full`: an aligned flex item (`items-start`, `items-center`) sizes to its text,
+    // which `truncate` keeps on one line, so a long title ran past its column (over the icons,
+    // and out of a narrow parent) instead of ending in an ellipsis.
+    titleText: 'max-w-full truncate text-[color:var(--_md-comp-app-bar-title-color)]',
+    subtitleText: 'max-w-full truncate text-[color:var(--_md-comp-app-bar-subtitle-color)]',
     actions:
       'col-start-3 flex items-center justify-end gap-[8px] ps-[4px] pe-[8px] text-[color:var(--_md-comp-app-bar-trailing-icon-color)] [--md-comp-icon-button-icon-color:currentColor]',
     // Two-row bars: the expanded title row.

@@ -4,7 +4,7 @@ import { Button, Checkbox, Radio, RadioGroup, TextField } from '@windmorph/react
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 
 const LINK =
-  'rounded-sm text-primary underline underline-offset-2 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary';
+  'rounded-sm text-primary underline underline-offset-2 outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-secondary';
 
 /** One set of choices to tick, shown as a fieldset: a catalog group's components, say. */
 export interface RegisterInterestGroup {
@@ -314,7 +314,7 @@ export function RegisterInterestForm({
             key={attempt}
             ref={messageRef}
             tabIndex={-1}
-            className="flex flex-col gap-2 rounded-corner-medium bg-secondary-container p-4 text-on-secondary-container outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+            className="flex flex-col gap-2 rounded-corner-medium bg-secondary-container p-4 text-on-secondary-container outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-secondary"
           >
             <p className="text-title-medium">{MESSAGES.sentTitle}</p>
             <p className="text-body-medium">{MESSAGES.sent(outcome.email)}</p>
@@ -324,7 +324,7 @@ export function RegisterInterestForm({
             key={attempt}
             ref={messageRef}
             tabIndex={-1}
-            className="mt-6 rounded-sm text-body-medium text-error outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+            className="mt-6 rounded-sm text-body-medium text-error outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-secondary"
           >
             {message}
           </div>

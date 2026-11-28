@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, IconButton, Tab, Tabs } from '@windmorph/react';
+import { Button, IconButton, Tab, Tabs, cn } from '@windmorph/react';
 import { CodeBlock, Collapse } from '@windmorph/react-pro';
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { exampleAnchor } from '../lib/example-anchor';
@@ -44,12 +44,68 @@ function stopSwipe(event: { stopPropagation: () => void }) {
 }
 
 /**
- * A documentation example: a title, the live preview on a quiet tinted surface, and below
- * it a "Show code" text button that unfolds the source with the library's collapse motion,
- * beside a copy button that confirms in the site snackbar. In `tabbed` mode the preview and
- * source sit in `Preview` / `Code` tabs. Composed from `@windmorph/react` (`Button`,
- * `IconButton`, `Tabs`) and `@windmorph/react-pro` (`CodeBlock`, `Collapse`).
+ * The boxes whose size decides whether `root`'s content is wider than it: `root` and its
+ * children, passing through wrappers without a box (`display: contents`, as each live
+ * example's own wrapper).
  */
+function layoutBoxes(root: Element): Element[] {
+  const boxes = [root];
+  const visit = (parent: Element) => {
+    for (const child of parent.children) {
+      if (getComputedStyle(child).display === 'contents') visit(child);
+      else boxes.push(child);
+    }
+  };
+  visit(root);
+  return boxes;
+}
+
+/**
+ * Whether `element`'s content is wider than its box, so it scrolls sideways. Measured once a
+ * frame at most: when it or one of its boxes resizes, and when the content changes (a live
+ * example loads after the page, a button group moves items into its overflow menu). Always
+ * `false` on the server and before the first measure.
+ */
+function useOverflowsInline(element: HTMLElement | null): boolean {
+  const [overflows, setOverflows] = useState(false);
+  useEffect(() => {
+    if (!element || typeof ResizeObserver === 'undefined') return;
+    let frame = 0;
+    const measure = () => {
+      // One pending measure at a time, so content that changes every frame (an animation)
+      // still gets measured instead of pushing the measure back forever.
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        setOverflows(element.scrollWidth > element.clientWidth + 1);
+      });
+    };
+    const resize = new ResizeObserver(measure);
+    const observeBoxes = () => {
+      resize.disconnect();
+      for (const box of layoutBoxes(element)) resize.observe(box);
+    };
+    const mutations = new MutationObserver((records) => {
+      if (records.some((record) => record.type === 'childList')) observeBoxes();
+      measure();
+    });
+    mutations.observe(element, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      characterData: true,
+    });
+    observeBoxes();
+    measure();
+    return () => {
+      cancelAnimationFrame(frame);
+      resize.disconnect();
+      mutations.disconnect();
+    };
+  }, [element]);
+  return overflows;
+}
+
 export function ExampleViewer({
   title,
   children,
@@ -69,10 +125,47 @@ export function ExampleViewer({
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
+  // A state, not a ref: in `tabbed` mode the preview mounts with its tab panel, after this.
+  const [previewElement, setPreviewElement] = useState<HTMLDivElement | null>(null);
+  const overflows = useOverflowsInline(previewElement);
+  // Whether the preview itself has focus. It stays a tab stop until it loses focus: dropping
+  // its `tabIndex` while focused (a phone turned sideways, so it stops scrolling) would send
+  // focus to the page.
+  const [previewFocused, setPreviewFocused] = useState(false);
+  const tabStop = overflows || previewFocused;
+
+  // An example wider than a phone's preview (a fixed-size dial, a row of buttons) scrolls
+  // sideways inside its box instead of pushing the page sideways (WCAG 1.4.10). Never
+  // vertically: `overflow-x: auto` alone makes the other axis `auto` too, and content that
+  // overflows only in the scrollable-overflow sense (a touch target 4px past the padding,
+  // positioned text that escapes its own scroller) would make the preview a scroller the
+  // example scrolls out of sight in. Only while the content is wider than the box, though: any
+  // overflow clips both axes, and an example that fits keeps what it draws past the padding
+  // (a slider's value label above its thumb). While it scrolls, the preview is a named region
+  // in the Tab order, so the keyboard can scroll it too (WCAG 2.1.1), and it stays there until
+  // focus leaves it. Its focus indicator is a solid outline: Tailwind's `outline-none` sets the
+  // outline style that `outline-2` reads, which drew a 2px outline of style `none`.
   const preview = (
     <div
+      ref={setPreviewElement}
       onPointerDown={stopSwipe}
-      className="flex flex-wrap items-center gap-4 rounded-corner-large bg-surface-container-low p-6"
+      onFocus={(event) => {
+        if (event.target === event.currentTarget) setPreviewFocused(true);
+      }}
+      onBlur={(event) => {
+        if (event.target === event.currentTarget) setPreviewFocused(false);
+      }}
+      {...(tabStop && {
+        role: 'region',
+        'aria-label': title ?? 'Example',
+        tabIndex: 0,
+      })}
+      data-overflows={overflows || undefined}
+      className={cn(
+        'flex min-w-0 flex-wrap items-center gap-4 rounded-corner-large',
+        overflows && 'overflow-x-auto overflow-y-hidden',
+        'bg-surface-container-low p-6 outline-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-secondary',
+      )}
     >
       {children}
     </div>

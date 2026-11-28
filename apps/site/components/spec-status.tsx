@@ -24,7 +24,7 @@ const KIND_LABELS = {
 } as const;
 
 const LINK =
-  'rounded-sm text-primary underline underline-offset-2 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary';
+  'rounded-sm text-primary underline underline-offset-2 outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-secondary';
 
 export function SpecStatusTag({ status }: { status: SpecStatusKind }) {
   return (

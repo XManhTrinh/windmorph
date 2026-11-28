@@ -47,9 +47,9 @@ export const RELEASES: Release[] = [
         title: 'Fixes',
         items: [
           <>
-            A closed menu, dialog, sheet or tooltip no longer stays in the page while a transition
-            inside it is still running, and an open one no longer restyles its content on every
-            render.
+            A closing menu, dialog, sheet or tooltip waits for the transitions still running inside
+            it before it leaves, instead of staying in memory, and an open one no longer restyles
+            its content on every render.
           </>,
           <>
             Search in <InlineCode>Select</InlineCode> and <InlineCode>Autocomplete</InlineCode>{' '}

@@ -183,7 +183,12 @@ export async function EmojiPickerBody(): Promise<ComponentDoc> {
               The emoji, their names and their search words come from{' '}
               <InlineCode>emojibase-data</InlineCode>, loaded on first open from your own bundle,
               never from a third-party server, and kept for the page by{' '}
-              <InlineCode>locale</InlineCode>. The default is English.
+              <InlineCode>locale</InlineCode>. The default is English. The names and keywords are
+              Unicode CLDR&apos;s, under the{' '}
+              <a className="text-primary underline" href="https://www.unicode.org/license.txt">
+                Unicode License v3
+              </a>
+              : credit them where your app lists its licences.
             </li>
             <li>
               For another language, pass that language&apos;s data and a{' '}

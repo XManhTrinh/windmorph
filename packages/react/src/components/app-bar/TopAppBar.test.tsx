@@ -315,6 +315,24 @@ describe('TopAppBar', () => {
     render(<TopAppBar variant="large" title="A very long title" data-testid="bar" />);
     expect(screen.getByTestId('bar').children[1]!.firstElementChild).toHaveClass('line-clamp-2');
   });
+
+  it.each(['start', 'center'] as const)(
+    'keeps a %s-aligned top-row title and subtitle to their column, ending in an ellipsis',
+    (titleAlign) => {
+      render(
+        <TopAppBar
+          variant="large"
+          title="A very long title"
+          subtitle="A long subtitle"
+          titleAlign={titleAlign}
+          data-testid="bar"
+        />,
+      );
+      // An aligned flex item sizes to its one-line text unless it's held to the column.
+      const column = screen.getByTestId('bar').firstElementChild!.children[0]!;
+      for (const text of column.children) expect(text).toHaveClass('max-w-full', 'truncate');
+    },
+  );
 });
 
 describe('TopAppBar component tokens', () => {

@@ -128,7 +128,7 @@ export default async function AccessibilityPage() {
           These components won’t type-check without an accessible name, so the requirement can’t be
           forgotten:
         </p>
-        <table className="w-full border-collapse text-body-medium">
+        <table className="w-full border-collapse text-body-medium [overflow-wrap:anywhere]">
           <thead>
             <tr>
               <th className="border-b border-outline-variant p-2 text-start text-title-small text-on-surface">
@@ -163,7 +163,7 @@ export default async function AccessibilityPage() {
           A per-family summary. Detailed per-component tables live on the individual component
           pages.
         </p>
-        <table className="w-full border-collapse text-body-medium">
+        <table className="w-full border-collapse text-body-medium [overflow-wrap:anywhere]">
           <thead>
             <tr>
               <th className="border-b border-outline-variant p-2 text-start text-title-small text-on-surface">

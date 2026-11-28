@@ -6,7 +6,7 @@ import { DATA_CONTROLLER } from './data-controller';
 export const metadata: Metadata = guideMetadata('/privacy');
 
 const LINK =
-  'rounded-sm text-primary underline underline-offset-2 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary';
+  'rounded-sm text-primary underline underline-offset-2 outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-secondary';
 const TEXT = 'text-body-large text-on-surface-variant';
 const LIST = `flex flex-col gap-2 ps-5 ${TEXT} [&>li]:list-disc`;
 

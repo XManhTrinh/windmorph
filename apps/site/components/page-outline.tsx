@@ -91,7 +91,7 @@ export function PageOutline() {
             <a
               href={`#${heading.id}`}
               aria-current={heading.id === active ? 'location' : undefined}
-              className={`-ms-px block border-s-2 border-transparent py-1.5 pe-2 ${heading.nested ? 'ps-8' : 'ps-4'} text-body-medium text-on-surface-variant outline-none transition-colors hover:text-on-surface focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-secondary aria-[current=location]:border-primary aria-[current=location]:text-body-medium-emphasized aria-[current=location]:text-primary motion-reduce:transition-none`}
+              className={`-ms-px block border-s-2 border-transparent py-1.5 pe-2 ${heading.nested ? 'ps-8' : 'ps-4'} text-body-medium text-on-surface-variant outline-none transition-colors hover:text-on-surface focus-visible:outline-2 focus-visible:outline-solid focus-visible:-outline-offset-2 focus-visible:outline-secondary aria-[current=location]:border-primary aria-[current=location]:text-body-medium-emphasized aria-[current=location]:text-primary motion-reduce:transition-none`}
             >
               {heading.text}
             </a>

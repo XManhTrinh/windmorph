@@ -182,6 +182,30 @@ test.describe('TopAppBar geometry and scrolling', () => {
     expect(Math.round(height)).toBe(Math.round(lineHeight * 2));
   });
 
+  test("a long top-row title ends in an ellipsis inside its column, never past the bar's edges", async ({
+    page,
+  }) => {
+    await openStory(page, 'components-topappbar--long-title-narrow');
+    const parts = await page.getByTestId('bars').evaluate((bars) =>
+      [...bars.querySelectorAll('header')].flatMap((bar) => {
+        const row = bar.firstElementChild!;
+        const column = row.children[1]!.getBoundingClientRect();
+        const edges = bar.getBoundingClientRect();
+        return [...row.children[1]!.children].map((text) => {
+          const box = text.getBoundingClientRect();
+          return {
+            inColumn: box.left >= column.left - 0.5 && box.right <= column.right + 0.5,
+            inBar: box.left >= edges.left - 0.5 && box.right <= edges.right + 0.5,
+            truncated: (text as HTMLElement).scrollWidth > (text as HTMLElement).clientWidth,
+          };
+        });
+      }),
+    );
+    expect(parts).toHaveLength(6);
+    for (const part of parts)
+      expect(part).toEqual({ inColumn: true, inBar: true, truncated: true });
+  });
+
   test('a pinned small bar turns surface-container once content is under it', async ({ page }) => {
     await openStory(
       page,

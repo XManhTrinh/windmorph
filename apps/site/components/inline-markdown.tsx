@@ -6,7 +6,7 @@ import { InlineCode } from './inline-code';
 export type ResolveCodeName = (name: string) => string | undefined;
 
 const LINK =
-  'rounded-sm text-primary underline underline-offset-2 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary';
+  'rounded-sm text-primary underline underline-offset-2 outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-secondary';
 
 function renderNodes(nodes: readonly InlineNode[], resolve?: ResolveCodeName): ReactNode[] {
   return nodes.map((node, index) => {

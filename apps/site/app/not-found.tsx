@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 const LINK =
-  'rounded-sm text-primary underline underline-offset-2 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary';
+  'rounded-sm text-primary underline underline-offset-2 outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-secondary';
 
 /** Where a reader most often meant to go. */
 const DESTINATIONS = [

@@ -508,9 +508,13 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
     'aria-label'?: string;
     'aria-labelledby'?: string;
   };
-  // What names the field names its list and sheet too: the label, else the app's
-  // `aria-labelledby` (a heading above it), else its `aria-label`.
-  const labelledBy = hasLabel ? labelProps.id : ariaLabelledby;
+  // What names the field's plain list names its searchable list, that list's dialog and the
+  // sheet too: React Aria's own `aria-labelledby` for the list box (the label and an app's
+  // `aria-labelledby` together, and the field itself when `aria-label` joins them), so every
+  // part reads the same name whichever of them the app gives. A field named only by
+  // `aria-label` passes it on as it is.
+  const menuLabelledBy = (menuProps as { 'aria-labelledby'?: string })['aria-labelledby'];
+  const labelledBy = (hasLabel || ariaLabelledby) && menuLabelledBy ? menuLabelledBy : undefined;
   // The search's own "Suggestions" label is dropped, so the list reads as the field's name.
   const searchLabelling = labelledBy
     ? { 'aria-labelledby': labelledBy, 'aria-label': undefined }
@@ -681,11 +685,7 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
                 ? { panel: classNames.sheet }
                 : undefined
           }
-          {...(typeof label === 'string'
-            ? { 'aria-label': label }
-            : labelledBy
-              ? { 'aria-labelledby': labelledBy }
-              : { 'aria-label': ariaLabel ?? '' })}
+          {...(labelledBy ? { 'aria-labelledby': labelledBy } : { 'aria-label': ariaLabel ?? '' })}
         >
           <div
             {...densityAttribute(density)}
