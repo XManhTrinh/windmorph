@@ -34,6 +34,50 @@ const CORE_PAGE_COUNT = COMPONENT_META.filter(
  */
 export const RELEASES: Release[] = [
   {
+    version: '0.2.15',
+    date: '2026-11-28',
+    summary: (
+      <>
+        A select that reads one name everywhere, and app bar titles that stay in their column. In
+        Windmorph Pro, a popover beside a field that the keyboard moves through in order.
+      </>
+    ),
+    sections: [
+      {
+        title: 'Fixes',
+        items: [
+          <>
+            A <InlineCode>Select</InlineCode> named by a heading above it (
+            <InlineCode>aria-labelledby</InlineCode>) gives that name to its bottom sheet and its
+            searchable list too, and a select with more than one name reads the same one on every
+            part.
+          </>,
+          <>
+            A long <InlineCode>TopAppBar</InlineCode> title or subtitle ends in an ellipsis within
+            its column instead of running over the icons.
+          </>,
+        ],
+      },
+      {
+        title: 'Windmorph Pro',
+        items: [
+          <>
+            Beside a message field, Tab and Shift + Tab move through the{' '}
+            <InlineCode>EmojiPicker</InlineCode>&apos;s popover once, in the same order both ways,
+            and on out of the page. Docked below the field with a mouse, the search box takes focus,
+            so typing searches at once.
+          </>,
+          <>
+            A custom emoji whose image fails shows its name&apos;s first letter, a compact{' '}
+            <InlineCode>DataTable</InlineCode> list held to a height no longer adds scroll room
+            around it, a video&apos;s first and last chapters grow to their ends under the pointer,
+            and video settings rows read the words they show.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: '0.2.14',
     date: '2026-11-27',
     summary: (
