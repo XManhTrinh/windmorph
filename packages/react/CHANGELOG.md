@@ -2,6 +2,14 @@
 
 All notable changes to `@windmorph/react`, newest first. Each version is grouped by kind (Added, Changed, Deprecated, Removed, Fixed, Security), and each entry links to its pull request. The [What's new](https://windmorph.dev/whats-new) page tells the same story in plain words.
 
+## 0.2.15 — 2026-11-28
+
+### Fixed
+
+- A `Select` given both `aria-label` and `aria-labelledby`, or a `label` and `aria-labelledby`, names its searchable list, that list's dialog and its bottom sheet as it names its plain list, so every part reads one name. ([#133](https://github.com/XManhTrinh/windmorph/pull/133))
+- A `Select` named by `aria-labelledby` (a heading above it) with no `label` gives that name to its bottom sheet and its searchable list too, as to the field; they had none (an empty `aria-label` on the sheet). A `label` that isn't a string names the sheet the same way, and a searchable list is named by the field's label alone, without the search's "Suggestions". ([#131](https://github.com/XManhTrinh/windmorph/pull/131))
+- A `TopAppBar`'s long top-row title and subtitle end in an ellipsis within their column. Start-aligned or centred, they ran past it, over the icons and out of a narrow parent (a two-row bar's collapsed title too, hidden at rest but still widening the page). ([#133](https://github.com/XManhTrinh/windmorph/pull/133))
+
 ## 0.2.14 — 2026-11-27
 
 ### Fixed
