@@ -67,7 +67,7 @@ export const select: ComponentAccessibility = {
   ],
   screenReader: {
     role: 'The field is a `button` with `aria-haspopup` (`listbox`, or `dialog` when `searchable`) and `aria-expanded`. The options are a `listbox` of `option`s, in `group`s under their headings when there are sections. A `searchable` menu is a `dialog` holding a search `combobox` (`aria-activedescendant`) over the listbox.',
-    name: 'The field is named by its `label` (with a `*` when `required`) and its value; without a label, by `aria-labelledby` (a heading above it) or `aria-label`. The listbox, the search dialog and the bottom sheet take the same name. The search input is named "Search" (`labels.search`).',
+    name: 'The field is named by its `label` (with a `*` when `required`) and its value; without a label, by `aria-labelledby` (a heading above it) or `aria-label`. Given together, they join (a `label` with `aria-labelledby` too). The listbox, the search dialog and the bottom sheet take the same name. The search input is named "Search" (`labels.search`).',
     states:
       "Selected or not on each option (`aria-selected`), `aria-multiselectable` with multiple selection and disabled options (`aria-disabled`). The field is a button, which ARIA doesn't let carry `aria-invalid` or `aria-required`, so a required field says so with the `*` in its name, and an invalid one with its error text, in its description and announced as an alert.",
     notes: [
