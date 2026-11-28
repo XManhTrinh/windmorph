@@ -11,7 +11,7 @@ import { useState } from 'react';
 export function EmojiPickerPanel() {
   const [picked, setPicked] = useState<EmojiSelection | null>(null);
   return (
-    <div className="flex flex-wrap items-start gap-6">
+    <div className="flex w-full min-w-0 flex-wrap items-start gap-6">
       <EmojiPicker storageKey="docs-emoji-picker" onEmojiSelect={setPicked} />
       <p className="text-body-large text-on-surface" aria-live="polite">
         {picked ? `${picked.emoji} ${picked.label}` : 'Nothing picked yet'}

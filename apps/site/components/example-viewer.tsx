@@ -69,10 +69,12 @@ export function ExampleViewer({
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
+  // An example wider than a phone's preview (a fixed-size dial, a row of buttons) scrolls
+  // inside its box instead of pushing the page sideways (WCAG 1.4.10).
   const preview = (
     <div
       onPointerDown={stopSwipe}
-      className="flex flex-wrap items-center gap-4 rounded-corner-large bg-surface-container-low p-6"
+      className="flex min-w-0 flex-wrap items-center gap-4 overflow-x-auto rounded-corner-large bg-surface-container-low p-6"
     >
       {children}
     </div>
