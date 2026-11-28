@@ -5,7 +5,7 @@ export const popover: ComponentAccessibility = {
     {
       keys: ['Tab'],
       action:
-        'Moves within the panel; focus stays inside while it’s open. With `modal={false}`, the panel follows its trigger in the Tab order: Tab from the trigger goes in, Shift + Tab from its first control back to the trigger, and Tab from its last on to what follows the trigger.',
+        'Moves within the panel; focus stays inside while it’s open. With `modal={false}`, the panel follows its trigger in the Tab order: Tab from the trigger goes in, Tab from its last control on to what follows the trigger, and Shift + Tab the same way back (from what follows into its last control, from its first to the trigger). Arriving from anywhere else, the panel is passed over, so it’s visited once each way.',
     },
     {
       keys: ['Escape'],

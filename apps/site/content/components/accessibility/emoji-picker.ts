@@ -68,7 +68,7 @@ export const emojiPicker: ComponentAccessibility = {
   ],
   screenReader: {
     role: 'The trigger is a `button`. The panel is a `group` holding a search box, a `tablist` of categories and one `grid`, with a `rowgroup` of `gridcell` rows per category. In a popover or sheet it sits in a `dialog`; the popover beside a message field is a non-modal one.',
-    name: 'The trigger, its dialog and the panel are named by `labels.title` ("Emoji"); the trigger docked below the field by `labels.keyboard` ("Show keyboard") and docked above it by `labels.hide` ("Hide emoji"). Each category’s rows are named by its heading, and each emoji by its name in the data’s language, with its tone ("waving hand: medium skin tone").',
+    name: 'The trigger, its dialog and the panel are named by `labels.title` ("Emoji"), or by the trigger’s `aria-label` / `aria-labelledby`, which name its popover and sheet too; the trigger docked below the field by `labels.keyboard` ("Show keyboard") and docked above it by `labels.hide` ("Hide emoji"). Each category’s rows are named by its heading, and each emoji by its name in the data’s language, with its tone ("waving hand: medium skin tone").',
     states:
       'The trigger is `aria-expanded` while the picker is open, and while docked it `aria-controls` the panel. The grid is named "Search results" while searching and is `aria-busy` while the emoji load; the selected category tab is `aria-selected`; the skin-tone button names the tone chosen ("Skin tone, Medium").',
     notes: [
@@ -78,7 +78,7 @@ export const emojiPicker: ComponentAccessibility = {
     ],
   },
   focus: [
-    'With a fine pointer the trigger opens with focus in the search box; with a coarse one (a phone, a tablet) on the panel itself, so an on-screen keyboard doesn’t cover it. `initialFocus` chooses on a panel of your own (`none` by default).',
+    'With a fine pointer the trigger opens with focus in the search box, docked too; with a coarse one (a phone, a tablet) on the panel itself, so an on-screen keyboard doesn’t cover it, unless `initialFocus` is `search`. `initialFocus` chooses on a panel of your own (`none` by default).',
     'Inside a message field, `focusOnSelect` (`auto` by default) puts a mouse or pen pick back in the text, the caret after the emoji, keeps a keyboard pick on the emoji picked and leaves a touch where it was; elsewhere, and in the sheet, focus stays in the picker between picks. It goes back to the trigger with `preventScroll` when the picker closes; the keyboard button of the panel docked below the field puts it back in the text instead.',
     'Focus is never dropped: an emoji that disappears with a search hands focus to the search box, and Try again holds it on the panel until the data is in.',
     'While the sheet is open, the message field behind it is inert, yet picks still go in at its kept caret. The popover beside a field is non-modal and the docked panel leaves the page as it is: the field stays usable, and the popover follows its trigger in Tab order. A popover away from a field is modal.',
