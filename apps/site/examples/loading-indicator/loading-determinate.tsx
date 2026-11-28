@@ -10,12 +10,12 @@ import { LoadingIndicator } from '@windmorph/react';
 export function LoadingDeterminate() {
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-6">
+      <div className="flex flex-wrap items-center gap-6">
         {[0, 0.25, 0.5, 0.75, 1].map((value) => (
           <LoadingIndicator key={value} value={value} aria-label="Refreshing feed" />
         ))}
       </div>
-      <div className="flex items-center gap-6">
+      <div className="flex flex-wrap items-center gap-6">
         {[24, 40, 64, 96].map((size) => (
           <LoadingIndicator
             key={size}
